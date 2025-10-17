@@ -1,0 +1,52 @@
+---
+alwaysApply: true
+---
+
+# Project: Mentorship CoPilot (Context)
+
+## Project Overview
+
+Mentorship CoPilot is an internal micro-app developed for the BairesDev AI Hackathon. Its purpose is to optimize and scale the internal mentorship program, transforming a currently manual and fragmented process into an intelligent, centralized, and results-driven workflow.
+
+The Problem to Solve
+Based on direct feedback from BairesDev PMs, the current process suffers from two critical pain points:
+
+Mentor Matching Difficulty: The specialized team struggles to find mentors for niche or highly specific technologies, leaving some developers without ideal support.
+
+Fragmented Tracking: Mentorship progress is tracked across decentralized tools (Slack, spreadsheets, emails). This prevents PMs from having a clear, standardized view of their team's development.
+
+The "Mentorship CoPilot" Solution
+The CoPilot solves this by focusing on two core features:
+
+Intelligent Matching: An AI that analyzes data (synthetic for the MVP) across all engineers to suggest the 3 most compatible mentors for each case, with a special focus on finding "hidden talent" in niche technologies.
+
+Tracking Hub: A centralized dashboard that acts as the "source of truth" for progress, where PMs can see status at a glance and Mentors can log standardized session reports.
+
+## MVP Route (UI) Structure
+
+Below is the list of the 5 essential pages/routes for the MVP, including the rationale for each.
+
+Page 1: PM Dashboard
+Route: /dashboard
+
+Purpose (The "Why"): This is the main view for the Project Manager. It directly attacks the "fragmented tracking" pain point. The page gives the PM a high-level, immediate overview of all active mentorships on their team, showing the progress status for each. It's the manager's "control center."
+
+Page 2: Create Mentorship Request
+Route: /request/new
+
+Purpose (The "Why"): This is the start of the workflow and the "AI-Assisted Creation" interface. It's an intelligent form where the PM selects the mentee and describes the challenge. The text entered here serves as the direct input for the AI analysis.
+
+Page 3: Mentor Recommendations
+Route: /request/recommendations/:id (or similar)
+
+Purpose (The "Why"): This is the "wow factor" screen and the core of our AI feature. After the PM submits the request, this page displays the analysis results: the Top 3 recommended mentors, complete with a justification for their compatibility. It directly solves the "niche matching" problem.
+
+Page 4: Mentor Dashboard
+Route: /mentor/dashboard
+
+Purpose (The "Why"): A simplified view for the Mentor. The goal is to reduce friction. Instead of a complex dashboard, they see only the mentorships they are actively conducting, encouraging participation and timely reporting.
+
+Page 5: Mentorship Workspace (Shared)
+Route: /mentorship/:id
+
+Purpose (The "Why"): This is the "source of truth" for a specific mentorship, visible to all stakeholders (PM, Mentor, Mentee). It's where the Mentor adds standardized session logs (replacing Excel/Slack) and serves as the data source that feeds the progress bars on the PM Dashboard.

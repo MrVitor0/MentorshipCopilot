@@ -1,0 +1,64 @@
+---
+alwaysApply: true
+---
+
+# General Rules
+
+- Always avoid unnecessary code and complexity.
+- Always avoid over-engineering and hardcoding.
+- Always avoid unnecessary comments and documentation.
+- Always avoid unnecessary logging and debugging.
+- Always WRITE in ENGLISH, never write in other languages.
+
+## Code Quality
+
+- Always write clean, readable, and maintainable code
+- Use meaningful variable and function names that clearly describe their purpose
+- Keep functions small and focused on a single responsibility
+- Add comments for complex logic, but prefer self-documenting code
+- Follow consistent code formatting and style guidelines
+- Remove unused imports, variables, and dead code
+
+## Error Handling
+
+- Always handle errors gracefully with proper try-catch blocks
+- Provide meaningful error messages that help with debugging
+- Log errors appropriately for monitoring and troubleshooting
+- Validate input parameters and handle edge cases
+- Use appropriate error types and status codes
+
+## Security
+
+- Never hardcode sensitive information like passwords, API keys, or tokens
+- Use environment variables for configuration and secrets
+- Validate and sanitize all user inputs to prevent injection attacks
+- Implement proper authentication and authorization
+- Keep dependencies updated to avoid security vulnerabilities
+
+## Performance
+
+- Optimize database queries and avoid N+1 problems
+- Use appropriate data structures and algorithms
+- Implement caching where beneficial
+- Minimize network requests and payload sizes
+- Profile and monitor application performance
+
+## Testing
+
+- Write unit tests for all business logic
+- Aim for good test coverage but focus on quality over quantity
+- Use descriptive test names that explain what is being tested
+- Test both happy paths and error scenarios
+- Keep tests independent and deterministic
+
+## Documentation
+
+- Only write documentation for the code if asked by the user.
+
+## Architecture
+
+- Follow SOLID principles and design patterns appropriately
+- Separate concerns and maintain loose coupling
+- Use dependency injection for better testability
+- Design for scalability and maintainability
+- Consider future requirements but avoid over-engineering
