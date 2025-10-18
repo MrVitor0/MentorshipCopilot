@@ -9,6 +9,10 @@ alwaysApply: true
 - Always avoid unnecessary comments and documentation.
 - Always avoid unnecessary logging and debugging.
 - Always WRITE in ENGLISH, never write in other languages.
+- Always consider responsive design and mobile-first approach.
+- Always use the TAILWIND CSS Baires and Neutral colors palette, unless otherwise specified.
+- Whenever you make UI/UX changes, always focus on something modern, cool, a well-rounded design with 3D elements, simple but cool animations, elegant elements. Always componentize things like buttons and inputs when needed and then reuse them. Let's focus on a very user-friendly "3D" website.
+- When using 3D elements, use tools and libraries, image links such as: Spline, React Three Fiber, Drei, Three.js, whichever you think is most worthwhile.
 
 ## Code Quality
 
