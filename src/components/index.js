@@ -6,5 +6,5 @@ export { default as ProgressBar } from './ProgressBar'
 export { default as Sidebar } from './Sidebar'
 export { default as StatCard } from './StatCard'
 export { default as ActivityItem } from './ActivityItem'
-export { default as Spline3D } from './Spline3D'
+export { default as AIChatModal } from './AIChatModal'
 

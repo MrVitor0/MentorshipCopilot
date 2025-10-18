@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import Sidebar from '../components/Sidebar'
 import Card from '../components/Card'
 import Button from '../components/Button'
@@ -6,7 +7,8 @@ import Badge from '../components/Badge'
 import StatCard from '../components/StatCard'
 import ActivityItem from '../components/ActivityItem'
 import ProgressBar from '../components/ProgressBar'
-import { Users, MessageSquare, Target, Star, TrendingUp, Lightbulb, Calendar, Search, Plus, Sparkles, BookOpen, PenSquare, Rocket } from 'lucide-react'
+import AIChatModal from '../components/AIChatModal'
+import { Users, MessageSquare, Target, Star, TrendingUp, Lightbulb, Calendar, Search, Plus, Sparkles, BookOpen, PenSquare, Rocket, Bot } from 'lucide-react'
 
 const recentActivities = [
   {
@@ -93,9 +95,29 @@ const getIconComponent = (iconName) => {
 }
 
 export default function Dashboard() {
+  const [isChatOpen, setIsChatOpen] = useState(false)
+
   return (
     <div className="flex h-screen bg-gradient-to-br from-neutral-50 via-white to-orange-50/15">
       <Sidebar user={{ name: 'Alex Smith', email: 'alexsmith@example.io' }} />
+      
+      {/* AI Chat Modal */}
+      <AIChatModal isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
+
+      {/* Floating AI Chat Button */}
+      <button
+        onClick={() => setIsChatOpen(true)}
+        className="fixed bottom-8 right-8 w-16 h-16 bg-gradient-to-br from-baires-orange via-orange-600 to-orange-700 text-white rounded-full shadow-[0_10px_40px_rgb(246,97,53,0.4)] hover:shadow-[0_15px_50px_rgb(246,97,53,0.5)] hover:scale-110 transition-all duration-300 flex items-center justify-center z-40 group"
+      >
+        <Bot className="w-7 h-7 group-hover:rotate-12 transition-transform duration-300" />
+        <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse"></div>
+        
+        {/* Tooltip */}
+        <div className="absolute bottom-full right-0 mb-2 px-4 py-2 bg-neutral-black text-white text-sm font-semibold rounded-[12px] opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+          Chat with AI CoPilot
+          <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-neutral-black"></div>
+        </div>
+      </button>
       
       <main className="flex-1 overflow-y-auto">
         <div className="p-6 md:p-8 max-w-[1600px] mx-auto">
@@ -112,6 +134,13 @@ export default function Dashboard() {
                 </p>
               </div>
               <div className="flex gap-3">
+                <button
+                  onClick={() => setIsChatOpen(true)}
+                  className="group inline-flex items-center gap-2 bg-gradient-to-r from-baires-orange to-orange-600 text-white px-5 py-2.5 rounded-[14px] font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
+                >
+                  <Sparkles className="w-4 h-4 group-hover:rotate-12 transition-transform" />
+                  <span>Ask AI CoPilot</span>
+                </button>
                 <Button variant="outline" size="sm" icon={<Search className="w-4 h-4" />}>
                   Find Mentor
                 </Button>
