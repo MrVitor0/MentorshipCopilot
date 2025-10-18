@@ -8,6 +8,7 @@ import StatCard from '../components/StatCard'
 import ActivityItem from '../components/ActivityItem'
 import ProgressBar from '../components/ProgressBar'
 import AIChatModal from '../components/AIChatModal'
+import SEO from '../components/SEO'
 import { Users, MessageSquare, Target, Star, TrendingUp, Lightbulb, Calendar, Search, Plus, Sparkles, BookOpen, PenSquare, Rocket, Bot } from 'lucide-react'
 
 const recentActivities = [
@@ -98,7 +99,12 @@ export default function Dashboard() {
   const [isChatOpen, setIsChatOpen] = useState(false)
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-neutral-50 via-white to-orange-50/15">
+    <>
+      <SEO 
+        title="Dashboard"
+        description="View your mentorship dashboard with AI-powered insights, track active mentorships, and manage your team's development."
+      />
+      <div className="flex h-screen bg-gradient-to-br from-neutral-50 via-white to-orange-50/15">
       <Sidebar user={{ name: 'Alex Smith', email: 'alexsmith@example.io' }} />
       
       {/* AI Chat Modal */}
@@ -480,7 +486,8 @@ export default function Dashboard() {
           </div>
         </div>
       </main>
-    </div>
+      </div>
+    </>
   )
 }
 

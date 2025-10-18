@@ -4,6 +4,7 @@ import Card from '../components/Card'
 import Button from '../components/Button'
 import Avatar from '../components/Avatar'
 import Badge from '../components/Badge'
+import SEO from '../components/SEO'
 import { 
   Sparkles, 
   ArrowRight, 
@@ -116,7 +117,12 @@ export default function CreateMentorship() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-white to-orange-50/20 p-4 md:p-8 relative overflow-hidden">
+    <>
+      <SEO 
+        title="Create Mentorship"
+        description="Use our AI-powered wizard to create a new mentorship. Select skills, choose a mentee, and let AI find the perfect mentor match."
+      />
+      <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-white to-orange-50/20 p-4 md:p-8 relative overflow-hidden">
       {/* Enhanced Decorative elements - Large Blurs */}
       <div className="absolute top-20 right-20 w-96 h-96 bg-gradient-to-br from-orange-200/30 to-blue-200/30 rounded-full blur-3xl animate-pulse"></div>
       <div className="absolute bottom-20 left-20 w-80 h-80 bg-gradient-to-br from-orange-300/35 to-orange-100/25 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
@@ -664,7 +670,8 @@ export default function CreateMentorship() {
           </div>
         </Card>
       </div>
-    </div>
+      </div>
+    </>
   )
 }
 

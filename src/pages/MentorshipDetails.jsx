@@ -5,6 +5,7 @@ import Card from '../components/Card'
 import Button from '../components/Button'
 import Avatar from '../components/Avatar'
 import Badge from '../components/Badge'
+import SEO from '../components/SEO'
 import { Lightbulb } from 'lucide-react'
 
 import AIChatModal from '../components/AIChatModal'
@@ -148,7 +149,12 @@ export default function MentorshipDetails() {
   const weeksDuration = Math.floor((now - startDate) / (1000 * 60 * 60 * 24 * 7))
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-neutral-50 via-white to-orange-50/15">
+    <>
+      <SEO 
+        title={`Mentorship: ${data.mentee.name}`}
+        description={`View detailed progress and analytics for ${data.mentee.name}'s mentorship in ${data.topic}. Track sessions, ratings, and AI-powered insights.`}
+      />
+      <div className="flex h-screen bg-gradient-to-br from-neutral-50 via-white to-orange-50/15">
       <Sidebar user={{ name: 'Alex Smith', email: 'alexsmith@example.io' }} />
       
       <AIChatModal isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
@@ -856,7 +862,8 @@ export default function MentorshipDetails() {
           )}
         </div>
       </main>
-    </div>
+      </div>
+    </>
   )
 }
 

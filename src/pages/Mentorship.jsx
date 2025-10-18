@@ -6,6 +6,7 @@ import Button from '../components/Button'
 import Avatar from '../components/Avatar'
 import Badge from '../components/Badge'
 import AIChatModal from '../components/AIChatModal'
+import SEO from '../components/SEO'
 import { 
   Users, 
   Calendar, 
@@ -133,7 +134,12 @@ export default function Mentorship() {
   const getStatusColor = (status) => statusConfig[status]
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-neutral-50 via-white to-orange-50/15">
+    <>
+      <SEO 
+        title="My Mentorships"
+        description="Manage and track all your mentorship journeys. View active sessions, upcoming meetings, and monitor progress with AI insights."
+      />
+      <div className="flex h-screen bg-gradient-to-br from-neutral-50 via-white to-orange-50/15">
       <Sidebar user={{ name: 'Alex Smith', email: 'alexsmith@example.io' }} />
       
       {/* AI Chat Modal */}
@@ -370,7 +376,8 @@ export default function Mentorship() {
           )}
         </div>
       </main>
-    </div>
+      </div>
+    </>
   )
 }
 

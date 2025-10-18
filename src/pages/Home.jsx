@@ -1,8 +1,14 @@
 import { Link } from 'react-router-dom'
 import { Zap, ArrowRight, Play, Sparkles } from 'lucide-react'
+import SEO from '../components/SEO'
 
 export default function Home() {
   return (
+    <>
+      <SEO 
+        title="Home"
+        description="Transform your mentorship program with AI-powered matching. Connect with perfect mentors and track progress effortlessly."
+      />
     <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-white to-orange-50/20 flex items-center justify-center p-4 md:p-8 relative overflow-hidden">
       {/* Decorative background elements */}
       <div className="absolute top-20 right-20 w-96 h-96 bg-gradient-to-br from-orange-200/20 to-blue-200/20 rounded-full blur-3xl"></div>
@@ -145,6 +151,7 @@ export default function Home() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   )
 }

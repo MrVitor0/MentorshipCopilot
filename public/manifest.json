@@ -1,0 +1,33 @@
+{
+  "name": "Mentorship CoPilot - AI-Powered Mentorship Platform",
+  "short_name": "Mentorship CoPilot",
+  "description": "Transform your mentorship program with AI-powered matching. Find perfect mentors, track progress, and scale your development program effortlessly.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#F66135",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "categories": [
+    "productivity",
+    "education",
+    "business"
+  ],
+  "screenshots": [],
+  "lang": "en",
+  "dir": "ltr"
+}
+

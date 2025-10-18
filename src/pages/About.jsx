@@ -1,8 +1,14 @@
 import { Link } from 'react-router-dom'
 import { Bot, TrendingUp, Calendar, BarChart3, CheckCircle, Sparkles } from 'lucide-react'
+import SEO from '../components/SEO'
 
 export default function About() {
   return (
+    <>
+      <SEO 
+        title="About"
+        description="Learn about Mentorship CoPilot - an AI-powered platform designed to streamline the BairesDev mentorship program through intelligent matching and centralized tracking."
+      />
     <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-white to-orange-50/20 py-12 px-4 relative overflow-hidden">
       {/* Decorative background elements */}
       <div className="absolute top-20 right-20 w-96 h-96 bg-gradient-to-br from-orange-200/20 to-orange-100/20 rounded-full blur-3xl"></div>
@@ -78,6 +84,7 @@ export default function About() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   )
 }

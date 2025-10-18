@@ -6,6 +6,7 @@ import Button from '../components/Button'
 import Avatar from '../components/Avatar'
 import Badge from '../components/Badge'
 import AIChatModal from '../components/AIChatModal'
+import SEO from '../components/SEO'
 import { 
   ArrowLeft,
   Sparkles,
@@ -125,7 +126,12 @@ export default function FindMentors() {
   })
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-neutral-50 via-white to-orange-50/15">
+    <>
+      <SEO 
+        title="Find Mentors"
+        description="AI-powered mentor recommendations. Browse top-matched mentors based on skills, experience, and compatibility. Find the perfect match for your team."
+      />
+      <div className="flex h-screen bg-gradient-to-br from-neutral-50 via-white to-orange-50/15">
       <Sidebar user={{ name: 'Alex Smith', email: 'alexsmith@example.io' }} />
       
       <AIChatModal isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
@@ -476,7 +482,8 @@ export default function FindMentors() {
           </Card>
         </div>
       )}
-    </div>
+      </div>
+    </>
   )
 }
 

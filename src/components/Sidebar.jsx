@@ -46,9 +46,7 @@ export default function Sidebar({ user }) {
     <aside className="w-64 bg-gradient-to-b from-white to-neutral-50 h-screen flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.08)] border-r border-neutral-100">
       <div className="p-6 border-b border-neutral-100">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-baires-orange to-orange-600 rounded-[14px] flex items-center justify-center shadow-lg">
-            <span className="text-white font-bold text-lg">M</span>
-          </div>
+          <img src="/logo.svg" alt="Mentorship CoPilot Logo" className="w-10 h-10 rounded-[14px] shadow-lg" />
           <span className="font-bold text-xl bg-gradient-to-r from-neutral-black to-baires-orange bg-clip-text text-transparent">CoPilot</span>
         </div>
       </div>
