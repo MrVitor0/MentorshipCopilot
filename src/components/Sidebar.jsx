@@ -1,4 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
+import { Lightbulb, Palette, Settings, BarChart3 } from 'lucide-react'
 
 const menuItems = [
   { 
@@ -49,10 +50,10 @@ const menuItems = [
 ]
 
 const teamItems = [
-  { name: 'Ideas', color: 'bg-yellow-400', icon: '💡' },
-  { name: 'Design', color: 'bg-baires-orange', icon: '🎨' },
-  { name: 'Operations', color: 'bg-yellow-300', icon: '⚙️' },
-  { name: 'Management', color: 'bg-yellow-500', icon: '📊' },
+  { name: 'Ideas', color: 'bg-yellow-400', IconComponent: Lightbulb },
+  { name: 'Design', color: 'bg-baires-orange', IconComponent: Palette },
+  { name: 'Operations', color: 'bg-yellow-300', IconComponent: Settings },
+  { name: 'Management', color: 'bg-yellow-500', IconComponent: BarChart3 },
 ]
 
 export default function Sidebar({ user }) {
@@ -62,10 +63,10 @@ export default function Sidebar({ user }) {
     <aside className="w-64 bg-gradient-to-b from-white to-neutral-50 h-screen flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.08)] border-r border-neutral-100">
       <div className="p-6 border-b border-neutral-100">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-[14px] flex items-center justify-center shadow-lg">
+          <div className="w-10 h-10 bg-gradient-to-br from-baires-orange to-orange-600 rounded-[14px] flex items-center justify-center shadow-lg">
             <span className="text-white font-bold text-lg">M</span>
           </div>
-          <span className="font-bold text-xl bg-gradient-to-r from-neutral-black to-purple-900 bg-clip-text text-transparent">CoPilot</span>
+          <span className="font-bold text-xl bg-gradient-to-r from-neutral-black to-baires-orange bg-clip-text text-transparent">CoPilot</span>
         </div>
       </div>
 
@@ -80,8 +81,8 @@ export default function Sidebar({ user }) {
                 flex items-center gap-3 px-4 py-3 rounded-[16px]
                 transition-all duration-300
                 ${isActive 
-                  ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-[0_8px_20px_rgb(124,58,237,0.3)]' 
-                  : 'text-neutral-gray-dark hover:bg-gradient-to-r hover:from-purple-50 hover:to-blue-50 hover:text-neutral-black hover:shadow-md'
+                  ? 'bg-gradient-to-r from-baires-orange to-orange-600 text-white shadow-[0_8px_20px_rgb(246,97,53,0.3)]' 
+                  : 'text-neutral-gray-dark hover:bg-gradient-to-r hover:from-orange-50 hover:to-orange-100/50 hover:text-neutral-black hover:shadow-md'
                 }
               `}
             >
@@ -104,7 +105,7 @@ export default function Sidebar({ user }) {
             className="group flex items-center gap-3 px-4 py-3 rounded-[16px] text-neutral-gray-dark hover:bg-gradient-to-r hover:from-orange-50 hover:to-yellow-50 hover:text-neutral-black hover:shadow-md transition-all duration-300"
           >
             <div className={`w-7 h-7 ${team.color} rounded-[12px] flex items-center justify-center text-sm shadow-md group-hover:scale-110 transition-transform duration-300`}>
-              {team.icon}
+              <team.IconComponent className="w-4 h-4 text-white" />
             </div>
             <span className="font-semibold">{team.name}</span>
           </Link>
@@ -112,7 +113,7 @@ export default function Sidebar({ user }) {
       </nav>
 
       <div className="p-4 border-t border-neutral-100 space-y-3">
-        <div className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-blue-100 to-cyan-100 rounded-[18px] shadow-sm border border-blue-200/50">
+        <div className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-orange-100 to-orange-200/70 rounded-[18px] shadow-sm border border-orange-200/50">
           <div className="relative w-10 h-10 rounded-full overflow-hidden ring-2 ring-white">
             <img 
               src={user?.avatar || 'https://i.pravatar.cc/150?img=33'} 

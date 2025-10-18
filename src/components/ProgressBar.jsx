@@ -10,10 +10,10 @@ export default function ProgressBar({
   const percentage = Math.min(100, Math.max(0, (value / max) * 100))
   
   const colors = {
-    blue: 'bg-gradient-to-r from-blue-500 to-blue-600',
+    blue: 'bg-gradient-to-r from-baires-blue to-blue-600',
     orange: 'bg-gradient-to-r from-baires-orange to-orange-600',
-    cyan: 'bg-gradient-to-r from-cyan-400 to-cyan-600',
-    purple: 'bg-gradient-to-r from-purple-500 to-purple-600',
+    cyan: 'bg-gradient-to-r from-baires-blue to-blue-500',
+    purple: 'bg-gradient-to-r from-baires-orange-light to-baires-orange',
     green: 'bg-gradient-to-r from-green-400 to-green-600',
   }
 

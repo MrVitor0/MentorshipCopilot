@@ -1,31 +1,31 @@
 const colorVariants = {
   blue: {
-    gradient: 'from-blue-400/20 via-blue-300/15 to-transparent',
-    text: 'text-blue-700',
-    iconBg: 'bg-gradient-to-br from-blue-400 to-blue-600',
+    gradient: 'from-blue-300/20 via-blue-200/15 to-transparent',
+    text: 'text-baires-blue',
+    iconBg: 'bg-gradient-to-br from-baires-blue to-blue-600',
     border: 'border-blue-200/50',
   },
   purple: {
-    gradient: 'from-purple-400/20 via-purple-300/15 to-transparent',
-    text: 'text-purple-700',
-    iconBg: 'bg-gradient-to-br from-purple-400 to-purple-600',
-    border: 'border-purple-200/50',
+    gradient: 'from-orange-300/20 via-orange-200/15 to-transparent',
+    text: 'text-baires-orange',
+    iconBg: 'bg-gradient-to-br from-baires-orange-light to-baires-orange',
+    border: 'border-orange-200/50',
   },
   orange: {
-    gradient: 'from-orange-400/20 via-orange-300/15 to-transparent',
+    gradient: 'from-orange-300/20 via-orange-200/15 to-transparent',
     text: 'text-baires-orange',
     iconBg: 'bg-gradient-to-br from-baires-orange-light to-baires-orange',
     border: 'border-orange-200/50',
   },
   yellow: {
-    gradient: 'from-amber-400/20 via-amber-300/15 to-transparent',
+    gradient: 'from-amber-300/20 via-amber-200/15 to-transparent',
     text: 'text-amber-700',
     iconBg: 'bg-gradient-to-br from-amber-400 to-amber-600',
     border: 'border-amber-200/50',
   },
 }
 
-export default function StatCard({ value, label, trend, icon, color = 'blue' }) {
+export default function StatCard({ value, label, trend, IconComponent, color = 'blue' }) {
   const isPositive = trend?.startsWith('↑') || trend?.startsWith('+')
   const variant = colorVariants[color]
   
@@ -61,16 +61,18 @@ export default function StatCard({ value, label, trend, icon, color = 'blue' }) 
           <p className="text-sm text-neutral-gray-dark font-medium">{label}</p>
         </div>
         
-        <div className={`
-          ${variant.iconBg}
-          w-12 h-12 rounded-[16px]
-          flex items-center justify-center
-          shadow-lg
-          group-hover:scale-110 group-hover:rotate-3
-          transition-all duration-500
-        `}>
-          <span className="text-2xl filter drop-shadow-sm">{icon}</span>
-        </div>
+        {IconComponent && (
+          <div className={`
+            ${variant.iconBg}
+            w-12 h-12 rounded-[16px]
+            flex items-center justify-center
+            shadow-lg
+            group-hover:scale-110 group-hover:rotate-3
+            transition-all duration-500
+          `}>
+            <IconComponent className="w-6 h-6 text-white filter drop-shadow-sm" />
+          </div>
+        )}
       </div>
     </div>
   )
