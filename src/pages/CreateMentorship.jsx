@@ -23,7 +23,9 @@ import {
   Target,
   Users,
   CheckCircle,
-  Loader2
+  Loader2,
+  Plus,
+  X
 } from 'lucide-react'
 
 const technologies = [
@@ -50,6 +52,8 @@ export default function CreateMentorship() {
   const navigate = useNavigate()
   const [currentStep, setCurrentStep] = useState(1)
   const [selectedTechs, setSelectedTechs] = useState([])
+  const [customSkill, setCustomSkill] = useState('')
+  const [customSkills, setCustomSkills] = useState([])
   const [selectedMentee, setSelectedMentee] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [problemDescription, setProblemDescription] = useState('')
@@ -66,6 +70,24 @@ export default function CreateMentorship() {
         ? prev.filter(id => id !== techId)
         : [...prev, techId]
     )
+  }
+
+  const addCustomSkill = () => {
+    if (customSkill.trim() && !customSkills.includes(customSkill.trim())) {
+      setCustomSkills(prev => [...prev, customSkill.trim()])
+      setCustomSkill('')
+    }
+  }
+
+  const removeCustomSkill = (skill) => {
+    setCustomSkills(prev => prev.filter(s => s !== skill))
+  }
+
+  const handleCustomSkillKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      addCustomSkill()
+    }
   }
 
   const handleNext = () => {
@@ -87,7 +109,7 @@ export default function CreateMentorship() {
 
   const canProceed = () => {
     if (currentStep === 1) return true
-    if (currentStep === 2) return selectedTechs.length > 0
+    if (currentStep === 2) return selectedTechs.length > 0 || customSkills.length > 0
     if (currentStep === 3) return selectedMentee !== null
     if (currentStep === 4) return problemDescription.trim().length > 20
     return false
@@ -95,9 +117,40 @@ export default function CreateMentorship() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-white to-orange-50/20 p-4 md:p-8 relative overflow-hidden">
-      {/* Decorative elements */}
-      <div className="absolute top-20 right-20 w-96 h-96 bg-gradient-to-br from-orange-200/20 to-blue-200/20 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-20 left-20 w-80 h-80 bg-gradient-to-br from-orange-300/25 to-orange-100/20 rounded-full blur-3xl"></div>
+      {/* Enhanced Decorative elements - Large Blurs */}
+      <div className="absolute top-20 right-20 w-96 h-96 bg-gradient-to-br from-orange-200/30 to-blue-200/30 rounded-full blur-3xl animate-pulse"></div>
+      <div className="absolute bottom-20 left-20 w-80 h-80 bg-gradient-to-br from-orange-300/35 to-orange-100/25 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+      <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-gradient-to-br from-baires-orange/20 to-orange-400/20 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+      
+      {/* Additional Glow Effects */}
+      <div className="absolute top-40 left-1/4 w-48 h-48 bg-gradient-to-br from-blue-300/20 to-baires-blue/15 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '3s' }}></div>
+      <div className="absolute bottom-40 right-1/4 w-56 h-56 bg-gradient-to-br from-orange-200/25 to-baires-orange-light/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1.5s' }}></div>
+      
+      {/* Floating Icons */}
+      <div className="absolute top-32 left-32 animate-float">
+        <Sparkles className="w-8 h-8 text-baires-orange/30" />
+      </div>
+      <div className="absolute bottom-32 right-32 animate-float" style={{ animationDelay: '1.5s' }}>
+        <Zap className="w-10 h-10 text-blue-400/30" />
+      </div>
+      <div className="absolute top-1/3 right-20 animate-float" style={{ animationDelay: '3s' }}>
+        <Bot className="w-7 h-7 text-orange-400/30" />
+      </div>
+      <div className="absolute bottom-1/3 left-20 animate-float" style={{ animationDelay: '2.5s' }}>
+        <Target className="w-6 h-6 text-baires-blue/30" />
+      </div>
+      <div className="absolute top-1/4 right-1/2 animate-float" style={{ animationDelay: '1s' }}>
+        <Rocket className="w-6 h-6 text-orange-300/30" />
+      </div>
+      <div className="absolute bottom-1/4 left-1/3 animate-float" style={{ animationDelay: '2s' }}>
+        <Code className="w-5 h-5 text-baires-orange/30" />
+      </div>
+      
+      {/* Small Floating Dots */}
+      <div className="absolute top-1/4 left-1/4 w-3 h-3 bg-baires-orange/40 rounded-full animate-pulse"></div>
+      <div className="absolute top-2/3 right-1/4 w-2 h-2 bg-blue-400/40 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
+      <div className="absolute bottom-1/2 left-1/2 w-4 h-4 bg-orange-300/40 rounded-full animate-pulse" style={{ animationDelay: '2s' }}></div>
+      <div className="absolute top-1/2 right-1/3 w-2 h-2 bg-baires-blue/40 rounded-full animate-pulse" style={{ animationDelay: '1.5s' }}></div>
 
       <div className="max-w-4xl mx-auto relative z-10">
         {/* Progress Indicator */}
@@ -194,6 +247,66 @@ export default function CreateMentorship() {
                   </p>
                 </div>
 
+                {/* Custom Skill Input - Highlighted */}
+                <div className="mb-6 p-6 bg-gradient-to-br from-orange-50 via-white to-orange-100/50 rounded-[24px] border-2 border-orange-300/70 shadow-[0_10px_40px_rgb(246,97,53,0.15)]">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-gradient-to-br from-baires-orange to-orange-600 rounded-[14px] flex items-center justify-center shadow-lg">
+                      <Sparkles className="w-5 h-5 text-white animate-pulse" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-neutral-black">Need something specific?</h3>
+                      <p className="text-xs text-neutral-gray-dark">Type any skill and we'll find the expert</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <input
+                        type="text"
+                        value={customSkill}
+                        onChange={(e) => setCustomSkill(e.target.value)}
+                        onKeyPress={handleCustomSkillKeyPress}
+                        placeholder="e.g., TeamSpeak, Kafka, GraphQL..."
+                        className="w-full pl-10 pr-4 py-3 rounded-[14px] border-2 border-orange-200 focus:border-baires-orange focus:outline-none font-semibold placeholder:font-normal"
+                      />
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-baires-orange" />
+                    </div>
+                    <button
+                      onClick={addCustomSkill}
+                      disabled={!customSkill.trim()}
+                      className="px-6 py-3 bg-gradient-to-r from-baires-orange to-orange-600 text-white rounded-[14px] font-bold hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add
+                    </button>
+                  </div>
+                  
+                  {/* Custom Skills Display */}
+                  {customSkills.length > 0 && (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {customSkills.map((skill, idx) => (
+                        <div key={idx} className="flex items-center gap-2 bg-gradient-to-r from-baires-orange to-orange-600 text-white px-3 py-2 rounded-full font-semibold text-sm shadow-md group">
+                          <span>{skill}</span>
+                          <button
+                            onClick={() => removeCustomSkill(skill)}
+                            className="w-5 h-5 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Preset Technologies */}
+                <div className="mb-4">
+                  <h3 className="text-sm font-bold text-neutral-gray-dark mb-3 flex items-center gap-2">
+                    <Code className="w-4 h-4" />
+                    Or choose from popular technologies:
+                  </h3>
+                </div>
+
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {technologies.map((tech) => {
                     const isSelected = selectedTechs.includes(tech.id)
@@ -226,11 +339,11 @@ export default function CreateMentorship() {
                   })}
                 </div>
 
-                {selectedTechs.length > 0 && (
-                  <div className="mt-6 p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-[16px] border border-green-200 flex items-center gap-3">
+                {(selectedTechs.length > 0 || customSkills.length > 0) && (
+                  <div className="mt-6 p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-[16px] border border-green-200 flex items-center gap-3 animate-slideInUp">
                     <CheckCircle className="w-5 h-5 text-green-600" />
                     <span className="text-sm font-semibold text-green-900">
-                      {selectedTechs.length} skill{selectedTechs.length > 1 ? 's' : ''} selected - AI will find specialists in these areas
+                      {selectedTechs.length + customSkills.length} skill{selectedTechs.length + customSkills.length > 1 ? 's' : ''} selected - AI will find specialists in these areas
                     </span>
                   </div>
                 )}
@@ -254,21 +367,41 @@ export default function CreateMentorship() {
                     Search for the team member who will be mentored
                   </p>
 
-                  {/* Search Input */}
-                  <div className="relative max-w-md mx-auto">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-gray-dark" />
-                    <input
-                      type="text"
-                      placeholder="Type name or role..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-12 pr-4 py-4 rounded-[16px] border-2 border-neutral-200 focus:border-baires-orange focus:outline-none text-lg shadow-lg"
-                    />
+                  {/* Enhanced Search Input */}
+                  <div className="relative max-w-xl mx-auto">
+                    <div className="absolute -inset-1 bg-gradient-to-r from-baires-orange via-orange-400 to-blue-500 rounded-[20px] blur-lg opacity-30 group-hover:opacity-50 transition-opacity"></div>
+                    <div className="relative">
+                      <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-baires-orange" />
+                      <input
+                        type="text"
+                        placeholder="Start typing to search team members..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full pl-14 pr-6 py-5 rounded-[18px] border-2 border-orange-200 focus:border-baires-orange focus:outline-none text-lg font-semibold shadow-xl bg-white placeholder:font-normal placeholder:text-neutral-gray-dark"
+                        autoFocus
+                      />
+                      {searchQuery && (
+                        <div className="absolute right-5 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                          <div className="flex items-center gap-1 text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded-full">
+                            <Sparkles className="w-3 h-3" />
+                            AI Searching
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
+                  
+                  {!searchQuery && (
+                    <p className="text-center text-neutral-gray-dark text-sm mt-4 italic flex items-center justify-center gap-2">
+                      <Bot className="w-4 h-4 text-baires-orange" />
+                      AI will help you find the right person
+                    </p>
+                  )}
                 </div>
 
-                {/* Employee Cards Carousel */}
-                <div className="relative">
+                {/* Employee Cards Carousel - Show only when searching */}
+                {searchQuery && (
+                  <div className="relative animate-slideInUp">
                   <div className="overflow-x-auto pb-4 -mx-4 px-4">
                     <div className="flex gap-4 min-w-max">
                       {filteredEmployees.map((employee) => {
@@ -320,7 +453,15 @@ export default function CreateMentorship() {
                       <ArrowRight className="w-6 h-6 text-baires-orange animate-pulse" />
                     </div>
                   )}
+                  
+                  {filteredEmployees.length === 0 && (
+                    <div className="text-center py-8">
+                      <Search className="w-12 h-12 text-neutral-gray-dark mx-auto mb-3 opacity-50" />
+                      <p className="text-neutral-gray-dark">No team members found matching "{searchQuery}"</p>
+                    </div>
+                  )}
                 </div>
+                )}
 
                 {selectedMentee && (
                   <div className="mt-6 p-5 bg-gradient-to-r from-blue-50 to-blue-100 rounded-[20px] border-2 border-blue-300 flex items-center gap-4">
@@ -373,6 +514,11 @@ export default function CreateMentorship() {
                         </Badge>
                       )
                     })}
+                    {customSkills.map(skill => (
+                      <Badge key={skill} variant="blue" className="text-xs">
+                        {skill}
+                      </Badge>
+                    ))}
                   </div>
                 </div>
 
