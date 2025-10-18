@@ -141,11 +141,21 @@ export default function Dashboard() {
                   <Sparkles className="w-4 h-4 group-hover:rotate-12 transition-transform" />
                   <span>Ask AI CoPilot</span>
                 </button>
-                <Button variant="outline" size="sm" icon={<Search className="w-4 h-4" />}>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  icon={<Search className="w-4 h-4" />}
+                  onClick={() => window.location.href = '/find-mentors'}
+                >
                   Find Mentor
                 </Button>
-                <Button variant="orange" size="sm" icon={<Plus className="w-4 h-4" />}>
-                  Create Session
+                <Button 
+                  variant="orange" 
+                  size="sm" 
+                  icon={<Plus className="w-4 h-4" />}
+                  onClick={() => window.location.href = '/create-mentorship'}
+                >
+                  New Mentorship
                 </Button>
               </div>
                   </div>
@@ -231,7 +241,10 @@ export default function Dashboard() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Mentorias Button */}
-                      <button className="group relative overflow-hidden bg-gradient-to-br from-white to-blue-50 p-6 rounded-[20px] border-2 border-blue-200/50 hover:border-blue-400/70 hover:shadow-[0_20px_40px_rgb(26,115,232,0.15)] transition-all duration-300 hover:-translate-y-1 text-left">
+                      <button 
+                        onClick={() => window.location.href = '/mentorship'}
+                        className="group relative overflow-hidden bg-gradient-to-br from-white to-blue-50 p-6 rounded-[20px] border-2 border-blue-200/50 hover:border-blue-400/70 hover:shadow-[0_20px_40px_rgb(26,115,232,0.15)] transition-all duration-300 hover:-translate-y-1 text-left"
+                      >
                         <div className="absolute inset-0 bg-gradient-to-br from-baires-blue/5 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                         <div className="relative">
                           <div className="flex items-center gap-3 mb-3">
@@ -249,7 +262,10 @@ export default function Dashboard() {
                       </button>
 
                       {/* Registrar Mentoria Button */}
-                      <button className="group relative overflow-hidden bg-gradient-to-br from-white to-orange-50 p-6 rounded-[20px] border-2 border-orange-200/50 hover:border-orange-400/70 hover:shadow-[0_20px_40px_rgb(246,97,53,0.15)] transition-all duration-300 hover:-translate-y-1 text-left">
+                      <button 
+                        onClick={() => window.location.href = '/create-mentorship'}
+                        className="group relative overflow-hidden bg-gradient-to-br from-white to-orange-50 p-6 rounded-[20px] border-2 border-orange-200/50 hover:border-orange-400/70 hover:shadow-[0_20px_40px_rgb(246,97,53,0.15)] transition-all duration-300 hover:-translate-y-1 text-left"
+                      >
                         <div className="absolute inset-0 bg-gradient-to-br from-baires-orange/5 to-orange-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                         <div className="relative">
                           <div className="flex items-center gap-3 mb-3">
@@ -306,7 +322,12 @@ export default function Dashboard() {
                     </div>
                     <Badge variant="orange">AI</Badge>
                   </div>
-                  <Button size="sm" variant="outline" icon={<Plus className="w-4 h-4" />}>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    icon={<Plus className="w-4 h-4" />}
+                    onClick={() => window.location.href = '/create-mentorship'}
+                  >
                     New Request
                   </Button>
                 </div>
