@@ -1,5 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../hooks/useAuth'
+import { getMentees, createMentorshipWithDetails, createKickoffMeeting, createMentorshipInvitation } from '../services/firestoreService'
+import { httpsCallable } from 'firebase/functions'
+import { functions } from '../config/firebase'
 import Card from '../components/Card'
 import Button from '../components/Button'
 import Avatar from '../components/Avatar'
@@ -26,7 +30,10 @@ import {
   CheckCircle,
   Loader2,
   Plus,
-  X
+  X,
+  Calendar,
+  Clock,
+  Send
 } from 'lucide-react'
 
 const technologies = [
@@ -40,17 +47,9 @@ const technologies = [
   { id: 'git', name: 'Git/DevOps', icon: GitBranch, color: 'from-gray-600 to-gray-700' },
 ]
 
-const employees = [
-  { id: 1, name: 'Sarah Johnson', role: 'Junior Developer', avatar: 'https://i.pravatar.cc/150?img=1', skills: ['JavaScript', 'React'] },
-  { id: 2, name: 'Michael Chen', role: 'Mid-Level Engineer', avatar: 'https://i.pravatar.cc/150?img=2', skills: ['Python', 'Django'] },
-  { id: 3, name: 'Emma Davis', role: 'Senior Developer', avatar: 'https://i.pravatar.cc/150?img=3', skills: ['Node.js', 'AWS'] },
-  { id: 4, name: 'James Wilson', role: 'Junior Developer', avatar: 'https://i.pravatar.cc/150?img=4', skills: ['JavaScript', 'Vue'] },
-  { id: 5, name: 'Lisa Anderson', role: 'Mid-Level Engineer', avatar: 'https://i.pravatar.cc/150?img=5', skills: ['React', 'TypeScript'] },
-  { id: 6, name: 'David Martinez', role: 'Junior Developer', avatar: 'https://i.pravatar.cc/150?img=6', skills: ['Python', 'FastAPI'] },
-]
-
 export default function CreateMentorship() {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [currentStep, setCurrentStep] = useState(1)
   const [selectedTechs, setSelectedTechs] = useState([])
   const [customSkill, setCustomSkill] = useState('')
@@ -59,10 +58,37 @@ export default function CreateMentorship() {
   const [searchQuery, setSearchQuery] = useState('')
   const [problemDescription, setProblemDescription] = useState('')
   const [isProcessing, setIsProcessing] = useState(false)
+  
+  // New state for mentees and mentors
+  const [mentees, setMentees] = useState([])
+  const [loadingMentees, setLoadingMentees] = useState(false)
+  const [recommendedMentors, setRecommendedMentors] = useState({ topMentors: [], otherMentors: [] })
+  const [selectedMentor, setSelectedMentor] = useState(null)
+  
+  // Meeting scheduling state
+  const [meetingDate, setMeetingDate] = useState('')
+  const [meetingTime, setMeetingTime] = useState('')
+  const [meetingNotes, setMeetingNotes] = useState('')
 
-  const filteredEmployees = employees.filter(emp => 
-    emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    emp.role.toLowerCase().includes(searchQuery.toLowerCase())
+  // Load mentees when component mounts
+  useEffect(() => {
+    const loadMentees = async () => {
+      setLoadingMentees(true)
+      try {
+        const fetchedMentees = await getMentees()
+        setMentees(fetchedMentees)
+      } catch (error) {
+        console.error('Error loading mentees:', error)
+      } finally {
+        setLoadingMentees(false)
+      }
+    }
+    loadMentees()
+  }, [])
+
+  const filteredMentees = mentees.filter(emp => 
+    emp.displayName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    emp.bio?.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   const toggleTech = (techId) => {
@@ -91,20 +117,123 @@ export default function CreateMentorship() {
     }
   }
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentStep === 4) {
+      // Process AI recommendations
       setIsProcessing(true)
-      setTimeout(() => {
-        navigate('/find-mentors', { 
-          state: { 
-            mentee: selectedMentee,
-            technologies: selectedTechs,
-            problem: problemDescription 
-          }
+      try {
+        const getMentorRecommendations = httpsCallable(functions, 'getMentorRecommendations')
+        const result = await getMentorRecommendations({
+          menteeId: selectedMentee.uid,
+          technologies: [...selectedTechs, ...customSkills],
+          challengeDescription: problemDescription
         })
-      }, 3000)
+        
+        setRecommendedMentors(result.data)
+        setIsProcessing(false)
+        setCurrentStep(5) // Move to mentor selection step
+      } catch (error) {
+        console.error('Error getting recommendations:', error)
+        setIsProcessing(false)
+        alert('Error getting mentor recommendations. Please try again.')
+      }
+    } else if (currentStep === 5) {
+      if (selectedMentor) {
+        // Move to meeting scheduling
+        setCurrentStep(6)
+      } else {
+        // Create mentorship without mentor
+        await createMentorshipWithoutMentor()
+      }
+    } else if (currentStep === 6) {
+      // Create mentorship with meeting
+      await createMentorshipWithMeeting()
     } else {
       setCurrentStep(prev => prev + 1)
+    }
+  }
+
+  const createMentorshipWithoutMentor = async () => {
+    try {
+      const mentorshipData = {
+        projectManagerId: user.uid,
+        projectManagerName: user.displayName,
+        menteeId: selectedMentee.uid,
+        menteeName: selectedMentee.displayName,
+        menteeAvatar: selectedMentee.photoURL,
+        technologies: [...selectedTechs, ...customSkills],
+        challengeDescription: problemDescription,
+        status: 'pending_mentor',
+        mentorId: null,
+        mentorName: null
+      }
+
+      const createdMentorship = await createMentorshipWithDetails(mentorshipData)
+      console.log('Mentorship created:', createdMentorship)
+      
+      navigate('/mentorship', { 
+        state: { 
+          message: 'Mentorship created successfully! Waiting for mentor assignment.',
+          mentorshipId: createdMentorship.id 
+        }
+      })
+    } catch (error) {
+      console.error('Error creating mentorship:', error)
+      alert('Error creating mentorship. Please try again.')
+    }
+  }
+
+  const createMentorshipWithMeeting = async () => {
+    try {
+      // Create mentorship
+      const mentorshipData = {
+        projectManagerId: user.uid,
+        projectManagerName: user.displayName,
+        menteeId: selectedMentee.uid,
+        menteeName: selectedMentee.displayName,
+        menteeAvatar: selectedMentee.photoURL,
+        mentorId: selectedMentor.uid,
+        mentorName: selectedMentor.displayName,
+        mentorAvatar: selectedMentor.photoURL,
+        technologies: [...selectedTechs, ...customSkills],
+        challengeDescription: problemDescription,
+        status: 'pending_kickoff',
+      }
+
+      const createdMentorship = await createMentorshipWithDetails(mentorshipData)
+      
+      // Create invitation
+      await createMentorshipInvitation({
+        mentorshipId: createdMentorship.id,
+        mentorId: selectedMentor.uid,
+        projectManagerId: user.uid,
+        message: `Invitation to mentor ${selectedMentee.displayName}`
+      })
+
+      // Create kickoff meeting
+      const meetingDateTime = new Date(`${meetingDate}T${meetingTime}`)
+      await createKickoffMeeting({
+        mentorshipId: createdMentorship.id,
+        mentorId: selectedMentor.uid,
+        menteeId: selectedMentee.uid,
+        projectManagerId: user.uid,
+        participantIds: [selectedMentor.uid, selectedMentee.uid, user.uid],
+        participantName: selectedMentor.displayName,
+        participantPhoto: selectedMentor.photoURL,
+        scheduledDate: meetingDateTime,
+        notes: meetingNotes,
+        status: 'pending_acceptance'
+      })
+      
+      navigate('/mentorship', { 
+        state: { 
+          message: 'Mentorship created successfully! Kickoff meeting scheduled.',
+          mentorshipId: createdMentorship.id 
+        }
+      })
+    } catch (error) {
+      console.error('Error creating mentorship with meeting:', error)
+      alert('Error creating mentorship. Please try again.')
     }
   }
 
@@ -113,8 +242,12 @@ export default function CreateMentorship() {
     if (currentStep === 2) return selectedTechs.length > 0 || customSkills.length > 0
     if (currentStep === 3) return selectedMentee !== null
     if (currentStep === 4) return problemDescription.trim().length > 20
+    if (currentStep === 5) return true // Can proceed with or without mentor
+    if (currentStep === 6) return meetingDate && meetingTime
     return false
   }
+
+  const totalSteps = selectedMentor ? 6 : 5
 
   return (
     <>
@@ -173,14 +306,14 @@ export default function CreateMentorship() {
           </div>
           
           <div className="flex items-center gap-2">
-            {[1, 2, 3, 4].map((step) => (
+            {[1, 2, 3, 4, 5, 6].map((step) => (
               <div key={step} className="flex items-center flex-1">
                 <div className={`flex-1 h-2 rounded-full transition-all duration-500 ${
                   step <= currentStep 
                     ? 'bg-gradient-to-r from-baires-orange to-orange-600' 
                     : 'bg-neutral-200'
                 }`}></div>
-                {step < 4 && <div className="w-2"></div>}
+                {step < 6 && <div className="w-2"></div>}
               </div>
             ))}
           </div>
@@ -189,6 +322,8 @@ export default function CreateMentorship() {
             <span className={currentStep === 2 ? 'text-baires-orange' : ''}>Skills</span>
             <span className={currentStep === 3 ? 'text-baires-orange' : ''}>Mentee</span>
             <span className={currentStep === 4 ? 'text-baires-orange' : ''}>Details</span>
+            <span className={currentStep === 5 ? 'text-baires-orange' : ''}>Mentor</span>
+            <span className={currentStep === 6 ? 'text-baires-orange' : ''}>Schedule</span>
           </div>
         </div>
 
@@ -230,7 +365,7 @@ export default function CreateMentorship() {
 
                 <div className="inline-flex items-center gap-2 bg-orange-100 text-baires-orange px-4 py-2 rounded-full text-sm font-semibold">
                   <Zap className="w-4 h-4" />
-                  Takes only 2 minutes
+                  Takes only 3 minutes
                 </div>
               </div>
             </div>
@@ -364,7 +499,7 @@ export default function CreateMentorship() {
                 <div className="text-center mb-8">
                   <div className="inline-flex items-center gap-2 bg-gradient-to-r from-baires-blue to-blue-600 text-white px-4 py-2 rounded-full mb-4">
                     <Users className="w-4 h-4" />
-                    <span className="font-semibold text-sm">AI-powered search</span>
+                    <span className="font-semibold text-sm">Real-time search</span>
                   </div>
                   <h2 className="text-3xl font-bold text-neutral-black mb-3">
                     Who needs mentorship?
@@ -390,93 +525,98 @@ export default function CreateMentorship() {
                         <div className="absolute right-5 top-1/2 -translate-y-1/2 flex items-center gap-2">
                           <div className="flex items-center gap-1 text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded-full">
                             <Sparkles className="w-3 h-3" />
-                            AI Searching
+                            {filteredMentees.length} found
                           </div>
                         </div>
                       )}
                     </div>
                   </div>
                   
-                  {!searchQuery && (
+                  {!searchQuery && !loadingMentees && (
                     <p className="text-center text-neutral-gray-dark text-sm mt-4 italic flex items-center justify-center gap-2">
                       <Bot className="w-4 h-4 text-baires-orange" />
-                      AI will help you find the right person
+                      {mentees.length} mentees available in database
                     </p>
                   )}
                 </div>
 
-                {/* Employee Cards Carousel - Show only when searching */}
-                {searchQuery && (
-                  <div className="relative animate-slideInUp">
-                  <div className="overflow-x-auto pb-4 -mx-4 px-4">
-                    <div className="flex gap-4 min-w-max">
-                      {filteredEmployees.map((employee) => {
-                        const isSelected = selectedMentee?.id === employee.id
-                        
-                        return (
-                          <button
-                            key={employee.id}
-                            onClick={() => setSelectedMentee(employee)}
-                            className={`group relative w-64 p-6 rounded-[24px] border-2 transition-all duration-300 flex-shrink-0 ${
-                              isSelected
-                                ? 'border-baires-orange bg-gradient-to-br from-orange-50 to-orange-100 shadow-xl scale-105'
-                                : 'border-neutral-200 bg-white hover:border-orange-300 hover:shadow-lg hover:scale-105'
-                            }`}
-                          >
-                            {isSelected && (
-                              <div className="absolute -top-3 -right-3 w-8 h-8 bg-gradient-to-br from-baires-orange to-orange-600 rounded-full flex items-center justify-center shadow-lg animate-scaleIn">
-                                <CheckCircle className="w-5 h-5 text-white" />
-                              </div>
-                            )}
-                            
-                            <div className="text-center">
-                              <div className="relative inline-block mb-4">
-                                <Avatar src={employee.avatar} size="2xl" />
-                                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-gradient-to-br from-green-400 to-green-600 rounded-full border-2 border-white"></div>
-                              </div>
-                              
-                              <h3 className={`font-bold text-lg mb-1 ${isSelected ? 'text-baires-orange' : 'text-neutral-black'}`}>
-                                {employee.name}
-                              </h3>
-                              <p className="text-sm text-neutral-gray-dark mb-4">{employee.role}</p>
-                              
-                              <div className="flex flex-wrap gap-2 justify-center">
-                                {employee.skills.map((skill, idx) => (
-                                  <span key={idx} className="text-xs bg-neutral-100 text-neutral-gray-dark px-2 py-1 rounded-full">
-                                    {skill}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          </button>
-                        )
-                      })}
-                    </div>
+                {/* Loading State */}
+                {loadingMentees && (
+                  <div className="flex justify-center py-12">
+                    <div className="w-12 h-12 border-4 border-baires-orange border-t-transparent rounded-full animate-spin"></div>
                   </div>
-                  
-                  {filteredEmployees.length > 3 && (
-                    <div className="absolute right-0 top-1/2 -translate-y-1/2 bg-gradient-to-l from-white via-white to-transparent w-20 h-full flex items-center justify-end pointer-events-none">
-                      <ArrowRight className="w-6 h-6 text-baires-orange animate-pulse" />
+                )}
+
+                {/* Mentee Cards */}
+                {!loadingMentees && searchQuery && (
+                  <div className="relative animate-slideInUp">
+                    <div className="overflow-x-auto pb-4 -mx-4 px-4">
+                      <div className="flex gap-4 min-w-max">
+                        {filteredMentees.map((mentee) => {
+                          const isSelected = selectedMentee?.uid === mentee.uid
+                          
+                          return (
+                            <button
+                              key={mentee.uid}
+                              onClick={() => setSelectedMentee(mentee)}
+                              className={`group relative w-64 p-6 rounded-[24px] border-2 transition-all duration-300 flex-shrink-0 ${
+                                isSelected
+                                  ? 'border-baires-orange bg-gradient-to-br from-orange-50 to-orange-100 shadow-xl scale-105'
+                                  : 'border-neutral-200 bg-white hover:border-orange-300 hover:shadow-lg hover:scale-105'
+                              }`}
+                            >
+                              {isSelected && (
+                                <div className="absolute -top-3 -right-3 w-8 h-8 bg-gradient-to-br from-baires-orange to-orange-600 rounded-full flex items-center justify-center shadow-lg animate-scaleIn">
+                                  <CheckCircle className="w-5 h-5 text-white" />
+                                </div>
+                              )}
+                              
+                              <div className="text-center">
+                                <div className="relative inline-block mb-4">
+                                  <Avatar 
+                                    src={mentee.photoURL} 
+                                    initials={mentee.displayName?.substring(0, 2)?.toUpperCase()}
+                                    size="2xl" 
+                                  />
+                                  <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-gradient-to-br from-green-400 to-green-600 rounded-full border-2 border-white"></div>
+                                </div>
+                                
+                                <h3 className={`font-bold text-lg mb-1 ${isSelected ? 'text-baires-orange' : 'text-neutral-black'}`}>
+                                  {mentee.displayName}
+                                </h3>
+                                <p className="text-sm text-neutral-gray-dark mb-4">{mentee.bio || 'Mentee'}</p>
+                                
+                                <div className="flex flex-wrap gap-2 justify-center">
+                                  {mentee.technologies?.slice(0, 3).map((tech, idx) => (
+                                    <span key={idx} className="text-xs bg-neutral-100 text-neutral-gray-dark px-2 py-1 rounded-full">
+                                      {tech.name || tech}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            </button>
+                          )
+                        })}
+                      </div>
                     </div>
-                  )}
-                  
-                  {filteredEmployees.length === 0 && (
-                    <div className="text-center py-8">
-                      <Search className="w-12 h-12 text-neutral-gray-dark mx-auto mb-3 opacity-50" />
-                      <p className="text-neutral-gray-dark">No team members found matching "{searchQuery}"</p>
-                    </div>
-                  )}
-                </div>
+                    
+                    {filteredMentees.length === 0 && (
+                      <div className="text-center py-8">
+                        <Search className="w-12 h-12 text-neutral-gray-dark mx-auto mb-3 opacity-50" />
+                        <p className="text-neutral-gray-dark">No mentees found matching "{searchQuery}"</p>
+                      </div>
+                    )}
+                  </div>
                 )}
 
                 {selectedMentee && (
-                  <div className="mt-6 p-5 bg-gradient-to-r from-blue-50 to-blue-100 rounded-[20px] border-2 border-blue-300 flex items-center gap-4">
+                  <div className="mt-6 p-5 bg-gradient-to-r from-blue-50 to-blue-100 rounded-[20px] border-2 border-blue-300 flex items-center gap-4 animate-slideInUp">
                     <CheckCircle className="w-6 h-6 text-baires-blue" />
                     <div className="flex-1">
                       <span className="text-sm font-semibold text-blue-900">
-                        Selected: <span className="text-neutral-black">{selectedMentee.name}</span>
+                        Selected: <span className="text-neutral-black">{selectedMentee.displayName}</span>
                       </span>
-                      <p className="text-xs text-blue-800">AI will find the best mentors for {selectedMentee.name}</p>
+                      <p className="text-xs text-blue-800">AI will find the best mentors for {selectedMentee.displayName}</p>
                     </div>
                   </div>
                 )}
@@ -497,17 +637,21 @@ export default function CreateMentorship() {
                     Describe the Challenge
                   </h2>
                   <p className="text-neutral-gray-dark">
-                    Tell us what {selectedMentee?.name} needs help with. Be specific - our AI will use this to find the perfect match.
+                    Tell us what {selectedMentee?.displayName} needs help with. Be specific - our AI will use this to find the perfect match.
                   </p>
                 </div>
 
                 {/* Summary Card */}
                 <div className="mb-6 p-5 bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-[20px] border border-blue-200">
                   <div className="flex items-center gap-3 mb-4">
-                    <Avatar src={selectedMentee?.avatar} size="md" />
+                    <Avatar 
+                      src={selectedMentee?.photoURL} 
+                      initials={selectedMentee?.displayName?.substring(0, 2)?.toUpperCase()}
+                      size="md" 
+                    />
                     <div>
-                      <div className="font-bold text-neutral-black">{selectedMentee?.name}</div>
-                      <div className="text-sm text-neutral-gray-dark">{selectedMentee?.role}</div>
+                      <div className="font-bold text-neutral-black">{selectedMentee?.displayName}</div>
+                      <div className="text-sm text-neutral-gray-dark">{selectedMentee?.bio || 'Mentee'}</div>
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -537,7 +681,7 @@ export default function CreateMentorship() {
                   <textarea
                     value={problemDescription}
                     onChange={(e) => setProblemDescription(e.target.value)}
-                    placeholder={`Example: "${selectedMentee?.name} is struggling with React state management in complex applications. They need guidance on best practices, performance optimization, and when to use different state solutions like Context API vs Redux."`}
+                    placeholder={`Example: "${selectedMentee?.displayName} is struggling with React state management in complex applications. They need guidance on best practices, performance optimization, and when to use different state solutions like Context API vs Redux."`}
                     rows="6"
                     className="w-full px-6 py-4 rounded-[20px] border-2 border-neutral-200 focus:border-baires-orange focus:outline-none resize-none text-neutral-black leading-relaxed shadow-lg"
                   ></textarea>
@@ -567,7 +711,7 @@ export default function CreateMentorship() {
                           <Badge variant="orange" className="text-xs">Live</Badge>
                         </div>
                         <p className="text-sm text-neutral-gray-dark leading-relaxed">
-                          Our AI has identified key topics: <span className="font-semibold text-neutral-black">state management, performance optimization, architecture patterns</span>. We'll prioritize mentors with expertise in these areas.
+                          Our AI will analyze your description and match with mentors who have proven expertise in these specific areas. Ready to find the perfect match!
                         </p>
                       </div>
                     </div>
@@ -608,14 +752,212 @@ export default function CreateMentorship() {
                   </div>
                   <div className="flex items-center gap-3 p-4 bg-white rounded-[16px] border border-orange-200 animate-slideInUp" style={{animationDelay: '1s'}}>
                     <div className="w-2 h-2 bg-baires-orange rounded-full animate-pulse"></div>
-                    <span className="text-sm text-neutral-gray-dark">Finding hidden talent...</span>
+                    <span className="text-sm text-neutral-gray-dark">Finding perfect matches...</span>
                     <Loader2 className="w-4 h-4 text-baires-orange ml-auto animate-spin" />
                   </div>
                 </div>
 
                 <p className="text-sm text-neutral-gray-dark italic">
-                  Our AI is analyzing over 250+ mentors to find the perfect match...
+                  Our AI is analyzing mentors to find the perfect match...
                 </p>
+              </div>
+            </div>
+          )}
+
+          {/* Step 5: Select Mentor */}
+          {currentStep === 5 && (
+            <div className="p-8 md:p-12 bg-gradient-to-br from-white to-orange-50/30">
+              <div className="max-w-4xl mx-auto">
+                <div className="text-center mb-8">
+                  <div className="inline-flex items-center gap-2 bg-gradient-to-r from-baires-orange to-orange-600 text-white px-4 py-2 rounded-full mb-4">
+                    <Sparkles className="w-4 h-4 animate-pulse" />
+                    <span className="font-semibold text-sm">AI Recommendations Ready</span>
+                  </div>
+                  <h2 className="text-3xl font-bold text-neutral-black mb-3">
+                    Select a Mentor
+                  </h2>
+                  <p className="text-neutral-gray-dark mb-4">
+                    Choose from our top AI-matched mentors or skip to create mentorship without assigning a mentor yet
+                  </p>
+                </div>
+
+                {/* Top 3 Mentors */}
+                {recommendedMentors.topMentors.length > 0 && (
+                  <div className="mb-8">
+                    <h3 className="text-lg font-bold text-neutral-black mb-4 flex items-center gap-2">
+                      <Sparkles className="w-5 h-5 text-baires-orange" />
+                      Top Recommendations
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {recommendedMentors.topMentors.map((mentor) => (
+                        <button
+                          key={mentor.uid}
+                          onClick={() => setSelectedMentor(mentor)}
+                          className={`p-6 rounded-[20px] border-2 transition-all text-left ${
+                            selectedMentor?.uid === mentor.uid
+                              ? 'border-baires-orange bg-gradient-to-br from-orange-50 to-orange-100 shadow-lg scale-105'
+                              : 'border-neutral-200 bg-white hover:border-orange-300 hover:shadow-md'
+                          }`}
+                        >
+                          <div className="text-center mb-4">
+                            <Avatar 
+                              src={mentor.photoURL} 
+                              initials={mentor.displayName?.substring(0, 2)?.toUpperCase()}
+                              size="xl" 
+                              className="mx-auto mb-3"
+                            />
+                            <h4 className="font-bold text-neutral-black mb-1">{mentor.displayName}</h4>
+                            <p className="text-xs text-neutral-gray-dark mb-2">{mentor.bio?.substring(0, 50) || 'Expert Mentor'}</p>
+                            <Badge variant="orange" className="text-xs">
+                              {mentor.aiScore}% Match
+                            </Badge>
+                          </div>
+                          {selectedMentor?.uid === mentor.uid && (
+                            <div className="flex items-center justify-center gap-2 text-baires-orange text-sm font-bold">
+                              <CheckCircle className="w-4 h-4" />
+                              Selected
+                            </div>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Other Mentors */}
+                {recommendedMentors.otherMentors.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="text-lg font-bold text-neutral-black mb-4">Other Options</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {recommendedMentors.otherMentors.slice(0, 4).map((mentor) => (
+                        <button
+                          key={mentor.uid}
+                          onClick={() => setSelectedMentor(mentor)}
+                          className={`p-4 rounded-[16px] border-2 transition-all text-left flex items-center gap-4 ${
+                            selectedMentor?.uid === mentor.uid
+                              ? 'border-baires-orange bg-gradient-to-br from-orange-50 to-orange-100'
+                              : 'border-neutral-200 bg-white hover:border-orange-300'
+                          }`}
+                        >
+                          <Avatar 
+                            src={mentor.photoURL} 
+                            initials={mentor.displayName?.substring(0, 2)?.toUpperCase()}
+                            size="md" 
+                          />
+                          <div className="flex-1">
+                            <h4 className="font-bold text-neutral-black text-sm">{mentor.displayName}</h4>
+                            <p className="text-xs text-neutral-gray-dark">{mentor.bio?.substring(0, 40) || 'Mentor'}</p>
+                          </div>
+                          {selectedMentor?.uid === mentor.uid && (
+                            <CheckCircle className="w-5 h-5 text-baires-orange" />
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {selectedMentor && (
+                  <div className="p-5 bg-gradient-to-r from-blue-50 to-blue-100 rounded-[20px] border-2 border-blue-300 flex items-center gap-4 animate-slideInUp">
+                    <CheckCircle className="w-6 h-6 text-baires-blue" />
+                    <div className="flex-1">
+                      <span className="text-sm font-semibold text-blue-900">
+                        Mentor selected: <span className="text-neutral-black">{selectedMentor.displayName}</span>
+                      </span>
+                      <p className="text-xs text-blue-800">Next: Schedule kickoff meeting</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Step 6: Schedule Meeting */}
+          {currentStep === 6 && (
+            <div className="p-8 md:p-12 bg-gradient-to-br from-white to-blue-50/30">
+              <div className="max-w-2xl mx-auto">
+                <div className="text-center mb-8">
+                  <div className="inline-flex items-center gap-2 bg-gradient-to-r from-baires-blue to-blue-600 text-white px-4 py-2 rounded-full mb-4">
+                    <Calendar className="w-4 h-4" />
+                    <span className="font-semibold text-sm">Final Step</span>
+                  </div>
+                  <h2 className="text-3xl font-bold text-neutral-black mb-3">
+                    Schedule Kickoff Meeting
+                  </h2>
+                  <p className="text-neutral-gray-dark">
+                    Set up the first meeting between the mentor and mentee
+                  </p>
+                </div>
+
+                {/* Selected Mentor Summary */}
+                <div className="mb-6 p-5 bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-[20px] border border-orange-200">
+                  <div className="flex items-center gap-4 mb-4">
+                    <Avatar 
+                      src={selectedMentor?.photoURL} 
+                      initials={selectedMentor?.displayName?.substring(0, 2)?.toUpperCase()}
+                      size="lg" 
+                    />
+                    <div className="flex-1">
+                      <h3 className="font-bold text-neutral-black">Mentor: {selectedMentor?.displayName}</h3>
+                      <p className="text-sm text-neutral-gray-dark">Mentee: {selectedMentee?.displayName}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Meeting Form */}
+                <div className="space-y-4 mb-6">
+                  <div>
+                    <label className="block text-sm font-bold text-neutral-black mb-2">
+                      <Calendar className="w-4 h-4 inline mr-2" />
+                      Meeting Date
+                    </label>
+                    <input
+                      type="date"
+                      value={meetingDate}
+                      onChange={(e) => setMeetingDate(e.target.value)}
+                      min={new Date().toISOString().split('T')[0]}
+                      className="w-full px-4 py-3 rounded-[14px] border-2 border-neutral-200 focus:border-baires-blue focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold text-neutral-black mb-2">
+                      <Clock className="w-4 h-4 inline mr-2" />
+                      Meeting Time
+                    </label>
+                    <input
+                      type="time"
+                      value={meetingTime}
+                      onChange={(e) => setMeetingTime(e.target.value)}
+                      className="w-full px-4 py-3 rounded-[14px] border-2 border-neutral-200 focus:border-baires-blue focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold text-neutral-black mb-2">
+                      Meeting Notes (Optional)
+                    </label>
+                    <textarea
+                      value={meetingNotes}
+                      onChange={(e) => setMeetingNotes(e.target.value)}
+                      placeholder="Add any notes or agenda items for the kickoff meeting..."
+                      rows="4"
+                      className="w-full px-4 py-3 rounded-[14px] border-2 border-neutral-200 focus:border-baires-blue focus:outline-none resize-none"
+                    ></textarea>
+                  </div>
+                </div>
+
+                {meetingDate && meetingTime && (
+                  <div className="p-5 bg-gradient-to-r from-green-50 to-green-100 rounded-[20px] border-2 border-green-300 flex items-center gap-4 animate-slideInUp">
+                    <CheckCircle className="w-6 h-6 text-green-600" />
+                    <div className="flex-1">
+                      <span className="text-sm font-semibold text-green-900">
+                        Meeting scheduled for: <span className="text-neutral-black">{new Date(`${meetingDate}T${meetingTime}`).toLocaleString()}</span>
+                      </span>
+                      <p className="text-xs text-green-800">The mentor will receive a meeting invitation</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -658,6 +1000,17 @@ export default function CreateMentorship() {
                       <span>Find Mentors with AI</span>
                       <Zap className="w-5 h-5 group-hover:rotate-12 transition-transform" />
                     </>
+                  ) : currentStep === 5 ? (
+                    <>
+                      <span>{selectedMentor ? 'Schedule Meeting' : 'Create Without Mentor'}</span>
+                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    </>
+                  ) : currentStep === 6 ? (
+                    <>
+                      <Send className="w-5 h-5" />
+                      <span>Create Mentorship</span>
+                      <CheckCircle className="w-5 h-5" />
+                    </>
                   ) : (
                     <>
                       <span>Continue</span>
@@ -674,4 +1027,3 @@ export default function CreateMentorship() {
     </>
   )
 }
-

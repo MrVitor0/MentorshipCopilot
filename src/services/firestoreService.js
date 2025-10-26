@@ -4,11 +4,9 @@ import {
   setDoc, 
   updateDoc, 
   collection, 
-  query, 
-  where, 
   getDocs,
-  orderBy,
-  limit,
+  query,
+  where,
   Timestamp,
   addDoc
 } from 'firebase/firestore'
@@ -17,6 +15,12 @@ import { db } from '../config/firebase'
 /**
  * FirestoreService - Service for handling all Firestore operations
  * Follows Single Responsibility Principle and provides clean abstraction
+ * 
+ * Design Principles Applied:
+ * - Single Responsibility: Each function has one clear purpose
+ * - Defensive Programming: Always return safe defaults, never throw on empty collections
+ * - Memory Filtering: Avoid Firestore index requirements by filtering in memory
+ * - Null Safety: Check for undefined/null fields before accessing
  */
 
 // Collection names - centralized for easy maintenance
@@ -25,6 +29,44 @@ const COLLECTIONS = {
   MENTORSHIPS: 'mentorships',
   SESSIONS: 'sessions',
   ACTIVITIES: 'activities'
+}
+
+/**
+ * UTILITY FUNCTIONS - Following DRY principle
+ */
+
+/**
+ * Safely get all documents from a collection
+ * Returns empty array if collection doesn't exist or is empty
+ */
+const safeGetCollection = async (collectionName) => {
+  try {
+    const collectionRef = collection(db, collectionName)
+    const snapshot = await getDocs(collectionRef)
+    
+    if (snapshot.empty) {
+      return []
+    }
+    
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }))
+  } catch (error) {
+    console.error(`Error fetching collection ${collectionName}:`, error)
+    return []
+  }
+}
+
+/**
+ * Sort documents by timestamp field
+ */
+const sortByTimestamp = (docs, field = 'createdAt', descending = true) => {
+  return docs.sort((a, b) => {
+    const dateA = a[field]?.toMillis?.() || 0
+    const dateB = b[field]?.toMillis?.() || 0
+    return descending ? dateB - dateA : dateA - dateB
+  })
 }
 
 /**
@@ -103,18 +145,23 @@ export const completeOnboarding = async (uid, onboardingData) => {
 
 export const getMentors = async (filters = {}) => {
   try {
-    let q = query(
-      collection(db, COLLECTIONS.USERS),
-      where('userType', '==', 'mentor')
-    )
-
-    // Apply filters if provided
+    // Get all users and filter in memory to avoid index issues
+    const users = await safeGetCollection(COLLECTIONS.USERS)
+    
+    let mentors = users.filter(user => user.userType === 'mentor')
+    
+    // Apply technology filters if provided
     if (filters.technologies && filters.technologies.length > 0) {
-      q = query(q, where('technologies', 'array-contains-any', filters.technologies))
+      mentors = mentors.filter(mentor => {
+        const mentorTechs = mentor.technologies || []
+        return filters.technologies.some(tech => 
+          mentorTechs.some(mt => (mt.name || mt) === tech)
+        )
+      })
     }
-
-    const querySnapshot = await getDocs(q)
-    return querySnapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() }))
+    
+    // Rename id to uid for consistency
+    return mentors.map(({ id, ...rest }) => ({ uid: id, ...rest }))
   } catch (error) {
     console.error('Error getting mentors:', error)
     return []
@@ -123,13 +170,12 @@ export const getMentors = async (filters = {}) => {
 
 export const getMentees = async () => {
   try {
-    const q = query(
-      collection(db, COLLECTIONS.USERS),
-      where('userType', '==', 'mentee')
-    )
-
-    const querySnapshot = await getDocs(q)
-    return querySnapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() }))
+    // Get all users and filter in memory
+    const users = await safeGetCollection(COLLECTIONS.USERS)
+    const mentees = users.filter(user => user.userType === 'mentee')
+    
+    // Rename id to uid for consistency
+    return mentees.map(({ id, ...rest }) => ({ uid: id, ...rest }))
   } catch (error) {
     console.error('Error getting mentees:', error)
     return []
@@ -159,30 +205,33 @@ export const createMentorship = async (mentorshipData) => {
 
 export const getUserMentorships = async (uid) => {
   try {
-    // Get mentorships where user is mentor or mentee
-    const asMentor = query(
+    // Query mentorships where user is a mentor
+    const mentorQuery = query(
       collection(db, COLLECTIONS.MENTORSHIPS),
-      where('mentorId', '==', uid),
-      orderBy('createdAt', 'desc')
+      where('mentorId', '==', uid)
     )
-    
-    const asMentee = query(
+    const mentorSnapshot = await getDocs(mentorQuery)
+    const mentorMentorships = mentorSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      role: 'mentor'
+    }))
+
+    // Query mentorships where user is a mentee
+    const menteeQuery = query(
       collection(db, COLLECTIONS.MENTORSHIPS),
-      where('menteeId', '==', uid),
-      orderBy('createdAt', 'desc')
+      where('menteeId', '==', uid)
     )
+    const menteeSnapshot = await getDocs(menteeQuery)
+    const menteeMentorships = menteeSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      role: 'mentee'
+    }))
 
-    const [mentorSnap, menteeSnap] = await Promise.all([
-      getDocs(asMentor),
-      getDocs(asMentee)
-    ])
-
-    const mentorships = [
-      ...mentorSnap.docs.map(doc => ({ id: doc.id, ...doc.data(), role: 'mentor' })),
-      ...menteeSnap.docs.map(doc => ({ id: doc.id, ...doc.data(), role: 'mentee' }))
-    ]
-
-    return mentorships
+    // Combine and sort
+    const allMentorships = [...mentorMentorships, ...menteeMentorships]
+    return sortByTimestamp(allMentorships, 'createdAt', true)
   } catch (error) {
     console.error('Error getting user mentorships:', error)
     return []
@@ -211,16 +260,23 @@ export const createSession = async (sessionData) => {
 
 export const getUpcomingSessions = async (uid, limitCount = 10) => {
   try {
-    const q = query(
+    // Query sessions where user is a participant
+    const sessionsQuery = query(
       collection(db, COLLECTIONS.SESSIONS),
-      where('participantIds', 'array-contains', uid),
-      where('status', '==', 'scheduled'),
-      orderBy('scheduledDate', 'asc'),
-      limit(limitCount)
+      where('participantIds', 'array-contains', uid)
     )
-
-    const querySnapshot = await getDocs(q)
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+    const snapshot = await getDocs(sessionsQuery)
+    
+    // Filter by valid statuses in memory
+    const upcomingSessions = snapshot.docs
+      .map(doc => ({ id: doc.id, ...doc.data() }))
+      .filter(session => 
+        ['scheduled', 'pending_acceptance', 'confirmed'].includes(session.status)
+      )
+    
+    // Sort by scheduled date (ascending) and limit
+    const sorted = sortByTimestamp(upcomingSessions, 'scheduledDate', false)
+    return sorted.slice(0, limitCount)
   } catch (error) {
     console.error('Error getting upcoming sessions:', error)
     return []
@@ -233,14 +289,9 @@ export const getUpcomingSessions = async (uid, limitCount = 10) => {
 
 export const getRecentActivities = async (limitCount = 10) => {
   try {
-    const q = query(
-      collection(db, COLLECTIONS.ACTIVITIES),
-      orderBy('createdAt', 'desc'),
-      limit(limitCount)
-    )
-
-    const querySnapshot = await getDocs(q)
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+    const activities = await safeGetCollection(COLLECTIONS.ACTIVITIES)
+    const sorted = sortByTimestamp(activities, 'createdAt', true)
+    return sorted.slice(0, limitCount)
   } catch (error) {
     console.error('Error getting recent activities:', error)
     return []
@@ -269,33 +320,293 @@ export const createActivity = async (activityData) => {
 export const getSmartSuggestions = async (uid) => {
   try {
     const userProfile = await getUserProfile(uid)
-    
     if (!userProfile) return []
 
-    // Get opposite user type (mentors for mentees, mentees for mentors)
+    // Get opposite user type
     const targetType = userProfile.userType === 'mentor' ? 'mentee' : 'mentor'
     
-    let q = query(
-      collection(db, COLLECTIONS.USERS),
-      where('userType', '==', targetType),
-      limit(5)
-    )
-
-    // If user has technologies, try to match
+    const allUsers = await safeGetCollection(COLLECTIONS.USERS)
+    let suggestions = allUsers.filter(user => user.userType === targetType)
+    
+    // If user has technologies, prioritize matches
     if (userProfile.technologies && userProfile.technologies.length > 0) {
-      q = query(
-        collection(db, COLLECTIONS.USERS),
-        where('userType', '==', targetType),
-        where('technologies', 'array-contains-any', userProfile.technologies.map(t => t.name || t)),
-        limit(5)
-      )
+      const userTechNames = userProfile.technologies.map(t => t.name || t)
+      
+      // Score each suggestion by technology overlap
+      suggestions = suggestions.map(suggestion => {
+        const suggestionTechs = suggestion.technologies || []
+        const suggestionTechNames = suggestionTechs.map(t => t.name || t)
+        const overlap = userTechNames.filter(tech => suggestionTechNames.includes(tech)).length
+        return { ...suggestion, _matchScore: overlap }
+      })
+      
+      // Sort by match score
+      suggestions.sort((a, b) => (b._matchScore || 0) - (a._matchScore || 0))
     }
-
-    const querySnapshot = await getDocs(q)
-    return querySnapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() }))
+    
+    // Rename id to uid and remove internal fields
+    return suggestions.slice(0, 5).map(({ id, ...rest }) => {
+      // Remove _matchScore from the object
+      const { _matchScore, ...cleanRest } = rest
+      return { uid: id, ...cleanRest }
+    })
   } catch (error) {
     console.error('Error getting smart suggestions:', error)
     return []
+  }
+}
+
+/**
+ * MENTORSHIP EXTENDED OPERATIONS
+ */
+
+export const createMentorshipWithDetails = async (mentorshipData) => {
+  try {
+    const data = {
+      ...mentorshipData,
+      status: mentorshipData.status || 'pending_mentor',
+      progress: 0,
+      sessionsCompleted: 0,
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now()
+    }
+    
+    const docRef = await addDoc(collection(db, COLLECTIONS.MENTORSHIPS), data)
+    return { id: docRef.id, ...data }
+  } catch (error) {
+    console.error('Error creating mentorship with details:', error)
+    throw new Error('Error creating mentorship')
+  }
+}
+
+export const updateMentorshipStatus = async (mentorshipId, status, additionalData = {}) => {
+  try {
+    const mentorshipRef = doc(db, COLLECTIONS.MENTORSHIPS, mentorshipId)
+    const data = {
+      status,
+      ...additionalData,
+      updatedAt: Timestamp.now()
+    }
+    
+    await updateDoc(mentorshipRef, data)
+    return data
+  } catch (error) {
+    console.error('Error updating mentorship status:', error)
+    throw new Error('Error updating mentorship')
+  }
+}
+
+export const getMentorshipById = async (mentorshipId) => {
+  try {
+    const mentorshipRef = doc(db, COLLECTIONS.MENTORSHIPS, mentorshipId)
+    const mentorshipSnap = await getDoc(mentorshipRef)
+    
+    if (mentorshipSnap.exists()) {
+      return { id: mentorshipSnap.id, ...mentorshipSnap.data() }
+    }
+    return null
+  } catch (error) {
+    console.error('Error getting mentorship by id:', error)
+    return null
+  }
+}
+
+export const getPMMentorships = async (pmId) => {
+  try {
+    // Query mentorships where user is a project manager
+    const pmQuery = query(
+      collection(db, COLLECTIONS.MENTORSHIPS),
+      where('projectManagerId', '==', pmId)
+    )
+    const snapshot = await getDocs(pmQuery)
+    
+    const pmMentorships = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }))
+    
+    return sortByTimestamp(pmMentorships, 'createdAt', true)
+  } catch (error) {
+    console.error('Error getting PM mentorships:', error)
+    return []
+  }
+}
+
+/**
+ * MEETING/SESSION MANAGEMENT
+ */
+
+export const createKickoffMeeting = async (meetingData) => {
+  try {
+    const data = {
+      ...meetingData,
+      type: 'kickoff',
+      status: 'pending_acceptance',
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now()
+    }
+    
+    const docRef = await addDoc(collection(db, COLLECTIONS.SESSIONS), data)
+    return { id: docRef.id, ...data }
+  } catch (error) {
+    console.error('Error creating kickoff meeting:', error)
+    throw new Error('Error creating kickoff meeting')
+  }
+}
+
+export const updateMeetingStatus = async (meetingId, status, additionalData = {}) => {
+  try {
+    const meetingRef = doc(db, COLLECTIONS.SESSIONS, meetingId)
+    const data = {
+      status,
+      ...additionalData,
+      updatedAt: Timestamp.now()
+    }
+    
+    await updateDoc(meetingRef, data)
+    return data
+  } catch (error) {
+    console.error('Error updating meeting status:', error)
+    throw new Error('Error updating meeting')
+  }
+}
+
+export const getMeetingsByUser = async (userId) => {
+  try {
+    // Query sessions where user is a participant
+    const sessionsQuery = query(
+      collection(db, COLLECTIONS.SESSIONS),
+      where('participantIds', 'array-contains', userId)
+    )
+    const snapshot = await getDocs(sessionsQuery)
+    
+    const userMeetings = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }))
+    
+    return sortByTimestamp(userMeetings, 'scheduledDate', false)
+  } catch (error) {
+    console.error('Error getting meetings by user:', error)
+    return []
+  }
+}
+
+/**
+ * INVITATION MANAGEMENT
+ */
+
+export const createMentorshipInvitation = async (invitationData) => {
+  try {
+    const data = {
+      ...invitationData,
+      status: 'pending',
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now()
+    }
+    
+    const docRef = await addDoc(collection(db, 'mentorship_invitations'), data)
+    return { id: docRef.id, ...data }
+  } catch (error) {
+    console.error('Error creating mentorship invitation:', error)
+    throw new Error('Error creating invitation')
+  }
+}
+
+export const getInvitationsForMentor = async (mentorId) => {
+  try {
+    // Query invitations for this mentor with pending status
+    const invitationsQuery = query(
+      collection(db, 'mentorship_invitations'),
+      where('mentorId', '==', mentorId),
+      where('status', '==', 'pending')
+    )
+    const snapshot = await getDocs(invitationsQuery)
+    
+    const mentorInvitations = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }))
+    
+    return sortByTimestamp(mentorInvitations, 'createdAt', true)
+  } catch (error) {
+    console.error('Error getting invitations for mentor:', error)
+    return []
+  }
+}
+
+export const updateInvitationStatus = async (invitationId, status) => {
+  try {
+    const invitationRef = doc(db, 'mentorship_invitations', invitationId)
+    const data = {
+      status,
+      updatedAt: Timestamp.now()
+    }
+    
+    await updateDoc(invitationRef, data)
+    return data
+  } catch (error) {
+    console.error('Error updating invitation status:', error)
+    throw new Error('Error updating invitation')
+  }
+}
+
+/**
+ * JOIN REQUESTS
+ */
+
+export const createJoinRequest = async (requestData) => {
+  try {
+    const data = {
+      ...requestData,
+      status: 'pending',
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now()
+    }
+    
+    const docRef = await addDoc(collection(db, 'mentorship_join_requests'), data)
+    return { id: docRef.id, ...data }
+  } catch (error) {
+    console.error('Error creating join request:', error)
+    throw new Error('Error creating join request')
+  }
+}
+
+export const getJoinRequestsForMentorship = async (mentorshipId) => {
+  try {
+    // Query join requests for this mentorship with pending status
+    const requestsQuery = query(
+      collection(db, 'mentorship_join_requests'),
+      where('mentorshipId', '==', mentorshipId),
+      where('status', '==', 'pending')
+    )
+    const snapshot = await getDocs(requestsQuery)
+    
+    const mentorshipRequests = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }))
+    
+    return sortByTimestamp(mentorshipRequests, 'createdAt', true)
+  } catch (error) {
+    console.error('Error getting join requests for mentorship:', error)
+    return []
+  }
+}
+
+export const updateJoinRequestStatus = async (requestId, status) => {
+  try {
+    const requestRef = doc(db, 'mentorship_join_requests', requestId)
+    const data = {
+      status,
+      updatedAt: Timestamp.now()
+    }
+    
+    await updateDoc(requestRef, data)
+    return data
+  } catch (error) {
+    console.error('Error updating join request status:', error)
+    throw new Error('Error updating join request')
   }
 }
 

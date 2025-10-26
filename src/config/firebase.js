@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app'
 import { getAuth, connectAuthEmulator } from 'firebase/auth'
 import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore'
+import { getFunctions, connectFunctionsEmulator } from 'firebase/functions'
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "demo-api-key",
@@ -17,6 +18,7 @@ const app = initializeApp(firebaseConfig)
 // Initialize Firebase services
 export const auth = getAuth(app)
 export const db = getFirestore(app)
+export const functions = getFunctions(app)
 
 // Connect to emulators in development
 const isDevelopment = import.meta.env.MODE === 'development' || import.meta.env.DEV
@@ -42,9 +44,18 @@ if (isDevelopment) {
     console.log('Firestore emulator already connected')
   }
   
+  try {
+    // Connect Functions emulator
+    connectFunctionsEmulator(functions, '127.0.0.1', 5001)
+  } catch {
+    // Already connected
+    console.log('Functions emulator already connected')
+  }
+  
   console.log('🔥 Firebase Emulators Connected')
   console.log('   Auth: http://127.0.0.1:9099')
   console.log('   Firestore: http://127.0.0.1:8080')
+  console.log('   Functions: http://127.0.0.1:5001')
   console.log('   UI: http://127.0.0.1:4000')
 }
 

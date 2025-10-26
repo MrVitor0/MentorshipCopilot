@@ -1,5 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { useAuth } from '../hooks/useAuth'
+import { getMentorshipById, getJoinRequestsForMentorship, updateJoinRequestStatus, getUserProfile } from '../services/firestoreService'
 import Sidebar from '../components/Sidebar'
 import Card from '../components/Card'
 import Button from '../components/Button'
@@ -26,7 +28,9 @@ import {
   Sparkles,
   Bot,
   FileText,
-  Play
+  Play,
+  UserPlus,
+  X as XIcon
 } from 'lucide-react'
 
 // Mock data - em produção viria de uma API
@@ -121,12 +125,71 @@ const mentorshipData = {
 export default function MentorshipDetails() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [isChatOpen, setIsChatOpen] = useState(false)
   const [viewMode, setViewMode] = useState('pm') // 'pm' or 'mentor'
+  const [mentorship, setMentorship] = useState(null)
+  const [joinRequests, setJoinRequests] = useState([])
+  const [joinRequestsWithProfiles, setJoinRequestsWithProfiles] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [processingRequest, setProcessingRequest] = useState(null)
   
-  const data = mentorshipData
-  const latestSession = data.sessions[data.sessions.length - 1]
-  const averageProgress = (data.sessions.reduce((acc, s) => acc + s.progressRating, 0) / data.sessions.length).toFixed(1)
+  // Load mentorship and join requests
+  useEffect(() => {
+    const fetchMentorshipData = async () => {
+      if (!id) return
+      
+      setLoading(true)
+      try {
+        const mentorshipData = await getMentorshipById(id)
+        setMentorship(mentorshipData)
+        
+        // Only fetch join requests if there's no mentor assigned
+        if (!mentorshipData?.mentorId) {
+          const requests = await getJoinRequestsForMentorship(id)
+          setJoinRequests(requests)
+          
+          // Fetch mentor profiles for join requests
+          if (requests.length > 0) {
+            const profiles = await Promise.all(
+              requests.map(async (req) => {
+                const profile = await getUserProfile(req.mentorId)
+                return { ...req, mentorProfile: profile }
+              })
+            )
+            setJoinRequestsWithProfiles(profiles)
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching mentorship:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    fetchMentorshipData()
+  }, [id])
+
+  const handleJoinRequestResponse = async (requestId, action) => {
+    setProcessingRequest(requestId)
+    try {
+      await updateJoinRequestStatus(requestId, action === 'accept' ? 'accepted' : 'declined')
+      // Refresh data
+      window.location.reload()
+    } catch (error) {
+      console.error('Error handling join request:', error)
+      alert('Error processing request. Please try again.')
+    } finally {
+      setProcessingRequest(null)
+    }
+  }
+  
+  // Use real or mock data
+  const data = mentorship || mentorshipData
+  const latestSession = data?.sessions?.[data.sessions.length - 1]
+  const averageProgress = data?.sessions ? 
+    (data.sessions.reduce((acc, s) => acc + s.progressRating, 0) / data.sessions.length).toFixed(1) : 
+    '0'
   
   // Determinar status baseado no último log
   const getStatusInfo = () => {
@@ -205,9 +268,117 @@ export default function MentorshipDetails() {
             </div>
           </div>
 
-          {viewMode === 'pm' ? (
+          {loading ? (
+            <div className="flex justify-center py-20">
+              <div className="w-12 h-12 border-4 border-baires-orange border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : viewMode === 'pm' ? (
             // ==================== PM VIEW ====================
             <>
+              {/* Join Requests Section - Show if no mentor assigned */}
+              {!data?.mentorId && joinRequestsWithProfiles.length > 0 && (
+                <Card padding="lg" className="mb-8 bg-gradient-to-br from-orange-50 via-white to-orange-100/50 border-2 border-orange-300/70">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-12 h-12 bg-gradient-to-br from-baires-orange to-orange-600 rounded-[16px] flex items-center justify-center shadow-lg">
+                      <UserPlus className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold text-neutral-black flex items-center gap-2">
+                        Mentor Join Requests
+                        <Badge variant="orange">{joinRequestsWithProfiles.length} Pending</Badge>
+                      </h2>
+                      <p className="text-sm text-neutral-gray-dark">Mentors interested in this mentorship</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {joinRequestsWithProfiles.map((request) => (
+                      <Card key={request.id} padding="md" className="bg-white">
+                        <div className="flex items-start gap-4 mb-4">
+                          <Avatar 
+                            src={request.mentorProfile?.photoURL} 
+                            initials={request.mentorProfile?.displayName?.substring(0, 2)?.toUpperCase()}
+                            size="xl"
+                          />
+                          <div className="flex-1">
+                            <h3 className="font-bold text-neutral-black mb-1">
+                              {request.mentorProfile?.displayName || 'Unknown Mentor'}
+                            </h3>
+                            <p className="text-sm text-neutral-gray-dark mb-3">
+                              {request.mentorProfile?.bio || 'Experienced mentor'}
+                            </p>
+                            <div className="flex flex-wrap gap-2 mb-3">
+                              {request.mentorProfile?.technologies?.slice(0, 3).map((tech, idx) => (
+                                <Badge key={idx} variant="blue" className="text-xs">
+                                  {tech.name || tech}
+                                </Badge>
+                              ))}
+                            </div>
+                            {request.message && (
+                              <p className="text-xs text-neutral-gray-dark italic mb-3">
+                                "{request.message}"
+                              </p>
+                            )}
+                            <p className="text-xs text-neutral-gray-dark">
+                              Requested: {request.createdAt?.toDate?.().toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleJoinRequestResponse(request.id, 'accept')}
+                            disabled={processingRequest === request.id}
+                            className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-3 rounded-[14px] font-bold hover:shadow-lg disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                          >
+                            {processingRequest === request.id ? (
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            ) : (
+                              <>
+                                <CheckCircle className="w-4 h-4" />
+                                Accept
+                              </>
+                            )}
+                          </button>
+                          <button
+                            onClick={() => handleJoinRequestResponse(request.id, 'decline')}
+                            disabled={processingRequest === request.id}
+                            className="flex-1 bg-neutral-200 text-neutral-black px-4 py-3 rounded-[14px] font-bold hover:bg-neutral-300 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                          >
+                            <XIcon className="w-4 h-4" />
+                            Decline
+                          </button>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                </Card>
+              )}
+
+              {/* No Mentor Warning */}
+              {!data?.mentorId && joinRequestsWithProfiles.length === 0 && (
+                <Card padding="lg" className="mb-8 bg-gradient-to-br from-amber-50 to-amber-100/50 border-2 border-amber-300/70">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-amber-600 rounded-[16px] flex items-center justify-center shadow-lg">
+                      <AlertCircle className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-bold text-amber-900 mb-1">No Mentor Assigned Yet</h3>
+                      <p className="text-sm text-amber-800">
+                        This mentorship is waiting for a mentor. Join requests from interested mentors will appear here.
+                      </p>
+                    </div>
+                    <Button 
+                      variant="orange" 
+                      onClick={() => navigate('/find-mentors')}
+                      icon={<Users className="w-4 h-4" />}
+                    >
+                      Find Mentors
+                    </Button>
+                  </div>
+                </Card>
+              )}
+
               {/* At-a-Glance Header - Outside Grid */}
               <Card padding="lg" className="mb-8 bg-gradient-to-br from-white via-orange-50/30 to-blue-50/30 border-2 border-orange-200/50">
                 <div className="flex items-center gap-3 mb-6">

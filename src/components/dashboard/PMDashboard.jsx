@@ -1,4 +1,5 @@
-import { Users, MessageSquare, Target, Calendar, TrendingUp, Sparkles, FolderKanban, BarChart3, CheckCircle, Clock, AlertTriangle, Briefcase } from 'lucide-react'
+import { Users, MessageSquare, Target, Calendar, TrendingUp, Sparkles, FolderKanban, BarChart3, CheckCircle, Clock, AlertTriangle, Briefcase, ArrowRight } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import Card from '../Card'
 import Button from '../Button'
 import Avatar from '../Avatar'
@@ -18,6 +19,8 @@ const getIconComponent = (iconName) => {
 }
 
 export default function PMDashboard({ user, upcomingSessions, mentorships, loading }) {
+  const navigate = useNavigate()
+  
   // Calculate PM-specific metrics
   const activeProjects = mentorships.length
   const completedSessions = Math.floor(activeProjects * 0.7) // Mock data
@@ -145,35 +148,82 @@ export default function PMDashboard({ user, upcomingSessions, mentorships, loadi
 
         {/* Project Progress Overview */}
         <Card gradient hover padding="lg">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-[16px] flex items-center justify-center shadow-lg">
-              <BarChart3 className="w-6 h-6 text-white" />
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-[16px] flex items-center justify-center shadow-lg">
+                <BarChart3 className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-neutral-black">Project Progress</h3>
+                <p className="text-xs text-neutral-gray-dark">Your mentorship projects</p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-xl font-bold text-neutral-black">Project Progress</h3>
-              <p className="text-xs text-neutral-gray-dark">Overall mentorship status</p>
-            </div>
+            {mentorships.length > 3 && (
+              <button 
+                onClick={() => navigate('/mentorship')}
+                className="text-sm font-semibold text-baires-orange hover:text-orange-700 flex items-center gap-1"
+              >
+                View All
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            )}
           </div>
 
           {mentorships.length > 0 ? (
             <div className="space-y-4">
-              {mentorships.slice(0, 3).map((mentorship, index) => (
-                <div key={index} className="p-5 bg-gradient-to-br from-white to-green-50/50 rounded-[20px] border border-green-100/50 hover:shadow-md transition-all duration-300">
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-bold text-neutral-black">Project {index + 1}</h4>
-                    <Badge variant="success" className="text-xs">Active</Badge>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-neutral-gray-dark">Progress</span>
-                      <span className="font-semibold text-neutral-black">{65 + (index * 10)}%</span>
+              {mentorships.slice(0, 3).map((mentorship, index) => {
+                const statusColors = {
+                  'active': 'success',
+                  'pending_mentor': 'warning',
+                  'pending_kickoff': 'blue',
+                  'completed': 'gray'
+                }
+                const statusLabels = {
+                  'active': 'Active',
+                  'pending_mentor': 'Pending Mentor',
+                  'pending_kickoff': 'Pending Kickoff',
+                  'completed': 'Completed'
+                }
+                
+                return (
+                  <button
+                    key={mentorship.id}
+                    onClick={() => navigate(`/mentorship/${mentorship.id}`)}
+                    className="w-full p-5 bg-gradient-to-br from-white to-green-50/50 rounded-[20px] border border-green-100/50 hover:shadow-md transition-all duration-300 text-left"
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <Avatar 
+                          src={mentorship.menteeAvatar} 
+                          initials={mentorship.menteeName?.substring(0, 2)?.toUpperCase()}
+                          size="sm"
+                        />
+                        <div>
+                          <h4 className="font-bold text-neutral-black">{mentorship.menteeName}</h4>
+                          <p className="text-xs text-neutral-gray-dark">
+                            {mentorship.technologies?.slice(0, 2).join(', ')}
+                          </p>
+                        </div>
+                      </div>
+                      <Badge variant={statusColors[mentorship.status] || 'gray'} className="text-xs">
+                        {statusLabels[mentorship.status] || mentorship.status}
+                      </Badge>
                     </div>
-                    <div className="w-full bg-neutral-200 rounded-full h-2">
-                      <div className="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full transition-all duration-300" style={{ width: `${65 + (index * 10)}%` }}></div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-neutral-gray-dark">Progress</span>
+                        <span className="font-semibold text-neutral-black">{mentorship.progress || 0}%</span>
+                      </div>
+                      <div className="w-full bg-neutral-200 rounded-full h-2">
+                        <div 
+                          className="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full transition-all duration-300" 
+                          style={{ width: `${mentorship.progress || 0}%` }}
+                        ></div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              ))}
+                  </button>
+                )
+              })}
             </div>
           ) : (
             <EmptyState 
@@ -181,7 +231,7 @@ export default function PMDashboard({ user, upcomingSessions, mentorships, loadi
               title="No projects yet"
               description="Start managing mentorship projects"
               action={
-                <Button variant="orange" size="sm" onClick={() => window.location.href = '/create-mentorship'}>
+                <Button variant="orange" size="sm" onClick={() => navigate('/create-mentorship')}>
                   Create Project
                 </Button>
               }
@@ -256,21 +306,55 @@ export default function PMDashboard({ user, upcomingSessions, mentorships, loadi
             </div>
           ) : upcomingSessions.length > 0 ? (
             <div className="space-y-4">
-              {upcomingSessions.map((session) => (
-                <div key={session.id} className="group flex items-center gap-4 p-4 bg-gradient-to-br from-white to-orange-50/50 rounded-[20px] border border-orange-100/50 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 cursor-pointer">
-                  <div className="relative">
-                    <Avatar src={session.participantPhoto} initials={session.participantName?.substring(0, 2)?.toUpperCase()} size="lg" />
-                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-gradient-to-br from-green-400 to-green-600 rounded-full border-2 border-white"></div>
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-bold text-neutral-black mb-2">{session.participantName}</p>
-                    <div className="flex flex-wrap gap-2">
-                      <Badge variant="orange" className="text-xs">{session.status}</Badge>
-                      <Badge variant="gray" className="text-xs">{session.scheduledDate?.toDate?.().toLocaleDateString()}</Badge>
+              {upcomingSessions.map((session) => {
+                const isKickoff = session.type === 'kickoff'
+                const isPending = session.status === 'pending_acceptance'
+                
+                return (
+                  <div key={session.id} className="group flex items-center gap-4 p-4 bg-gradient-to-br from-white to-orange-50/50 rounded-[20px] border border-orange-100/50 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
+                    <div className="relative">
+                      <Avatar 
+                        src={session.participantPhoto} 
+                        initials={session.participantName?.substring(0, 2)?.toUpperCase()} 
+                        size="lg" 
+                      />
+                      <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-gradient-to-br from-green-400 to-green-600 rounded-full border-2 border-white"></div>
                     </div>
+                    <div className="flex-1">
+                      <p className="font-bold text-neutral-black mb-1">
+                        {isKickoff ? 'Kickoff Meeting: ' : ''}{session.participantName}
+                      </p>
+                      <p className="text-xs text-neutral-gray-dark mb-2">
+                        {session.scheduledDate?.toDate?.().toLocaleString()}
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {isPending && (
+                          <Badge variant="warning" className="text-xs">Pending Acceptance</Badge>
+                        )}
+                        {!isPending && (
+                          <Badge variant="success" className="text-xs">Confirmed</Badge>
+                        )}
+                        {isKickoff && (
+                          <Badge variant="blue" className="text-xs">Kickoff</Badge>
+                        )}
+                      </div>
+                    </div>
+                    {isPending && (
+                      <button 
+                        className="px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 rounded-[12px] transition-colors"
+                        onClick={() => {
+                          if (confirm('Cancel this meeting?')) {
+                            // TODO: Implement cancel meeting
+                            console.log('Cancel meeting:', session.id)
+                          }
+                        }}
+                      >
+                        Cancel
+                      </button>
+                    )}
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           ) : (
             <EmptyState 
