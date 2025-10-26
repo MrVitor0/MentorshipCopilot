@@ -82,6 +82,8 @@ async function seedAuthUsers() {
       }
 
       // Create user in Auth
+      // In the emulator, users can sign in with email/password OR use "Add account" 
+      // in the emulator UI to simulate Google sign-in
       await auth.createUser({
         uid: user.uid,
         email: user.email,
@@ -194,8 +196,12 @@ async function runSeed() {
     await seedMeetingsData();
 
     console.log('\n✅ Seed completed successfully!\n');
-    console.log('📋 Test Credentials:');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('📋 Test Credentials');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('\n🔐 Authentication Options:');
+    console.log('   • Email/Password: Use the credentials below');
+    console.log('   • Google Sign-In: Use "Add account" in Auth Emulator UI (http://127.0.0.1:4000/auth)');
     console.log('\n📊 PROJECT MANAGERS:');
     console.log('  • pm1@bairesdev.com / password123 (Sarah Johnson)');
     console.log('  • pm2@bairesdev.com / password123 (Michael Chen)');
@@ -211,7 +217,8 @@ async function runSeed() {
     console.log('  • mentee3@bairesdev.com / password123 (Sophie Anderson)');
     console.log('  • mentee4@bairesdev.com / password123 (Carlos Mendez)');
     console.log('  • mentee5@bairesdev.com / password123 (Emma Taylor)');
-    console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+    console.log('\n🌐 Emulator UI: http://127.0.0.1:4000');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
     process.exit(0);
   } catch (error) {
