@@ -65,7 +65,8 @@ function App() {
             } 
           />
           
-          <Route path="/find-mentors" element={<ProtectedRoute><FindMentors /></ProtectedRoute>} />
+          {/* FindMentors is now only accessible through the CreateMentorship wizard */}
+          {/* <Route path="/find-mentors" element={<ProtectedRoute><FindMentors /></ProtectedRoute>} /> */}
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
         </Routes>
       </Router>

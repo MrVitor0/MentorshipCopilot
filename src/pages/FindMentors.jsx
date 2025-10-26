@@ -107,53 +107,84 @@ const mentors = [
   },
 ]
 
-export default function FindMentors() {
+export default function FindMentors({ 
+  wizardMode = false, 
+  menteeData = {}, 
+  recommendedMentors = { topMentors: [], otherMentors: [] },
+  selectedMentors = [],
+  onMentorSelect = () => {},
+  isMentorSelected = () => false
+}) {
   const location = useLocation()
   const navigate = useNavigate()
   const [isChatOpen, setIsChatOpen] = useState(false)
   const [selectedMentor, setSelectedMentor] = useState(null)
   const [filterAvailability, setFilterAvailability] = useState('all')
   
-  const { mentee, technologies, problem } = location.state || {}
+  // Support both wizard mode and standalone mode
+  const { mentee, technologies, problem } = wizardMode ? menteeData : (location.state || {})
 
-  const topThree = mentors.slice(0, 3)
-  const otherMentors = mentors.slice(3)
+  // Use recommended mentors in wizard mode, fallback to static data
+  const topThree = wizardMode && recommendedMentors.topMentors.length > 0 
+    ? recommendedMentors.topMentors 
+    : mentors.slice(0, 3)
+    
+  const otherMentorsList = wizardMode && recommendedMentors.otherMentors.length > 0 
+    ? recommendedMentors.otherMentors 
+    : mentors.slice(3)
 
-  const filteredOthers = otherMentors.filter(mentor => {
+  const filteredOthers = otherMentorsList.filter(mentor => {
     if (filterAvailability === 'all') return true
-    if (filterAvailability === 'available') return mentor.availability.includes('Available now')
+    if (filterAvailability === 'available') return mentor.availability?.includes('Available now')
     return true
   })
+  
+  /**
+   * Handle mentor selection - supports both wizard mode (multiple) and standalone (single)
+   */
+  const handleMentorClick = (mentor) => {
+    if (wizardMode) {
+      onMentorSelect(mentor)
+    } else {
+      setSelectedMentor(mentor)
+    }
+  }
 
   return (
     <>
-      <SEO 
-        title="Find Mentors"
-        description="AI-powered mentor recommendations. Browse top-matched mentors based on skills, experience, and compatibility. Find the perfect match for your team."
-      />
-      <div className="flex h-screen bg-gradient-to-br from-neutral-50 via-white to-orange-50/15">
-      <Sidebar user={{ name: 'Alex Smith', email: 'alexsmith@example.io' }} />
+      {!wizardMode && (
+        <SEO 
+          title="Find Mentors"
+          description="AI-powered mentor recommendations. Browse top-matched mentors based on skills, experience, and compatibility. Find the perfect match for your team."
+        />
+      )}
+      <div className={wizardMode ? "bg-gradient-to-br from-neutral-50 via-white to-orange-50/15" : "flex h-screen bg-gradient-to-br from-neutral-50 via-white to-orange-50/15"}>
+      {!wizardMode && <Sidebar user={{ name: 'Alex Smith', email: 'alexsmith@example.io' }} />}
       
-      <AIChatModal isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
+      {!wizardMode && <AIChatModal isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />}
 
-      <button
-        onClick={() => setIsChatOpen(true)}
-        className="fixed bottom-8 right-8 w-16 h-16 bg-gradient-to-br from-baires-orange via-orange-600 to-orange-700 text-white rounded-full shadow-[0_10px_40px_rgb(246,97,53,0.4)] hover:shadow-[0_15px_50px_rgb(246,97,53,0.5)] hover:scale-110 transition-all duration-300 flex items-center justify-center z-40 group"
-      >
-        <Bot className="w-7 h-7 group-hover:rotate-12 transition-transform duration-300" />
-        <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse"></div>
-      </button>
+      {!wizardMode && (
+        <button
+          onClick={() => setIsChatOpen(true)}
+          className="fixed bottom-8 right-8 w-16 h-16 bg-gradient-to-br from-baires-orange via-orange-600 to-orange-700 text-white rounded-full shadow-[0_10px_40px_rgb(246,97,53,0.4)] hover:shadow-[0_15px_50px_rgb(246,97,53,0.5)] hover:scale-110 transition-all duration-300 flex items-center justify-center z-40 group"
+        >
+          <Bot className="w-7 h-7 group-hover:rotate-12 transition-transform duration-300" />
+          <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse"></div>
+        </button>
+      )}
       
-      <main className="flex-1 overflow-y-auto">
+      <main className={wizardMode ? "w-full" : "flex-1 overflow-y-auto"}>
         <div className="p-6 md:p-8 max-w-[1600px] mx-auto">
-          {/* Back Button */}
-          <button
-            onClick={() => navigate('/dashboard')}
-            className="flex items-center gap-2 text-neutral-gray-dark hover:text-neutral-black mb-6 transition-colors group"
-          >
-            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-            <span className="font-semibold">Back to Dashboard</span>
-          </button>
+          {/* Back Button - only in standalone mode */}
+          {!wizardMode && (
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="flex items-center gap-2 text-neutral-gray-dark hover:text-neutral-black mb-6 transition-colors group"
+            >
+              <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+              <span className="font-semibold">Back to Dashboard</span>
+            </button>
+          )}
 
           {/* Hero Section */}
           <div className="mb-8">
@@ -166,19 +197,31 @@ export default function FindMentors() {
                   </div>
                   
                   <h1 className="text-4xl font-bold bg-gradient-to-r from-neutral-black to-baires-orange bg-clip-text text-transparent mb-3">
-                    Perfect Mentors Found!
+                    {wizardMode ? 'Invite Mentors to Your Mentorship' : 'Perfect Mentors Found!'}
                   </h1>
                   <p className="text-neutral-gray-dark mb-6 leading-relaxed">
-                    Our AI analyzed <span className="font-bold text-neutral-black">250+ mentors</span> and found the <span className="font-bold text-baires-orange">top 3 matches</span> for <span className="font-bold text-neutral-black">{mentee?.name || 'your team member'}</span>
+                    {wizardMode ? (
+                      <>
+                        Select <span className="font-bold text-baires-orange">one or more mentors</span> to invite. Our AI analyzed <span className="font-bold text-neutral-black">250+ mentors</span> and found the <span className="font-bold text-baires-orange">best matches</span> for <span className="font-bold text-neutral-black">{mentee?.displayName || mentee?.name || 'your team member'}</span>
+                      </>
+                    ) : (
+                      <>
+                        Our AI analyzed <span className="font-bold text-neutral-black">250+ mentors</span> and found the <span className="font-bold text-baires-orange">top 3 matches</span> for <span className="font-bold text-neutral-black">{mentee?.displayName || mentee?.name || 'your team member'}</span>
+                      </>
+                    )}
                   </p>
 
                   {/* Request Summary */}
                   {mentee && (
                     <div className="flex items-center gap-4 p-4 bg-white rounded-[16px] border border-blue-200/50">
-                      <Avatar src={mentee.avatar} size="lg" />
+                      <Avatar 
+                        src={mentee.avatar || mentee.photoURL} 
+                        initials={(mentee.name || mentee.displayName)?.substring(0, 2)?.toUpperCase()}
+                        size="lg" 
+                      />
                       <div className="flex-1">
-                        <div className="font-bold text-neutral-black">{mentee.name}</div>
-                        <div className="text-sm text-neutral-gray-dark">{mentee.role}</div>
+                        <div className="font-bold text-neutral-black">{mentee.name || mentee.displayName}</div>
+                        <div className="text-sm text-neutral-gray-dark">{mentee.role || mentee.bio || 'Mentee'}</div>
                       </div>
                       {technologies && (
                         <div className="flex flex-wrap gap-2">
@@ -224,9 +267,25 @@ export default function FindMentors() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {topThree.map((mentor, index) => (
-                <Card key={mentor.id} hover padding="none" className="overflow-hidden relative group">
+            {topThree.length === 0 ? (
+              <Card padding="lg" className="text-center">
+                <div className="py-12">
+                  <div className="w-20 h-20 bg-gradient-to-br from-orange-100 to-orange-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Users className="w-10 h-10 text-baires-orange" />
+                  </div>
+                  <h3 className="text-xl font-bold text-neutral-black mb-2">No Mentors Available Yet</h3>
+                  <p className="text-neutral-gray-dark mb-4">
+                    We couldn't find any mentors matching your criteria at the moment.
+                  </p>
+                  <p className="text-sm text-neutral-gray-dark">
+                    {wizardMode ? 'Please try adjusting your requirements or contact your administrator.' : 'Try adjusting your search filters or check back later.'}
+                  </p>
+                </div>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {topThree.map((mentor, index) => (
+                <Card key={mentor.id || mentor.uid} hover padding="none" className="overflow-hidden relative group">
                   {/* AI Score Badge */}
                   <div className="absolute top-4 right-4 z-10">
                     <div className="flex flex-col items-end gap-1">
@@ -246,36 +305,46 @@ export default function FindMentors() {
                   {/* Header */}
                   <div className="bg-gradient-to-br from-orange-50 via-white to-blue-50 p-6 border-b border-neutral-100">
                     <div className="text-center mb-4">
-                      <Avatar src={mentor.avatar} size="2xl" className="mx-auto mb-4" ring />
-                      <h3 className="text-xl font-bold text-neutral-black mb-1">{mentor.name}</h3>
-                      <p className="text-sm text-neutral-gray-dark mb-3">{mentor.role}</p>
+                      <Avatar 
+                        src={mentor.avatar || mentor.photoURL} 
+                        initials={(mentor.name || mentor.displayName)?.substring(0, 2)?.toUpperCase()}
+                        size="2xl" 
+                        className="mx-auto mb-4" 
+                        ring 
+                      />
+                      <h3 className="text-xl font-bold text-neutral-black mb-1">{mentor.name || mentor.displayName}</h3>
+                      <p className="text-sm text-neutral-gray-dark mb-3">{mentor.role || mentor.bio?.substring(0, 50) || 'Mentor'}</p>
                       
                       {/* Rating */}
-                      <div className="flex items-center justify-center gap-2 mb-3">
-                        <div className="flex items-center gap-1">
-                          {[...Array(5)].map((_, i) => (
-                            <Star key={i} className={`w-4 h-4 ${i < Math.floor(mentor.rating) ? 'fill-yellow-400 text-yellow-400' : 'text-neutral-300'}`} />
-                          ))}
+                      {mentor.rating && (
+                        <div className="flex items-center justify-center gap-2 mb-3">
+                          <div className="flex items-center gap-1">
+                            {[...Array(5)].map((_, i) => (
+                              <Star key={i} className={`w-4 h-4 ${i < Math.floor(mentor.rating) ? 'fill-yellow-400 text-yellow-400' : 'text-neutral-300'}`} />
+                            ))}
+                          </div>
+                          <span className="font-bold text-neutral-black">{mentor.rating}</span>
                         </div>
-                        <span className="font-bold text-neutral-black">{mentor.rating}</span>
-                      </div>
+                      )}
 
                       {/* Availability */}
-                      <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold ${
-                        mentor.availability.includes('now') 
-                          ? 'bg-green-100 text-green-700' 
-                          : 'bg-amber-100 text-amber-700'
-                      }`}>
-                        <div className={`w-2 h-2 rounded-full ${mentor.availability.includes('now') ? 'bg-green-500' : 'bg-amber-500'} animate-pulse`}></div>
-                        {mentor.availability}
-                      </div>
+                      {mentor.availability && (
+                        <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold ${
+                          mentor.availability?.includes('now') 
+                            ? 'bg-green-100 text-green-700' 
+                            : 'bg-amber-100 text-amber-700'
+                        }`}>
+                          <div className={`w-2 h-2 rounded-full ${mentor.availability?.includes('now') ? 'bg-green-500' : 'bg-amber-500'} animate-pulse`}></div>
+                          {mentor.availability}
+                        </div>
+                      )}
                     </div>
 
                     {/* Expertise Tags */}
                     <div className="flex flex-wrap gap-2 justify-center">
-                      {mentor.expertise.map((skill, idx) => (
+                      {(mentor.expertise || mentor.technologies || []).slice(0, 5).map((skill, idx) => (
                         <span key={idx} className="text-xs bg-white border border-orange-200 text-neutral-black px-3 py-1 rounded-full font-semibold">
-                          {skill}
+                          {typeof skill === 'string' ? skill : skill?.name || skill}
                         </span>
                       ))}
                     </div>
@@ -284,66 +353,88 @@ export default function FindMentors() {
                   {/* Body */}
                   <div className="p-6 bg-white">
                     {/* AI Reasons */}
-                    <div className="mb-6">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Bot className="w-4 h-4 text-baires-orange" />
-                        <h4 className="text-sm font-bold text-neutral-black">Why AI recommends:</h4>
+                    {mentor.aiReasons && mentor.aiReasons.length > 0 && (
+                      <div className="mb-6">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Bot className="w-4 h-4 text-baires-orange" />
+                          <h4 className="text-sm font-bold text-neutral-black">Why AI recommends:</h4>
+                        </div>
+                        <div className="space-y-2">
+                          {mentor.aiReasons.map((reason, idx) => (
+                            <div key={idx} className="flex items-start gap-2">
+                              <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                              <span className="text-sm text-neutral-gray-dark">{reason}</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                      <div className="space-y-2">
-                        {mentor.aiReasons.map((reason, idx) => (
-                          <div key={idx} className="flex items-start gap-2">
-                            <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
-                            <span className="text-sm text-neutral-gray-dark">{reason}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+                    )}
 
                     {/* Stats */}
-                    <div className="grid grid-cols-3 gap-2 mb-6">
-                      <div className="text-center p-3 bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-[12px]">
-                        <Users className="w-4 h-4 text-baires-blue mx-auto mb-1" />
-                        <div className="text-lg font-bold text-neutral-black">{mentor.totalMentees}</div>
-                        <div className="text-xs text-neutral-gray-dark">Mentees</div>
+                    {(mentor.totalMentees || mentor.successRate || mentor.yearsExperience) && (
+                      <div className="grid grid-cols-3 gap-2 mb-6">
+                        <div className="text-center p-3 bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-[12px]">
+                          <Users className="w-4 h-4 text-baires-blue mx-auto mb-1" />
+                          <div className="text-lg font-bold text-neutral-black">{mentor.totalMentees || 0}</div>
+                          <div className="text-xs text-neutral-gray-dark">Mentees</div>
+                        </div>
+                        <div className="text-center p-3 bg-gradient-to-br from-green-50 to-green-100/50 rounded-[12px]">
+                          <Target className="w-4 h-4 text-green-600 mx-auto mb-1" />
+                          <div className="text-lg font-bold text-neutral-black">{mentor.successRate || 0}%</div>
+                          <div className="text-xs text-neutral-gray-dark">Success</div>
+                        </div>
+                        <div className="text-center p-3 bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-[12px]">
+                          <Award className="w-4 h-4 text-baires-orange mx-auto mb-1" />
+                          <div className="text-lg font-bold text-neutral-black">{mentor.yearsExperience || 0}y</div>
+                          <div className="text-xs text-neutral-gray-dark">Exp.</div>
+                        </div>
                       </div>
-                      <div className="text-center p-3 bg-gradient-to-br from-green-50 to-green-100/50 rounded-[12px]">
-                        <Target className="w-4 h-4 text-green-600 mx-auto mb-1" />
-                        <div className="text-lg font-bold text-neutral-black">{mentor.successRate}%</div>
-                        <div className="text-xs text-neutral-gray-dark">Success</div>
-                      </div>
-                      <div className="text-center p-3 bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-[12px]">
-                        <Award className="w-4 h-4 text-baires-orange mx-auto mb-1" />
-                        <div className="text-lg font-bold text-neutral-black">{mentor.yearsExperience}y</div>
-                        <div className="text-xs text-neutral-gray-dark">Exp.</div>
-                      </div>
-                    </div>
+                    )}
 
                     {/* Bio */}
-                    <p className="text-sm text-neutral-gray-dark mb-6 line-clamp-2">
-                      {mentor.bio}
-                    </p>
+                    {mentor.bio && (
+                      <p className="text-sm text-neutral-gray-dark mb-6 line-clamp-2">
+                        {mentor.bio}
+                      </p>
+                    )}
 
                     {/* Actions */}
                     <div className="flex gap-2">
                       <button
-                        onClick={() => setSelectedMentor(mentor)}
-                        className="flex-1 bg-gradient-to-r from-baires-orange to-orange-600 text-white px-4 py-3 rounded-[14px] font-bold hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2"
+                        onClick={() => handleMentorClick(mentor)}
+                        className={`flex-1 px-4 py-3 rounded-[14px] font-bold hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2 ${
+                          wizardMode && isMentorSelected(mentor.uid)
+                            ? 'bg-gradient-to-r from-green-500 to-green-600 text-white'
+                            : 'bg-gradient-to-r from-baires-orange to-orange-600 text-white'
+                        }`}
                       >
-                        <Send className="w-4 h-4" />
-                        <span>Request</span>
+                        {wizardMode && isMentorSelected(mentor.uid) ? (
+                          <>
+                            <CheckCircle className="w-4 h-4" />
+                            <span>Selected</span>
+                          </>
+                        ) : (
+                          <>
+                            <Send className="w-4 h-4" />
+                            <span>{wizardMode ? 'Select' : 'Request'}</span>
+                          </>
+                        )}
                       </button>
-                      <button className="px-4 py-3 bg-gradient-to-br from-blue-50 to-blue-100 text-baires-blue rounded-[14px] font-semibold hover:shadow-md transition-all">
-                        <MessageSquare className="w-5 h-5" />
-                      </button>
+                      {!wizardMode && (
+                        <button className="px-4 py-3 bg-gradient-to-br from-blue-50 to-blue-100 text-baires-blue rounded-[14px] font-semibold hover:shadow-md transition-all">
+                          <MessageSquare className="w-5 h-5" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 </Card>
               ))}
             </div>
+            )}
           </div>
 
           {/* Other Available Mentors */}
-          {otherMentors.length > 0 && (
+          {otherMentorsList.length > 0 && (
             <div>
               <div className="flex items-center justify-between mb-6">
                 <div>
@@ -377,38 +468,63 @@ export default function FindMentors() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {filteredOthers.map((mentor) => (
-                  <Card key={mentor.id} hover padding="md" className="bg-gradient-to-br from-white to-neutral-50">
+                  <Card key={mentor.id || mentor.uid} hover padding="md" className="bg-gradient-to-br from-white to-neutral-50">
                     <div className="flex gap-4">
-                      <Avatar src={mentor.avatar} size="xl" />
+                      <Avatar 
+                        src={mentor.avatar || mentor.photoURL} 
+                        initials={(mentor.name || mentor.displayName)?.substring(0, 2)?.toUpperCase()}
+                        size="xl" 
+                      />
                       <div className="flex-1">
-                        <h3 className="font-bold text-neutral-black mb-1">{mentor.name}</h3>
-                        <p className="text-sm text-neutral-gray-dark mb-3">{mentor.role}</p>
+                        <h3 className="font-bold text-neutral-black mb-1">{mentor.name || mentor.displayName}</h3>
+                        <p className="text-sm text-neutral-gray-dark mb-3">{mentor.role || mentor.bio?.substring(0, 40) || 'Mentor'}</p>
                         
-                        <div className="flex flex-wrap gap-2 mb-3">
-                          {mentor.expertise.slice(0, 3).map((skill, idx) => (
-                            <span key={idx} className="text-xs bg-orange-100 text-baires-orange px-2 py-1 rounded-full font-semibold">
-                              {skill}
-                            </span>
-                          ))}
-                        </div>
+                        {(mentor.expertise || mentor.technologies) && (
+                          <div className="flex flex-wrap gap-2 mb-3">
+                            {(mentor.expertise || mentor.technologies || []).slice(0, 3).map((skill, idx) => (
+                              <span key={idx} className="text-xs bg-orange-100 text-baires-orange px-2 py-1 rounded-full font-semibold">
+                                {typeof skill === 'string' ? skill : skill?.name || skill}
+                              </span>
+                            ))}
+                          </div>
+                        )}
 
-                        <div className="flex items-center gap-4 text-xs text-neutral-gray-dark mb-3">
-                          <div className="flex items-center gap-1">
-                            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                            <span className="font-bold">{mentor.rating}</span>
+                        {(mentor.rating || mentor.totalMentees) && (
+                          <div className="flex items-center gap-4 text-xs text-neutral-gray-dark mb-3">
+                            {mentor.rating && (
+                              <div className="flex items-center gap-1">
+                                <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                                <span className="font-bold">{mentor.rating}</span>
+                              </div>
+                            )}
+                            {mentor.totalMentees && (
+                              <div className="flex items-center gap-1">
+                                <Users className="w-3 h-3" />
+                                <span>{mentor.totalMentees} mentees</span>
+                              </div>
+                            )}
                           </div>
-                          <div className="flex items-center gap-1">
-                            <Users className="w-3 h-3" />
-                            <span>{mentor.totalMentees} mentees</span>
-                          </div>
-                        </div>
+                        )}
 
                         <button
-                          onClick={() => setSelectedMentor(mentor)}
-                          className="w-full bg-gradient-to-r from-baires-blue to-blue-600 text-white px-4 py-2 rounded-[12px] font-semibold hover:shadow-md transition-all text-sm flex items-center justify-center gap-2"
+                          onClick={() => handleMentorClick(mentor)}
+                          className={`w-full px-4 py-2 rounded-[12px] font-semibold hover:shadow-md transition-all text-sm flex items-center justify-center gap-2 ${
+                            wizardMode && isMentorSelected(mentor.uid)
+                              ? 'bg-gradient-to-r from-green-500 to-green-600 text-white'
+                              : 'bg-gradient-to-r from-baires-blue to-blue-600 text-white'
+                          }`}
                         >
-                          <Send className="w-4 h-4" />
-                          Send Request
+                          {wizardMode && isMentorSelected(mentor.uid) ? (
+                            <>
+                              <CheckCircle className="w-4 h-4" />
+                              Selected
+                            </>
+                          ) : (
+                            <>
+                              <Send className="w-4 h-4" />
+                              {wizardMode ? 'Select Mentor' : 'Send Request'}
+                            </>
+                          )}
                         </button>
                       </div>
                     </div>
@@ -420,39 +536,46 @@ export default function FindMentors() {
         </div>
       </main>
 
-      {/* Request Modal */}
-      {selectedMentor && (
+      {/* Request Modal - Only in standalone mode */}
+      {!wizardMode && selectedMentor && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fadeIn">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setSelectedMentor(null)}></div>
           
           <Card padding="lg" className="relative max-w-lg w-full animate-scaleIn">
             <div className="text-center mb-6">
-              <Avatar src={selectedMentor.avatar} size="2xl" className="mx-auto mb-4" />
+              <Avatar 
+                src={selectedMentor.avatar || selectedMentor.photoURL} 
+                initials={(selectedMentor.name || selectedMentor.displayName)?.substring(0, 2)?.toUpperCase()}
+                size="2xl" 
+                className="mx-auto mb-4" 
+              />
               <h2 className="text-2xl font-bold text-neutral-black mb-2">
                 Send Mentorship Request
               </h2>
               <p className="text-neutral-gray-dark">
-                to <span className="font-bold text-baires-orange">{selectedMentor.name}</span>
+                to <span className="font-bold text-baires-orange">{selectedMentor.name || selectedMentor.displayName}</span>
               </p>
             </div>
 
             <div className="space-y-4 mb-6">
-              <div className="p-4 bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-[16px] border border-orange-200">
-                <div className="flex items-start gap-3">
-                  <Sparkles className="w-5 h-5 text-baires-orange flex-shrink-0 mt-0.5" />
-                  <div>
-                    <div className="font-bold text-neutral-black mb-2">AI Match Score: {selectedMentor.aiScore}%</div>
-                    <div className="space-y-1">
-                      {selectedMentor.aiReasons.map((reason, idx) => (
-                        <div key={idx} className="flex items-start gap-2">
-                          <CheckCircle className="w-3 h-3 text-green-600 flex-shrink-0 mt-0.5" />
-                          <span className="text-xs text-neutral-gray-dark">{reason}</span>
-                        </div>
-                      ))}
+              {selectedMentor.aiScore && selectedMentor.aiReasons && (
+                <div className="p-4 bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-[16px] border border-orange-200">
+                  <div className="flex items-start gap-3">
+                    <Sparkles className="w-5 h-5 text-baires-orange flex-shrink-0 mt-0.5" />
+                    <div>
+                      <div className="font-bold text-neutral-black mb-2">AI Match Score: {selectedMentor.aiScore}%</div>
+                      <div className="space-y-1">
+                        {selectedMentor.aiReasons.map((reason, idx) => (
+                          <div key={idx} className="flex items-start gap-2">
+                            <CheckCircle className="w-3 h-3 text-green-600 flex-shrink-0 mt-0.5" />
+                            <span className="text-xs text-neutral-gray-dark">{reason}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               <textarea
                 placeholder="Add a personal message (optional)..."
