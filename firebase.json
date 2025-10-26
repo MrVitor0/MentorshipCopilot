@@ -63,13 +63,18 @@
     "firestore": {
       "port": 8080
     },
+    "functions": {
+      "port": 5001
+    },
     "hosting": {
       "port": 5000
     },
     "ui": {
-      "enabled": true
+      "enabled": true,
+      "port": 4000
     },
-    "singleProjectMode": true
+    "singleProjectMode": true,
+    "exec": "npm run seed:wait"
   },
   "extensions": {}
 }

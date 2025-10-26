@@ -3,7 +3,6 @@
  * Backend endpoints for AI-powered recommendations and complex operations
  */
 
-import {setGlobalOptions} from "firebase-functions";
 import {onCall, HttpsError} from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 import * as logger from "firebase-functions/logger";
@@ -11,9 +10,6 @@ import * as logger from "firebase-functions/logger";
 // Initialize Firebase Admin
 admin.initializeApp();
 const db = admin.firestore();
-
-// Global options for all functions
-setGlobalOptions({maxInstances: 10, region: "us-central1"});
 
 /**
  * Interface definitions for type safety
@@ -48,7 +44,10 @@ interface MentorData {
  * @returns {Object} - Formatted mentor recommendations (topMentors and otherMentors)
  */
 export const getMentorRecommendations = onCall<MentorRecommendationRequest>(
-  {cors: true},
+  {
+    cors: true,
+    region: "us-central1",
+  },
   async (request) => {
     try {
       const {menteeId, technologies, challengeDescription} = request.data;
@@ -140,7 +139,10 @@ export const getMentorRecommendations = onCall<MentorRecommendationRequest>(
  * @returns The created invitation document
  */
 export const createMentorshipInvitation = onCall(
-  {cors: true},
+  {
+    cors: true,
+    region: "us-central1",
+  },
   async (request) => {
     try {
       const {mentorshipId, mentorId, message} = request.data;
@@ -190,7 +192,12 @@ export const createMentorshipInvitation = onCall(
 /**
  * Health check endpoint
  */
-export const healthCheck = onCall({cors: true}, async () => {
+export const healthCheck = onCall(
+  {
+    cors: true,
+    region: "us-central1",
+  },
+  async () => {
   return {
     status: "healthy",
     timestamp: new Date().toISOString(),

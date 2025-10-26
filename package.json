@@ -11,6 +11,7 @@
     "emulators": "firebase emulators:start",
     "emulators:export": "firebase emulators:export ./firebase-data",
     "emulators:import": "firebase emulators:start --import=./firebase-data",
+    "seed": "cd functions && npm run seed",
     "dev:full": "concurrently \"npm run emulators\" \"npm run dev\"",
     "firebase:deploy": "npm run build && firebase deploy"
   },
