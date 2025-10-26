@@ -975,6 +975,370 @@ export default function MentorshipDetails() {
                 </div>
               </div>
             </>
+          ) : permissions.isMentor ? (
+            // ==================== MENTOR VIEW ====================
+            <>
+              {/* Mentorship Overview for Mentor */}
+              <Card padding="lg" className="mb-8 bg-gradient-to-br from-white via-blue-50/30 to-orange-50/30 border-2 border-blue-200/50">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-baires-orange to-orange-600 rounded-[14px] flex items-center justify-center shadow-lg">
+                      <Users className="w-5 h-5 text-white" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-neutral-black">Your Mentorship</h2>
+                  </div>
+                  <Badge variant={statusInfo.color.includes('green') ? 'success' : statusInfo.color.includes('amber') ? 'warning' : 'blue'} className="text-sm">
+                    {formatStatus(data?.status)}
+                  </Badge>
+                </div>
+
+                {/* Mentee Information */}
+                <div className="flex items-center gap-4 p-5 bg-white rounded-[16px] border border-blue-200/50 mb-6">
+                  <Avatar 
+                    src={data?.menteeAvatar} 
+                    initials={data?.menteeName?.substring(0, 2)?.toUpperCase()}
+                    size="xl"
+                    ring
+                  />
+                  <div className="flex-1">
+                    <div className="text-xs text-neutral-gray-dark font-semibold mb-1">YOUR MENTEE</div>
+                    <div className="text-xl font-bold text-neutral-black mb-1">{data?.menteeName}</div>
+                    {data?.technologies && data.technologies.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        {data.technologies.slice(0, 4).map((tech, idx) => (
+                          <span key={idx} className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
+                            {typeof tech === 'string' ? tech : tech.name || tech}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Challenge/Goals */}
+                {data?.challengeDescription && (
+                  <div className="p-5 bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-[16px] border border-orange-200/50">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-baires-orange to-orange-600 rounded-[12px] flex items-center justify-center shadow-md flex-shrink-0">
+                        <Target className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <div className="text-xs text-baires-orange font-bold mb-2 uppercase tracking-wide">Challenge & Goals</div>
+                        <p className="text-neutral-black leading-relaxed">{data.challengeDescription}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </Card>
+
+              {/* Grid Layout for Mentor */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+                <div className="lg:col-span-2 space-y-6 md:space-y-8">
+                  {/* Progress Overview */}
+                  <Card padding="lg">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-10 h-10 bg-gradient-to-br from-baires-blue to-blue-600 rounded-[14px] flex items-center justify-center shadow-lg">
+                        <BarChart3 className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-bold text-neutral-black">Progress Overview</h2>
+                        <p className="text-sm text-neutral-gray-dark">Track your mentee's growth</p>
+                      </div>
+                    </div>
+
+                    {/* Progress Stats */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                      <Card padding="md" className="bg-gradient-to-br from-blue-50 to-blue-100/50 border-2 border-blue-200">
+                        <Calendar className="w-8 h-8 text-baires-blue mb-2" />
+                        <div className="text-xs font-bold uppercase text-neutral-gray-dark mb-1">Sessions</div>
+                        <div className="text-xl font-bold text-neutral-black">
+                          {data?.sessionsCompleted || 0}
+                        </div>
+                      </Card>
+
+                      <Card padding="md" className="bg-gradient-to-br from-green-50 to-green-100/50 border-2 border-green-200">
+                        <Target className="w-8 h-8 text-green-600 mb-2" />
+                        <div className="text-xs font-bold uppercase text-neutral-gray-dark mb-1">Progress</div>
+                        <div className="text-xl font-bold text-neutral-black">
+                          {data?.progress || 0}%
+                        </div>
+                      </Card>
+
+                      <Card padding="md" className="bg-gradient-to-br from-purple-50 to-purple-100/50 border-2 border-purple-200">
+                        <Clock className="w-8 h-8 text-purple-600 mb-2" />
+                        <div className="text-xs font-bold uppercase text-neutral-gray-dark mb-1">Duration</div>
+                        <div className="text-xl font-bold text-neutral-black">{weeksDuration || 0}w</div>
+                      </Card>
+
+                      <Card padding="md" className="bg-gradient-to-br from-orange-50 to-orange-100/50 border-2 border-orange-200">
+                        <TrendingUp className="w-8 h-8 text-baires-orange mb-2" />
+                        <div className="text-xs font-bold uppercase text-neutral-gray-dark mb-1">Rating</div>
+                        <div className="text-xl font-bold text-neutral-black">{averageProgress}/5</div>
+                      </Card>
+                    </div>
+                  </Card>
+
+                  {/* Session Logging Form */}
+                  <Card padding="lg" className="bg-gradient-to-br from-orange-50 via-white to-blue-50 border-2 border-orange-200/50">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-10 h-10 bg-gradient-to-br from-baires-orange to-orange-600 rounded-[14px] flex items-center justify-center shadow-lg">
+                        <Plus className="w-5 h-5 text-white" />
+                      </div>
+                      <h3 className="text-xl font-bold text-neutral-black">Log New Session</h3>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-bold text-neutral-black mb-2">Session Date</label>
+                        <input 
+                          type="date" 
+                          max={new Date().toISOString().split('T')[0]}
+                          className="w-full px-4 py-3 rounded-[12px] border-2 border-neutral-200 focus:border-baires-orange focus:outline-none" 
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-bold text-neutral-black mb-2">Duration (minutes)</label>
+                        <input 
+                          type="number" 
+                          placeholder="60" 
+                          className="w-full px-4 py-3 rounded-[12px] border-2 border-neutral-200 focus:border-baires-orange focus:outline-none" 
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-bold text-neutral-black mb-2">Progress Rating (1-5)</label>
+                        <div className="flex gap-2">
+                          {[1, 2, 3, 4, 5].map((rating) => (
+                            <button
+                              key={rating}
+                              className="flex-1 py-3 rounded-[12px] border-2 border-neutral-200 hover:border-baires-orange hover:bg-orange-50 transition-all font-bold hover:scale-105"
+                            >
+                              {rating}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="block text-sm font-bold text-neutral-black">Session Summary</label>
+                          <button className="flex items-center gap-1 text-xs font-bold text-baires-orange hover:text-orange-700 transition-colors">
+                            <Sparkles className="w-3 h-3" />
+                            AI Assist
+                          </button>
+                        </div>
+                        <textarea 
+                          rows="4" 
+                          placeholder="Describe what was covered in this session... (Use AI Assist for suggestions!)"
+                          className="w-full px-4 py-3 rounded-[12px] border-2 border-neutral-200 focus:border-baires-orange focus:outline-none resize-none"
+                        ></textarea>
+                      </div>
+
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="block text-sm font-bold text-neutral-black">Next Steps</label>
+                          <button className="flex items-center gap-1 text-xs font-bold text-baires-orange hover:text-orange-700 transition-colors">
+                            <Sparkles className="w-3 h-3" />
+                            AI Suggest
+                          </button>
+                        </div>
+                        <textarea 
+                          rows="3" 
+                          placeholder="What should the mentee focus on next?"
+                          className="w-full px-4 py-3 rounded-[12px] border-2 border-neutral-200 focus:border-baires-orange focus:outline-none resize-none"
+                        ></textarea>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-bold text-neutral-black mb-2">Recording URL (optional)</label>
+                        <input 
+                          type="url" 
+                          placeholder="https://..." 
+                          className="w-full px-4 py-3 rounded-[12px] border-2 border-neutral-200 focus:border-baires-orange focus:outline-none" 
+                        />
+                      </div>
+
+                      <Button variant="orange" className="w-full" icon={<Plus className="w-4 h-4" />}>
+                        Save Session Log
+                      </Button>
+                    </div>
+                  </Card>
+
+                  {/* Session History */}
+                  {data?.sessions && data.sessions.length > 0 && (
+                    <Card padding="lg">
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="w-10 h-10 bg-gradient-to-br from-baires-blue to-blue-600 rounded-[14px] flex items-center justify-center shadow-lg">
+                          <FileText className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                          <h2 className="text-2xl font-bold text-neutral-black">Your Session Logs</h2>
+                          <p className="text-sm text-neutral-gray-dark">{data.sessions.length} sessions completed</p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        {[...data.sessions].reverse().slice(0, 5).map((session) => (
+                          <Card key={session.id} padding="md" hover className="bg-gradient-to-br from-neutral-50 to-white">
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-gradient-to-br from-baires-orange to-orange-600 rounded-full flex items-center justify-center shadow-md">
+                                  <span className="text-white font-bold text-sm">{session.progressRating}</span>
+                                </div>
+                                <div>
+                                  <div className="font-bold text-neutral-black">
+                                    {new Date(session.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                  </div>
+                                  <div className="text-xs text-neutral-gray-dark">{session.duration} min session</div>
+                                </div>
+                              </div>
+                              <button className="px-4 py-2 bg-neutral-100 hover:bg-neutral-200 rounded-[12px] font-semibold text-sm transition-colors flex items-center gap-2">
+                                <Edit className="w-4 h-4" />
+                                Edit
+                              </button>
+                            </div>
+                            <p className="text-sm text-neutral-gray-dark line-clamp-2 mb-2">{session.summary}</p>
+                            {session.nextSteps && (
+                              <div className="p-2 bg-orange-50/50 rounded-[8px] border border-orange-100/50">
+                                <p className="text-xs text-neutral-gray-dark"><strong>Next:</strong> {session.nextSteps}</p>
+                              </div>
+                            )}
+                          </Card>
+                        ))}
+                      </div>
+                    </Card>
+                  )}
+                </div>
+
+                {/* Mentor Sidebar */}
+                <div className="space-y-6 md:space-y-8">
+                  {/* Quick Stats */}
+                  <Card padding="lg">
+                    <h3 className="text-lg font-bold text-neutral-black mb-4">Quick Stats</h3>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between p-3 bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-[12px]">
+                        <span className="text-sm font-semibold text-neutral-gray-dark">Sessions Logged</span>
+                        <span className="text-lg font-bold text-neutral-black">{data?.sessionsCompleted || 0}</span>
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-gradient-to-br from-green-50 to-green-100/50 rounded-[12px]">
+                        <span className="text-sm font-semibold text-neutral-gray-dark">Progress</span>
+                        <span className="text-lg font-bold text-green-600">{data?.progress || 0}%</span>
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-[12px]">
+                        <span className="text-sm font-semibold text-neutral-gray-dark">Avg Rating</span>
+                        <span className="text-lg font-bold text-neutral-black">{averageProgress}/5</span>
+                      </div>
+                    </div>
+                  </Card>
+
+                  {/* AI Assistant Tools */}
+                  <Card padding="lg" className="bg-gradient-to-br from-orange-50 via-white to-blue-50 border-2 border-orange-200/50">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 bg-gradient-to-br from-baires-orange to-orange-600 rounded-[14px] flex items-center justify-center shadow-lg">
+                        <Sparkles className="w-5 h-5 text-white animate-pulse" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-neutral-black flex items-center gap-2">
+                          AI Tools
+                          <Badge variant="orange" className="text-xs">Magic</Badge>
+                        </h3>
+                        <p className="text-xs text-neutral-gray-dark">Let AI help you</p>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <button className="w-full text-left p-3 bg-white rounded-[12px] border-2 border-neutral-200 hover:border-orange-400 hover:bg-orange-50/50 transition-all group">
+                        <div className="flex items-center gap-3">
+                          <Sparkles className="w-4 h-4 text-baires-orange group-hover:rotate-12 transition-transform" />
+                          <span className="text-sm font-bold text-neutral-black">Generate Summary</span>
+                        </div>
+                      </button>
+                      
+                      <button className="w-full text-left p-3 bg-white rounded-[12px] border-2 border-neutral-200 hover:border-blue-400 hover:bg-blue-50/50 transition-all group">
+                        <div className="flex items-center gap-3">
+                          <Target className="w-4 h-4 text-baires-blue" />
+                          <span className="text-sm font-bold text-neutral-black">Suggest Next Steps</span>
+                        </div>
+                      </button>
+
+                      <button className="w-full text-left p-3 bg-white rounded-[12px] border-2 border-neutral-200 hover:border-orange-400 hover:bg-orange-50/50 transition-all group">
+                        <div className="flex items-center gap-3">
+                          <TrendingUp className="w-4 h-4 text-baires-orange" />
+                          <span className="text-sm font-bold text-neutral-black">Analyze Progress</span>
+                        </div>
+                      </button>
+                    </div>
+                  </Card>
+
+                  {/* Quick Actions */}
+                  <Card padding="lg">
+                    <h3 className="text-lg font-bold text-neutral-black mb-4">Quick Actions</h3>
+                    <div className="space-y-3">
+                      <button className="w-full flex items-center gap-3 p-3 bg-gradient-to-r from-baires-blue to-blue-600 text-white rounded-[14px] font-semibold hover:shadow-lg transition-all">
+                        <MessageSquare className="w-5 h-5" />
+                        <span>Message Mentee</span>
+                      </button>
+                      <button className="w-full flex items-center gap-3 p-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-[14px] font-semibold hover:shadow-lg transition-all">
+                        <Calendar className="w-5 h-5" />
+                        <span>Schedule Session</span>
+                      </button>
+                      <button className="w-full flex items-center gap-3 p-3 bg-neutral-100 text-neutral-black rounded-[14px] font-semibold hover:bg-neutral-200 transition-all">
+                        <FileText className="w-5 h-5" />
+                        <span>View All Logs</span>
+                      </button>
+                    </div>
+                  </Card>
+
+                  {/* AI Tips */}
+                  <Card padding="lg" className="bg-gradient-to-br from-baires-orange via-orange-600 to-orange-700 text-white border-none shadow-[0_20px_50px_rgb(246,97,53,0.3)]">
+                    <div className="relative">
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+                      <div className="relative">
+                        <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-[16px] flex items-center justify-center mb-4 shadow-lg">
+                          <Lightbulb className="w-6 h-6 text-white" />
+                        </div>
+                        <h3 className="text-lg font-bold mb-2">AI Tips</h3>
+                        <div className="space-y-2 text-sm opacity-90">
+                          <div className="flex items-start gap-2">
+                            <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                            <p>Focus on practical coding exercises</p>
+                          </div>
+                          <div className="flex items-start gap-2">
+                            <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                            <p>Encourage questions and active learning</p>
+                          </div>
+                          <div className="flex items-start gap-2">
+                            <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                            <p>Regular feedback accelerates growth</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs opacity-75 mt-4">
+                          <Bot className="w-4 h-4" />
+                          <span>AI CoPilot</span>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                </div>
+              </div>
+            </>
+          ) : (
+            // ==================== DEFAULT VIEW ====================
+            <Card padding="xl" className="text-center">
+              <div className="py-12">
+                <div className="w-20 h-20 bg-gradient-to-br from-neutral-100 to-neutral-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <AlertCircle className="w-10 h-10 text-neutral-gray-dark" />
+                </div>
+                <h3 className="text-xl font-bold text-neutral-black mb-2">Access Denied</h3>
+                <p className="text-neutral-gray-dark mb-6">
+                  You don't have permission to view this mentorship
+                </p>
+                <Button variant="orange" onClick={() => navigate('/dashboard')}>
+                  Back to Dashboard
+                </Button>
+              </div>
+            </Card>
           )}
         </div>
       </main>
