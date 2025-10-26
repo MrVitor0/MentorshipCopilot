@@ -1,4 +1,4 @@
-import { BookOpen, FileText, Calendar, Video, Download, ExternalLink, Star, TrendingUp, Target, Sparkles, GraduationCap, FileCheck } from 'lucide-react'
+import { BookOpen, FileText, Calendar, Video, Download, ExternalLink, Star, TrendingUp, Target, Sparkles, GraduationCap, FileCheck, Users } from 'lucide-react'
 import Card from '../Card'
 import Button from '../Button'
 import Avatar from '../Avatar'

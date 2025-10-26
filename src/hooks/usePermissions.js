@@ -24,7 +24,7 @@ export const usePermissions = () => {
     // Mentorship management
     canFindMentors: isMentee || isPM, // Only mentees and PMs can find mentors
     canCreateMentorship: isMentor || isPM, // Mentors and PMs can create mentorships
-    canManageMentorships: isPM, // Only PMs can manage all mentorships
+    canManageMentorships: isMentor || isPM, // Mentors and PMs can access /mentorship page
     canViewMentorshipAsMentor: isMentor || isPM, // Both can view mentor perspective
     canViewMentorshipAsPM: isPM, // Only PMs can view PM perspective
 

@@ -1,8 +1,37 @@
-import { Link } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { Zap, ArrowRight, Play, Sparkles } from 'lucide-react'
+import { useAuth } from '../hooks/useAuth'
 import SEO from '../components/SEO'
 
 export default function Home() {
+  const navigate = useNavigate()
+  const { user, loading } = useAuth()
+
+  // Redirect to dashboard if user is already logged in
+  useEffect(() => {
+    if (!loading && user) {
+      navigate('/dashboard')
+    }
+  }, [user, loading, navigate])
+
+  // Show loading while checking auth status
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-neutral-50 via-white to-orange-50/15">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-baires-orange border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-neutral-gray-dark font-semibold">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Only render home page if user is not logged in
+  if (user) {
+    return null // Will redirect via useEffect
+  }
+
   return (
     <>
       <SEO 

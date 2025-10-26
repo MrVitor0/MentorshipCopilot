@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import { ProtectedRoute, PublicRoute } from './components/ProtectedRoute'
+import PermissionRoute from './components/PermissionRoute'
 import Home from './pages/Home'
 import About from './pages/About'
 import Login from './pages/Login'
@@ -18,7 +19,7 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          {/* Public Routes */}
+          {/* Public Routes - redirect to dashboard if logged in */}
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
           
@@ -31,9 +32,39 @@ function App() {
           
           {/* Protected Routes - require authentication and completed onboarding */}
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/mentorship" element={<ProtectedRoute><Mentorship /></ProtectedRoute>} />
-          <Route path="/mentorship/:id" element={<ProtectedRoute><MentorshipDetails /></ProtectedRoute>} />
-          <Route path="/create-mentorship" element={<ProtectedRoute><CreateMentorship /></ProtectedRoute>} />
+          
+          {/* Mentorship routes - only for mentors and PMs, not mentees */}
+          <Route 
+            path="/mentorship" 
+            element={
+              <ProtectedRoute>
+                <PermissionRoute permission="canManageMentorships">
+                  <Mentorship />
+                </PermissionRoute>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/mentorship/:id" 
+            element={
+              <ProtectedRoute>
+                <PermissionRoute permission="canManageMentorships">
+                  <MentorshipDetails />
+                </PermissionRoute>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/create-mentorship" 
+            element={
+              <ProtectedRoute>
+                <PermissionRoute permission="canCreateMentorship">
+                  <CreateMentorship />
+                </PermissionRoute>
+              </ProtectedRoute>
+            } 
+          />
+          
           <Route path="/find-mentors" element={<ProtectedRoute><FindMentors /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
         </Routes>

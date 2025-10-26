@@ -13,6 +13,7 @@ export { default as EmptyState } from './EmptyState'
 export { default as PageHeader } from './PageHeader'
 export { ProtectedRoute, PublicRoute } from './ProtectedRoute'
 export { ProtectedLink, ProtectedButton, Protected } from './ProtectedLink'
+export { default as PermissionRoute } from './PermissionRoute'
 
 // Dashboard components
 export { default as MentorDashboard } from './dashboard/MentorDashboard'

@@ -1,13 +1,15 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import usePermissions from '../hooks/usePermissions'
 import Avatar from './Avatar'
 import { Lightbulb, Palette, Settings as SettingsIcon, BarChart3, LogOut, ChevronDown } from 'lucide-react'
 
 const menuItems = [
   { 
     name: 'Home', 
-    path: '/dashboard', 
+    path: '/dashboard',
+    permission: null, // Everyone can access
     icon: (
       <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
         <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
@@ -16,15 +18,14 @@ const menuItems = [
   },
   { 
     name: 'Mentorship', 
-    path: '/mentorship', 
+    path: '/mentorship',
+    permission: 'canManageMentorships', // Only mentors and PMs
     icon: (
       <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
         <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
       </svg>
     )
   },
-
- 
 ]
 
 const teamItems = [
@@ -38,6 +39,7 @@ export default function Sidebar() {
   const location = useLocation()
   const navigate = useNavigate()
   const { user, logout } = useAuth()
+  const permissions = usePermissions()
   const [showProfileMenu, setShowProfileMenu] = useState(false)
 
   const handleLogout = async () => {
@@ -60,6 +62,11 @@ export default function Sidebar() {
 
       <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
         {menuItems.map((item) => {
+          // Check if user has permission to see this menu item
+          if (item.permission && !permissions[item.permission]) {
+            return null // Don't render if no permission
+          }
+
           const isActive = location.pathname === item.path
           return (
             <Link
