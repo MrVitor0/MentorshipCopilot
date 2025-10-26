@@ -6,7 +6,7 @@
  */
 
 import * as admin from 'firebase-admin';
-import { seedUsers, seedMentorships, seedMeetings } from './seedData';
+import { seedUsers } from './seedData';
 
 // CRITICAL: Set emulator environment variables BEFORE initializing Admin SDK
 // This prevents the SDK from trying to authenticate with production
@@ -136,51 +136,7 @@ async function seedFirestoreUsers() {
   }
 }
 
-async function seedMentorshipsData() {
-  console.log('\n🤝 Creating mentorships...');
-  
-  try {
-    const batch = db.batch();
-    
-    for (const mentorship of seedMentorships) {
-      const mentorshipRef = db.collection('mentorships').doc(mentorship.id);
-      batch.set(mentorshipRef, mentorship);
-    }
-    
-    await batch.commit();
-    console.log(`  ✓ Created ${seedMentorships.length} mentorships`);
-    
-    // Verify the data was written
-    const mentorshipsSnapshot = await db.collection('mentorships').get();
-    console.log(`  ✓ Verified: ${mentorshipsSnapshot.size} documents in 'mentorships' collection`);
-  } catch (error) {
-    console.error('  ✗ Error creating mentorships:', error);
-    throw error;
-  }
-}
 
-async function seedMeetingsData() {
-  console.log('\n📅 Creating meetings...');
-  
-  try {
-    const batch = db.batch();
-    
-    for (const meeting of seedMeetings) {
-      const meetingRef = db.collection('meetings').doc(meeting.id);
-      batch.set(meetingRef, meeting);
-    }
-    
-    await batch.commit();
-    console.log(`  ✓ Created ${seedMeetings.length} meetings`);
-    
-    // Verify the data was written
-    const meetingsSnapshot = await db.collection('meetings').get();
-    console.log(`  ✓ Verified: ${meetingsSnapshot.size} documents in 'meetings' collection`);
-  } catch (error) {
-    console.error('  ✗ Error creating meetings:', error);
-    throw error;
-  }
-}
 
 async function runSeed() {
   console.log('🌱 Starting seed process...\n');
@@ -192,13 +148,17 @@ async function runSeed() {
     await clearExistingData();
     await seedAuthUsers();
     await seedFirestoreUsers();
-    await seedMentorshipsData();
-    await seedMeetingsData();
+    // Note: Mentorships and meetings are NOT seeded automatically
+    // They should be created through the UI by Project Managers
+    // await seedMentorshipsData();
+    // await seedMeetingsData();
 
     console.log('\n✅ Seed completed successfully!\n');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log('📋 Test Credentials');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('\n✨ All users have onboarding completed - ready to use!');
+    console.log('💡 Note: Mentorships should be created through the UI by Project Managers');
     console.log('\n🔐 Authentication Options:');
     console.log('   • Email/Password: Use the credentials below');
     console.log('   • Google Sign-In: Use "Add account" in Auth Emulator UI (http://127.0.0.1:4000/auth)');

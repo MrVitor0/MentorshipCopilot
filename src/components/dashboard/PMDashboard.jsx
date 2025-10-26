@@ -171,7 +171,7 @@ export default function PMDashboard({ user, upcomingSessions, mentorships, loadi
 
           {mentorships.length > 0 ? (
             <div className="space-y-4">
-              {mentorships.slice(0, 3).map((mentorship, index) => {
+              {mentorships.slice(0, 3).map((mentorship) => {
                 const statusColors = {
                   'active': 'success',
                   'pending_mentor': 'warning',

@@ -80,25 +80,27 @@ service cloud.firestore {
     
     // Mentorship invitations collection
     match /mentorship_invitations/{invitationId} {
-      // Mentors can read invitations sent to them
+      // Mentors, mentees, and PMs can read invitations they're involved in
       allow read: if isAuthenticated() 
-        && 'mentorId' in resource.data
-        && resource.data.mentorId == request.auth.uid;
+        && (('mentorId' in resource.data && resource.data.mentorId == request.auth.uid)
+        || ('menteeId' in resource.data && resource.data.menteeId == request.auth.uid)
+        || ('projectManagerId' in resource.data && resource.data.projectManagerId == request.auth.uid));
       
-      // Mentees can create invitations
+      // Mentees and Project Managers can create invitations
       allow create: if isAuthenticated()
-        && 'menteeId' in request.resource.data
-        && request.resource.data.menteeId == request.auth.uid;
+        && (('menteeId' in request.resource.data && request.resource.data.menteeId == request.auth.uid)
+        || ('projectManagerId' in request.resource.data && request.resource.data.projectManagerId == request.auth.uid));
       
-      // Mentor or mentee can update invitation
+      // Mentor, mentee, or PM can update invitation
       allow update: if isAuthenticated()
         && (('mentorId' in resource.data && resource.data.mentorId == request.auth.uid)
-        || ('menteeId' in resource.data && resource.data.menteeId == request.auth.uid));
+        || ('menteeId' in resource.data && resource.data.menteeId == request.auth.uid)
+        || ('projectManagerId' in resource.data && resource.data.projectManagerId == request.auth.uid));
       
-      // Only creator can delete
+      // Only creator (mentee or PM) can delete
       allow delete: if isAuthenticated()
-        && 'menteeId' in resource.data
-        && resource.data.menteeId == request.auth.uid;
+        && (('menteeId' in resource.data && resource.data.menteeId == request.auth.uid)
+        || ('projectManagerId' in resource.data && resource.data.projectManagerId == request.auth.uid));
     }
     
     // Mentorship join requests collection
@@ -118,6 +120,29 @@ service cloud.firestore {
       allow delete: if isAuthenticated()
         && 'menteeId' in resource.data
         && resource.data.menteeId == request.auth.uid;
+    }
+    
+    // Meetings collection
+    match /meetings/{meetingId} {
+      // Participants can read their meetings
+      allow read: if isAuthenticated()
+        && 'participantIds' in resource.data
+        && request.auth.uid in resource.data.participantIds;
+      
+      // Any participant can create a meeting
+      allow create: if isAuthenticated()
+        && 'participantIds' in request.resource.data
+        && request.auth.uid in request.resource.data.participantIds;
+      
+      // Participants can update the meeting
+      allow update: if isAuthenticated()
+        && 'participantIds' in resource.data
+        && request.auth.uid in resource.data.participantIds;
+      
+      // Participants can delete the meeting
+      allow delete: if isAuthenticated()
+        && 'participantIds' in resource.data
+        && request.auth.uid in resource.data.participantIds;
     }
   }
 }
