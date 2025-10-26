@@ -203,9 +203,14 @@ export const createMentorship = async (mentorshipData) => {
   }
 }
 
+/**
+ * Get user's mentorships
+ * For mentors: only returns mentorships where they are the ASSIGNED mentor (not just invited)
+ * For mentees: returns all their mentorships
+ */
 export const getUserMentorships = async (uid) => {
   try {
-    // Query mentorships where user is a mentor
+    // Query mentorships where user is the ASSIGNED mentor (mentorId field)
     const mentorQuery = query(
       collection(db, COLLECTIONS.MENTORSHIPS),
       where('mentorId', '==', uid)
@@ -535,19 +540,93 @@ export const getInvitationsForMentor = async (mentorId) => {
   }
 }
 
-export const updateInvitationStatus = async (invitationId, status) => {
+/**
+ * Update invitation status and assign mentor to mentorship if accepted
+ * This is the key function that transitions a mentorship from pending to active
+ * When a mentor accepts, all other pending invitations are automatically declined
+ */
+export const updateInvitationStatus = async (invitationId, status, mentorData = null) => {
   try {
     const invitationRef = doc(db, 'mentorship_invitations', invitationId)
-    const data = {
+    
+    // First get the invitation to know which mentorship it belongs to
+    const invitationSnap = await getDoc(invitationRef)
+    if (!invitationSnap.exists()) {
+      throw new Error('Invitation not found')
+    }
+    
+    const invitation = invitationSnap.data()
+    
+    // Update invitation status
+    const invitationData = {
       status,
       updatedAt: Timestamp.now()
     }
+    await updateDoc(invitationRef, invitationData)
     
-    await updateDoc(invitationRef, data)
-    return data
+    // If accepted, assign mentor to the mentorship and decline other invitations
+    if (status === 'accepted' && invitation.mentorshipId) {
+      const mentorshipRef = doc(db, COLLECTIONS.MENTORSHIPS, invitation.mentorshipId)
+      const mentorshipData = {
+        mentorId: invitation.mentorId,
+        mentorName: invitation.mentorName || mentorData?.displayName,
+        mentorAvatar: invitation.mentorAvatar || mentorData?.photoURL,
+        status: 'active', // Change from 'pending' to 'active'
+        acceptedAt: Timestamp.now(),
+        updatedAt: Timestamp.now()
+      }
+      
+      await updateDoc(mentorshipRef, mentorshipData)
+      
+      console.log('✅ Mentor assigned to mentorship:', invitation.mentorshipId)
+      
+      // Decline all other pending invitations for this mentorship
+      const otherInvitationsQuery = query(
+        collection(db, 'mentorship_invitations'),
+        where('mentorshipId', '==', invitation.mentorshipId),
+        where('status', '==', 'pending')
+      )
+      const otherInvitationsSnapshot = await getDocs(otherInvitationsQuery)
+      
+      const declinePromises = otherInvitationsSnapshot.docs
+        .filter(doc => doc.id !== invitationId) // Don't decline the one being accepted
+        .map(doc => updateDoc(doc.ref, {
+          status: 'auto_declined',
+          updatedAt: Timestamp.now(),
+          declinedReason: 'Another mentor was selected'
+        }))
+      
+      await Promise.all(declinePromises)
+      
+      console.log(`✅ Auto-declined ${declinePromises.length} other pending invitations`)
+    }
+    
+    return invitationData
   } catch (error) {
     console.error('Error updating invitation status:', error)
     throw new Error('Error updating invitation')
+  }
+}
+
+export const getInvitationsForMentorship = async (mentorshipId) => {
+  try {
+    // Query invitations for this mentorship
+    const invitationsQuery = query(
+      collection(db, 'mentorship_invitations'),
+      where('mentorshipId', '==', mentorshipId)
+    )
+    const snapshot = await getDocs(invitationsQuery)
+    
+    const mentorshipInvitations = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }))
+    
+    return sortByTimestamp(mentorshipInvitations, 'createdAt', true)
+  } catch (error) {
+    // Silently handle permission errors - return empty array
+    console.warn('⚠️ Could not fetch invitations (may be permissions issue):', error.code)
+    return []
   }
 }
 

@@ -7,6 +7,7 @@ import Avatar from '../Avatar'
 import Badge from '../Badge'
 import StatCard from '../StatCard'
 import EmptyState from '../EmptyState'
+import MentorshipResume from '../MentorshipResume'
 
 const opportunities = [
   { title: 'AI-Powered Matching', description: 'Smart mentor suggestions ready.', status: 'New', icon: 'sparkles' },
@@ -30,12 +31,27 @@ export default function MentorDashboard({ user, suggestions, upcomingSessions, m
   const handleInvitationResponse = async (invitationId, action) => {
     setProcessingInvitation(invitationId)
     try {
-      await updateInvitationStatus(invitationId, action === 'accept' ? 'accepted' : 'declined')
-      // Refresh data - in a real app, you'd update the state or refetch
+      console.log(`🔄 Processing invitation ${invitationId}, action: ${action}`)
+      
+      // Pass user data when accepting to assign mentor properly
+      await updateInvitationStatus(
+        invitationId, 
+        action === 'accept' ? 'accepted' : 'declined',
+        action === 'accept' ? user : null
+      )
+      
+      console.log(`✅ Invitation ${action === 'accept' ? 'accepted' : 'declined'} successfully`)
+      
+      if (action === 'accept') {
+        // Show success message
+        alert('🎉 Mentorship accepted! You are now the mentor for this mentorship. Redirecting...')
+      }
+      
+      // Refresh data to show the new mentorship in "My Active Mentorships"
       window.location.reload()
     } catch (error) {
-      console.error('Error handling invitation:', error)
-      alert('Error processing invitation. Please try again.')
+      console.error('❌ Error handling invitation:', error)
+      alert(`Error processing invitation: ${error.message}\n\nPlease try again.`)
     } finally {
       setProcessingInvitation(null)
     }
@@ -177,6 +193,16 @@ export default function MentorDashboard({ user, suggestions, upcomingSessions, m
           </div>
         </Card>
 
+        {/* Active Mentorships Resume */}
+        {mentorships.length > 0 && (
+          <MentorshipResume 
+            mentorships={mentorships}
+            title="My Active Mentorships"
+            emptyMessage="No active mentorships yet"
+            userRole="mentor"
+          />
+        )}
+
         {/* Magic Suggestions - Mentorship Invitations */}
         <Card gradient hover padding="lg">
           <div className="flex items-center justify-between mb-6">
@@ -208,15 +234,48 @@ export default function MentorDashboard({ user, suggestions, upcomingSessions, m
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-bold text-neutral-black">New Mentorship Invitation</h3>
+                        <h3 className="font-bold text-neutral-black">Mentorship Invitation</h3>
                         <Badge variant="orange" className="text-xs">New</Badge>
                       </div>
-                      <p className="text-sm text-neutral-gray-dark mb-3">
+                      
+                      {/* Mentee Info */}
+                      {invitation.menteeName && (
+                        <div className="flex items-center gap-2 mb-3 p-3 bg-white rounded-[12px] border border-blue-200/50">
+                          <div>
+                            <p className="text-xs text-neutral-gray-dark font-semibold mb-1">MENTEE</p>
+                            <p className="text-sm font-bold text-neutral-black">{invitation.menteeName}</p>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Technologies */}
+                      {invitation.technologies && invitation.technologies.length > 0 && (
+                        <div className="mb-3">
+                          <p className="text-xs text-neutral-gray-dark font-semibold mb-2">Technologies:</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {invitation.technologies.slice(0, 5).map((tech, idx) => (
+                              <span key={idx} className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
+                                {typeof tech === 'string' ? tech : tech.name || tech}
+                              </span>
+                            ))}
+                            {invitation.technologies.length > 5 && (
+                              <span className="text-xs bg-neutral-100 text-neutral-600 px-2 py-1 rounded-full font-medium">
+                                +{invitation.technologies.length - 5}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      
+                      <p className="text-sm text-neutral-gray-dark mb-2">
                         {invitation.message || 'You have been invited to mentor a team member'}
                       </p>
-                      <p className="text-xs text-neutral-gray-dark mb-3">
-                        Created: {invitation.createdAt?.toDate?.().toLocaleDateString()}
-                      </p>
+                      
+                      <div className="flex items-center gap-3 text-xs text-neutral-gray-dark">
+                        <span>From: {invitation.projectManagerName || 'PM'}</span>
+                        <span>•</span>
+                        <span>{invitation.createdAt?.toDate?.().toLocaleDateString() || 'Recently'}</span>
+                      </div>
                     </div>
                   </div>
                   
@@ -231,7 +290,7 @@ export default function MentorDashboard({ user, suggestions, upcomingSessions, m
                       ) : (
                         <>
                           <CheckCircle className="w-4 h-4" />
-                          Accept
+                          Accept & Start
                         </>
                       )}
                     </button>
@@ -241,7 +300,7 @@ export default function MentorDashboard({ user, suggestions, upcomingSessions, m
                       className="flex-1 bg-neutral-200 text-neutral-black px-4 py-3 rounded-[14px] font-bold hover:bg-neutral-300 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
                     >
                       <X className="w-4 h-4" />
-                      Ignore
+                      Decline
                     </button>
                   </div>
                 </div>

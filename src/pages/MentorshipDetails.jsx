@@ -1,7 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
-import { getMentorshipById, getJoinRequestsForMentorship, updateJoinRequestStatus, getUserProfile } from '../services/firestoreService'
+import usePermissions from '../hooks/usePermissions'
+import { 
+  getMentorshipById, 
+  getJoinRequestsForMentorship, 
+  updateJoinRequestStatus, 
+  getUserProfile,
+  getInvitationsForMentorship
+} from '../services/firestoreService'
 import Sidebar from '../components/Sidebar'
 import Card from '../components/Card'
 import Button from '../components/Button'
@@ -30,7 +37,9 @@ import {
   FileText,
   Play,
   UserPlus,
-  X as XIcon
+  X as XIcon,
+  Code,
+  Loader2
 } from 'lucide-react'
 
 // Mock data - em produção viria de uma API
@@ -126,15 +135,17 @@ export default function MentorshipDetails() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
+  const permissions = usePermissions()
   const [isChatOpen, setIsChatOpen] = useState(false)
-  const [viewMode, setViewMode] = useState('pm') // 'pm' or 'mentor'
   const [mentorship, setMentorship] = useState(null)
   const [joinRequests, setJoinRequests] = useState([])
   const [joinRequestsWithProfiles, setJoinRequestsWithProfiles] = useState([])
+  const [invitations, setInvitations] = useState([])
+  const [invitationsWithProfiles, setInvitationsWithProfiles] = useState([])
   const [loading, setLoading] = useState(true)
   const [processingRequest, setProcessingRequest] = useState(null)
   
-  // Load mentorship and join requests
+  // Load mentorship, join requests and invitations
   useEffect(() => {
     const fetchMentorshipData = async () => {
       if (!id) return
@@ -143,6 +154,21 @@ export default function MentorshipDetails() {
       try {
         const mentorshipData = await getMentorshipById(id)
         setMentorship(mentorshipData)
+        
+        // Fetch invitations (mentors who were invited by PM)
+        const invites = await getInvitationsForMentorship(id)
+        setInvitations(invites)
+        
+        // Fetch mentor profiles for invitations
+        if (invites.length > 0) {
+          const inviteProfiles = await Promise.all(
+            invites.map(async (inv) => {
+              const profile = await getUserProfile(inv.mentorId)
+              return { ...inv, mentorProfile: profile }
+            })
+          )
+          setInvitationsWithProfiles(inviteProfiles)
+        }
         
         // Only fetch join requests if there's no mentor assigned
         if (!mentorshipData?.mentorId) {
@@ -184,22 +210,45 @@ export default function MentorshipDetails() {
     }
   }
   
-  // Use real or mock data
+  // Use real or mock data - prefer real data from Firestore
   const data = mentorship || mentorshipData
   const latestSession = data?.sessions?.[data.sessions.length - 1]
   const averageProgress = data?.sessions ? 
     (data.sessions.reduce((acc, s) => acc + s.progressRating, 0) / data.sessions.length).toFixed(1) : 
     '0'
   
-  // Determinar status baseado no último log
+  // Helper to format status text
+  const formatStatus = (status) => {
+    if (!status) return 'Unknown'
+    return status
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ')
+  }
+  
+  // Determinar status baseado no último log ou status da mentoria
   const getStatusInfo = () => {
-    const rating = latestSession.progressRating
-    if (rating >= 4) {
-      return { label: 'On Track', color: 'bg-green-100 text-green-700 border-green-300', icon: CheckCircle, iconColor: 'text-green-600' }
-    } else if (rating >= 3) {
-      return { label: 'Making Progress', color: 'bg-blue-100 text-blue-700 border-blue-300', icon: TrendingUp, iconColor: 'text-blue-600' }
-    } else {
-      return { label: 'Needs Attention', color: 'bg-amber-100 text-amber-700 border-amber-300', icon: AlertCircle, iconColor: 'text-amber-600' }
+    const status = data?.status || 'active'
+    
+    switch(status) {
+      case 'active':
+        return { label: 'Active', color: 'bg-green-100 text-green-700 border-green-300', icon: CheckCircle, iconColor: 'text-green-600' }
+      case 'pending':
+        return { label: 'Pending', color: 'bg-amber-100 text-amber-700 border-amber-300', icon: AlertCircle, iconColor: 'text-amber-600' }
+      case 'pending_kickoff':
+        return { label: 'Pending Kickoff', color: 'bg-blue-100 text-blue-700 border-blue-300', icon: TrendingUp, iconColor: 'text-blue-600' }
+      case 'completed':
+        return { label: 'Completed', color: 'bg-neutral-100 text-neutral-700 border-neutral-300', icon: CheckCircle, iconColor: 'text-neutral-600' }
+      default:
+        if (latestSession?.progressRating) {
+          const rating = latestSession.progressRating
+          if (rating >= 4) {
+            return { label: 'On Track', color: 'bg-green-100 text-green-700 border-green-300', icon: CheckCircle, iconColor: 'text-green-600' }
+          } else if (rating >= 3) {
+            return { label: 'Making Progress', color: 'bg-blue-100 text-blue-700 border-blue-300', icon: TrendingUp, iconColor: 'text-blue-600' }
+          }
+        }
+        return { label: 'Needs Attention', color: 'bg-amber-100 text-amber-700 border-amber-300', icon: AlertCircle, iconColor: 'text-amber-600' }
     }
   }
   
@@ -207,15 +256,15 @@ export default function MentorshipDetails() {
   const StatusIcon = statusInfo.icon
   
   // Calcular duração
-  const startDate = new Date(data.startDate)
+  const startDate = data?.startDate ? new Date(data.startDate) : (data?.createdAt?.toDate?.() || new Date())
   const now = new Date()
   const weeksDuration = Math.floor((now - startDate) / (1000 * 60 * 60 * 24 * 7))
 
   return (
     <>
       <SEO 
-        title={`Mentorship: ${data.mentee.name}`}
-        description={`View detailed progress and analytics for ${data.mentee.name}'s mentorship in ${data.topic}. Track sessions, ratings, and AI-powered insights.`}
+        title={`Mentorship: ${data?.menteeName || data?.mentee?.name || 'Details'}`}
+        description={`View detailed progress and analytics for this mentorship. Track sessions, ratings, and AI-powered insights.`}
       />
       <div className="flex h-screen bg-gradient-to-br from-neutral-50 via-white to-orange-50/15">
       <Sidebar user={{ name: 'Alex Smith', email: 'alexsmith@example.io' }} />
@@ -241,40 +290,78 @@ export default function MentorshipDetails() {
             <span className="font-semibold">Back to Mentorships</span>
           </button>
 
-          {/* View Toggle */}
-          <div className="mb-6 flex items-center gap-4">
-            <span className="text-sm text-neutral-gray-dark font-semibold">View as:</span>
-            <div className="inline-flex rounded-[14px] bg-neutral-100 p-1">
-              <button
-                onClick={() => setViewMode('pm')}
-                className={`px-4 py-2 rounded-[10px] text-sm font-bold transition-all duration-300 ${
-                  viewMode === 'pm'
-                    ? 'bg-white text-baires-orange shadow-md'
-                    : 'text-neutral-gray-dark hover:text-neutral-black'
-                }`}
-              >
-                Project Manager
-              </button>
-              <button
-                onClick={() => setViewMode('mentor')}
-                className={`px-4 py-2 rounded-[10px] text-sm font-bold transition-all duration-300 ${
-                  viewMode === 'mentor'
-                    ? 'bg-white text-baires-orange shadow-md'
-                    : 'text-neutral-gray-dark hover:text-neutral-black'
-                }`}
-              >
-                Mentor
-              </button>
-            </div>
-          </div>
-
           {loading ? (
-            <div className="flex justify-center py-20">
-              <div className="w-12 h-12 border-4 border-baires-orange border-t-transparent rounded-full animate-spin"></div>
+            <div className="flex justify-center items-center py-20">
+              <div className="text-center">
+                <Loader2 className="w-12 h-12 text-baires-orange mx-auto mb-4 animate-spin" />
+                <p className="text-neutral-gray-dark">Loading mentorship details...</p>
+              </div>
             </div>
-          ) : viewMode === 'pm' ? (
+          ) : permissions.isPM ? (
             // ==================== PM VIEW ====================
             <>
+              {/* Invited Mentors Section - Show pending invitations (PM ONLY) */}
+              {!data?.mentorId && invitationsWithProfiles.length > 0 && (
+                <Card padding="lg" className="mb-8 bg-gradient-to-br from-blue-50 via-white to-blue-100/50 border-2 border-blue-300/70">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-12 h-12 bg-gradient-to-br from-baires-blue to-blue-600 rounded-[16px] flex items-center justify-center shadow-lg">
+                      <Users className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold text-neutral-black flex items-center gap-2">
+                        Invited Mentors
+                        <Badge variant="blue">{invitationsWithProfiles.filter(inv => inv.status === 'pending').length} Pending</Badge>
+                      </h2>
+                      <p className="text-sm text-neutral-gray-dark">Mentors invited to this mentorship</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {invitationsWithProfiles.map((invitation) => {
+                      const statusColor = invitation.status === 'pending' ? 'warning' : invitation.status === 'accepted' ? 'success' : 'gray'
+                      const statusText = invitation.status === 'pending' ? 'Pending Response' : invitation.status === 'accepted' ? 'Accepted' : 'Declined'
+                      
+                      return (
+                        <Card key={invitation.id} padding="md" className="bg-white">
+                          <div className="flex items-start gap-4">
+                            <Avatar 
+                              src={invitation.mentorProfile?.photoURL || invitation.mentorAvatar} 
+                              initials={(invitation.mentorProfile?.displayName || invitation.mentorName)?.substring(0, 2)?.toUpperCase()}
+                              size="xl"
+                            />
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <h3 className="font-bold text-neutral-black">
+                                  {invitation.mentorProfile?.displayName || invitation.mentorName || 'Unknown Mentor'}
+                                </h3>
+                                <Badge variant={statusColor} className="text-xs">
+                                  {statusText}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-neutral-gray-dark mb-3">
+                                {invitation.mentorProfile?.bio || 'Experienced mentor'}
+                              </p>
+                              {invitation.mentorProfile?.technologies && (
+                                <div className="flex flex-wrap gap-2 mb-3">
+                                  {invitation.mentorProfile.technologies.slice(0, 3).map((tech, idx) => (
+                                    <span key={idx} className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
+                                      {typeof tech === 'string' ? tech : tech.name || tech}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                              <p className="text-xs text-neutral-gray-dark">
+                                Invited: {invitation.createdAt?.toDate?.().toLocaleDateString() || 'Recently'}
+                              </p>
+                            </div>
+                          </div>
+                        </Card>
+                      )
+                    })}
+                  </div>
+                </Card>
+              )}
+              
               {/* Join Requests Section - Show if no mentor assigned */}
               {!data?.mentorId && joinRequestsWithProfiles.length > 0 && (
                 <Card padding="lg" className="mb-8 bg-gradient-to-br from-orange-50 via-white to-orange-100/50 border-2 border-orange-300/70">
@@ -287,7 +374,7 @@ export default function MentorshipDetails() {
                         Mentor Join Requests
                         <Badge variant="orange">{joinRequestsWithProfiles.length} Pending</Badge>
                       </h2>
-                      <p className="text-sm text-neutral-gray-dark">Mentors interested in this mentorship</p>
+                      <p className="text-sm text-neutral-gray-dark">Mentors who requested to join this mentorship</p>
                     </div>
                   </div>
 
@@ -381,103 +468,154 @@ export default function MentorshipDetails() {
 
               {/* At-a-Glance Header - Outside Grid */}
               <Card padding="lg" className="mb-8 bg-gradient-to-br from-white via-orange-50/30 to-blue-50/30 border-2 border-orange-200/50">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-gradient-to-br from-baires-blue to-blue-600 rounded-[14px] flex items-center justify-center shadow-lg">
-                    <Users className="w-5 h-5 text-white" />
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-baires-blue to-blue-600 rounded-[14px] flex items-center justify-center shadow-lg">
+                      <Users className="w-5 h-5 text-white" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-neutral-black">Mentorship Overview</h2>
                   </div>
-                  <h2 className="text-2xl font-bold text-neutral-black">Mentorship Overview</h2>
+                  <Badge variant={statusInfo.color.includes('green') ? 'success' : statusInfo.color.includes('amber') ? 'warning' : 'blue'} className="text-sm">
+                    {formatStatus(data?.status)}
+                  </Badge>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-6 mb-6">
                   {/* Mentee */}
                   <div className="flex items-center gap-4 p-4 bg-white rounded-[16px] border border-blue-200/50">
-                    <Avatar src={data.mentee.avatar} size="xl" />
+                    <Avatar 
+                      src={data.menteeAvatar || data.mentee?.avatar} 
+                      initials={(data.menteeName || data.mentee?.name)?.substring(0, 2)?.toUpperCase()}
+                      size="xl" 
+                    />
                     <div>
                       <div className="text-xs text-neutral-gray-dark font-semibold mb-1">MENTEE</div>
-                      <div className="text-lg font-bold text-neutral-black">{data.mentee.name}</div>
-                      <div className="text-sm text-neutral-gray-dark">{data.mentee.role}</div>
+                      <div className="text-lg font-bold text-neutral-black">{data.menteeName || data.mentee?.name}</div>
+                      <div className="text-sm text-neutral-gray-dark">{data.mentee?.role || 'Team Member'}</div>
                     </div>
                   </div>
 
                   {/* Mentor */}
                   <div className="flex items-center gap-4 p-4 bg-white rounded-[16px] border border-orange-200/50">
-                    <Avatar src={data.mentor.avatar} size="xl" />
-                    <div>
-                      <div className="text-xs text-neutral-gray-dark font-semibold mb-1">MENTOR</div>
-                      <div className="text-lg font-bold text-neutral-black">{data.mentor.name}</div>
-                      <div className="text-sm text-neutral-gray-dark">{data.mentor.role}</div>
-                    </div>
+                    {data.mentorId || data.mentor ? (
+                      <>
+                        <Avatar 
+                          src={data.mentorAvatar || data.mentor?.avatar} 
+                          initials={(data.mentorName || data.mentor?.name)?.substring(0, 2)?.toUpperCase()}
+                          size="xl" 
+                        />
+                        <div>
+                          <div className="text-xs text-neutral-gray-dark font-semibold mb-1">MENTOR</div>
+                          <div className="text-lg font-bold text-neutral-black">{data.mentorName || data.mentor?.name}</div>
+                          <div className="text-sm text-neutral-gray-dark">{data.mentor?.role || 'Expert Mentor'}</div>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="w-16 h-16 bg-gradient-to-br from-amber-100 to-amber-200 rounded-full flex items-center justify-center">
+                          <AlertCircle className="w-8 h-8 text-amber-600" />
+                        </div>
+                        <div>
+                          <div className="text-xs text-neutral-gray-dark font-semibold mb-1">MENTOR</div>
+                          <div className="text-lg font-bold text-amber-700">Not Assigned Yet</div>
+                          <div className="text-sm text-neutral-gray-dark">Waiting for acceptance</div>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
 
-                {/* Original Goal */}
-                <div className="p-5 bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-[16px] border border-orange-200/50">
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-baires-orange to-orange-600 rounded-[12px] flex items-center justify-center shadow-md flex-shrink-0">
-                      <Target className="w-5 h-5 text-white" />
+                {/* Technologies */}
+                {data.technologies && data.technologies.length > 0 && (
+                  <div className="mb-6 p-4 bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-[16px] border border-blue-200/50">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Code className="w-4 h-4 text-baires-blue" />
+                      <span className="text-sm font-bold text-neutral-black">Technologies & Skills</span>
                     </div>
-                    <div>
-                      <div className="text-xs text-baires-orange font-bold mb-2 uppercase tracking-wide">Original Goal</div>
-                      <p className="text-neutral-black leading-relaxed">{data.originalGoal}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {data.technologies.map((tech, idx) => (
+                        <span key={idx} className="text-xs bg-white border border-blue-300 text-blue-700 px-3 py-1.5 rounded-full font-semibold">
+                          {typeof tech === 'string' ? tech : tech.name || tech}
+                        </span>
+                      ))}
                     </div>
                   </div>
-                </div>
+                )}
+
+                {/* Challenge Description or Original Goal */}
+                {(data.challengeDescription || data.originalGoal) && (
+                  <div className="p-5 bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-[16px] border border-orange-200/50">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-baires-orange to-orange-600 rounded-[12px] flex items-center justify-center shadow-md flex-shrink-0">
+                        <Target className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <div className="text-xs text-baires-orange font-bold mb-2 uppercase tracking-wide">
+                          {data.challengeDescription ? 'Challenge & Goals' : 'Original Goal'}
+                        </div>
+                        <p className="text-neutral-black leading-relaxed">{data.challengeDescription || data.originalGoal}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </Card>
 
               {/* Grid Layout */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
                 <div className="lg:col-span-2 space-y-6 md:space-y-8">
-                  {/* AI Insights Card */}
-                <Card padding="lg" className="bg-gradient-to-br from-orange-50 via-white to-blue-50 border-2 border-orange-200/50">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-12 h-12 bg-gradient-to-br from-baires-orange to-orange-600 rounded-[16px] flex items-center justify-center shadow-lg">
-                      <Sparkles className="w-6 h-6 text-white animate-pulse" />
-                    </div>
-                    <div>
-                      <h2 className="text-xl font-bold text-neutral-black flex items-center gap-2">
-                        AI Magic Insights
-                        <Badge variant="orange" className="text-xs">AI</Badge>
-                      </h2>
-                      <p className="text-sm text-neutral-gray-dark flex items-center gap-1">
-                        <Bot className="w-3 h-3 text-baires-orange" />
-                        Smart recommendations powered by AI
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    {/* AI Suggestion Cards */}
-                    <div className="p-4 bg-gradient-to-br from-green-50 to-green-100/50 rounded-[16px] border border-green-200/50">
-                      <div className="flex items-start gap-3">
-                        <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                  {/* AI Insights Card - Only show if there are sessions */}
+                  {data?.sessions && data.sessions.length > 0 ? (
+                    <Card padding="lg" className="bg-gradient-to-br from-orange-50 via-white to-blue-50 border-2 border-orange-200/50">
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="w-12 h-12 bg-gradient-to-br from-baires-orange to-orange-600 rounded-[16px] flex items-center justify-center shadow-lg">
+                          <Sparkles className="w-6 h-6 text-white animate-pulse" />
+                        </div>
                         <div>
-                          <div className="font-bold text-green-900 mb-1">Strong Progress Detected</div>
-                          <p className="text-sm text-green-800">Sarah's progress rating improved by 150% in the last 3 sessions. Consider discussing more advanced topics.</p>
+                          <h2 className="text-xl font-bold text-neutral-black flex items-center gap-2">
+                            AI Magic Insights
+                            <Badge variant="orange" className="text-xs">AI</Badge>
+                          </h2>
+                          <p className="text-sm text-neutral-gray-dark flex items-center gap-1">
+                            <Bot className="w-3 h-3 text-baires-orange" />
+                            Smart recommendations powered by AI
+                          </p>
                         </div>
                       </div>
-                    </div>
 
-                    <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-[16px] border border-blue-200/50">
-                      <div className="flex items-start gap-3">
-                        <TrendingUp className="w-5 h-5 text-baires-blue flex-shrink-0 mt-0.5" />
-                        <div>
-                          <div className="font-bold text-blue-900 mb-1">Recommended Action</div>
-                          <p className="text-sm text-blue-800">Based on similar mentorships, consider scheduling a mock interview session to assess readiness for production work.</p>
+                      <div className="space-y-4">
+                        {/* AI Suggestion Cards */}
+                        <div className="p-4 bg-gradient-to-br from-green-50 to-green-100/50 rounded-[16px] border border-green-200/50">
+                          <div className="flex items-start gap-3">
+                            <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                            <div>
+                              <div className="font-bold text-green-900 mb-1">Mentorship In Progress</div>
+                              <p className="text-sm text-green-800">This mentorship is actively progressing. Keep up the good work with regular sessions and feedback.</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-[16px] border border-blue-200/50">
+                          <div className="flex items-start gap-3">
+                            <TrendingUp className="w-5 h-5 text-baires-blue flex-shrink-0 mt-0.5" />
+                            <div>
+                              <div className="font-bold text-blue-900 mb-1">Recommended Action</div>
+                              <p className="text-sm text-blue-800">Regular check-ins help maintain momentum. Consider scheduling recurring sessions for consistency.</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="p-4 bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-[16px] border border-orange-200/50">
+                          <div className="flex items-start gap-3">
+                            <Target className="w-5 h-5 text-baires-orange flex-shrink-0 mt-0.5" />
+                            <div>
+                              <div className="font-bold text-orange-900 mb-1">Goal Tracking</div>
+                              <p className="text-sm text-orange-800">Set clear milestones and track progress regularly to maximize mentorship effectiveness.</p>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-
-                    <div className="p-4 bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-[16px] border border-orange-200/50">
-                      <div className="flex items-start gap-3">
-                        <Target className="w-5 h-5 text-baires-orange flex-shrink-0 mt-0.5" />
-                        <div>
-                          <div className="font-bold text-orange-900 mb-1">Goal Achievement Forecast</div>
-                          <p className="text-sm text-orange-800">AI predicts 92% likelihood of achieving all mentorship goals at current pace. Est. completion: 2 weeks early.</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </Card>
+                    </Card>
+                  ) : null}
 
                 {/* Progress Panel */}
                 <Card padding="lg">
@@ -507,14 +645,16 @@ export default function MentorshipDetails() {
                   <Card padding="md" className="bg-gradient-to-br from-blue-50 to-blue-100/50 border-2 border-blue-200">
                     <Calendar className="w-8 h-8 text-baires-blue mb-2" />
                     <div className="text-xs font-bold uppercase text-neutral-gray-dark mb-1">Sessions</div>
-                    <div className="text-xl font-bold text-neutral-black">{data.completedSessions}/{data.totalSessions}</div>
+                    <div className="text-xl font-bold text-neutral-black">
+                      {data?.completedSessions || data?.sessionsCompleted || 0}/{data?.totalSessions || 0}
+                    </div>
                   </Card>
 
                   {/* Duration */}
                   <Card padding="md" className="bg-gradient-to-br from-purple-50 to-purple-100/50 border-2 border-purple-200">
                     <Clock className="w-8 h-8 text-purple-600 mb-2" />
                     <div className="text-xs font-bold uppercase text-neutral-gray-dark mb-1">Duration</div>
-                    <div className="text-xl font-bold text-neutral-black">{weeksDuration} weeks</div>
+                    <div className="text-xl font-bold text-neutral-black">{weeksDuration || 0} weeks</div>
                   </Card>
 
                   {/* Avg Progress */}
@@ -526,87 +666,99 @@ export default function MentorshipDetails() {
                 </div>
 
                 {/* Progress Trend Chart */}
-                <div className="p-6 bg-gradient-to-br from-neutral-50 to-white rounded-[20px] border border-neutral-200">
-                  <h3 className="text-lg font-bold text-neutral-black mb-6 flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5 text-baires-orange" />
-                    Progress Trend Over Time
-                  </h3>
-                  
-                  {/* Simple Line Chart */}
-                  <div className="relative h-64">
-                    {/* Y-axis labels */}
-                    <div className="absolute left-0 top-0 bottom-0 flex flex-col justify-between text-xs text-neutral-gray-dark font-semibold">
-                      <span>5</span>
-                      <span>4</span>
-                      <span>3</span>
-                      <span>2</span>
-                      <span>1</span>
-                    </div>
+                {data?.sessions && data.sessions.length > 0 ? (
+                  <div className="p-6 bg-gradient-to-br from-neutral-50 to-white rounded-[20px] border border-neutral-200">
+                    <h3 className="text-lg font-bold text-neutral-black mb-6 flex items-center gap-2">
+                      <TrendingUp className="w-5 h-5 text-baires-orange" />
+                      Progress Trend Over Time
+                    </h3>
                     
-                    {/* Chart area */}
-                    <div className="ml-8 h-full relative">
-                      {/* Grid lines */}
-                      {[0, 1, 2, 3, 4].map((i) => (
-                        <div
-                          key={i}
-                          className="absolute w-full border-t border-neutral-200"
-                          style={{ top: `${i * 25}%` }}
-                        ></div>
-                      ))}
+                    {/* Simple Line Chart */}
+                    <div className="relative h-64">
+                      {/* Y-axis labels */}
+                      <div className="absolute left-0 top-0 bottom-0 flex flex-col justify-between text-xs text-neutral-gray-dark font-semibold">
+                        <span>5</span>
+                        <span>4</span>
+                        <span>3</span>
+                        <span>2</span>
+                        <span>1</span>
+                      </div>
                       
-                      {/* Data points and line */}
-                      <svg className="w-full h-full">
-                        {/* Line */}
-                        <polyline
-                          points={data.sessions.map((session, i) => {
+                      {/* Chart area */}
+                      <div className="ml-8 h-full relative">
+                        {/* Grid lines */}
+                        {[0, 1, 2, 3, 4].map((i) => (
+                          <div
+                            key={i}
+                            className="absolute w-full border-t border-neutral-200"
+                            style={{ top: `${i * 25}%` }}
+                          ></div>
+                        ))}
+                        
+                        {/* Data points and line */}
+                        <svg className="w-full h-full">
+                          {/* Line */}
+                          <polyline
+                            points={data.sessions.map((session, i) => {
+                              const x = (i / (data.sessions.length - 1)) * 100
+                              const y = 100 - ((session.progressRating / 5) * 100)
+                              return `${x}%,${y}%`
+                            }).join(' ')}
+                            fill="none"
+                            stroke="url(#gradient)"
+                            strokeWidth="3"
+                            className="drop-shadow-md"
+                          />
+                          
+                          {/* Gradient definition */}
+                          <defs>
+                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                              <stop offset="0%" stopColor="#F66135" />
+                              <stop offset="100%" stopColor="#FBB39E" />
+                            </linearGradient>
+                          </defs>
+                          
+                          {/* Points */}
+                          {data.sessions.map((session, i) => {
                             const x = (i / (data.sessions.length - 1)) * 100
                             const y = 100 - ((session.progressRating / 5) * 100)
-                            return `${x}%,${y}%`
-                          }).join(' ')}
-                          fill="none"
-                          stroke="url(#gradient)"
-                          strokeWidth="3"
-                          className="drop-shadow-md"
-                        />
-                        
-                        {/* Gradient definition */}
-                        <defs>
-                          <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" stopColor="#F66135" />
-                            <stop offset="100%" stopColor="#FBB39E" />
-                          </linearGradient>
-                        </defs>
-                        
-                        {/* Points */}
-                        {data.sessions.map((session, i) => {
-                          const x = (i / (data.sessions.length - 1)) * 100
-                          const y = 100 - ((session.progressRating / 5) * 100)
-                          return (
-                            <g key={i}>
-                              <circle
-                                cx={`${x}%`}
-                                cy={`${y}%`}
-                                r="6"
-                                fill="white"
-                                stroke="#F66135"
-                                strokeWidth="3"
-                                className="cursor-pointer hover:r-8 transition-all"
-                              />
-                              <title>Session {i + 1}: {session.progressRating}/5</title>
-                            </g>
-                          )
-                        })}
-                      </svg>
-                    </div>
-                    
-                    {/* X-axis labels */}
-                    <div className="ml-8 mt-2 flex justify-between text-xs text-neutral-gray-dark font-semibold">
-                      {data.sessions.map((session, i) => (
-                        <span key={i}>S{i + 1}</span>
-                      ))}
+                            return (
+                              <g key={i}>
+                                <circle
+                                  cx={`${x}%`}
+                                  cy={`${y}%`}
+                                  r="6"
+                                  fill="white"
+                                  stroke="#F66135"
+                                  strokeWidth="3"
+                                  className="cursor-pointer hover:r-8 transition-all"
+                                />
+                                <title>Session {i + 1}: {session.progressRating}/5</title>
+                              </g>
+                            )
+                          })}
+                        </svg>
+                      </div>
+                      
+                      {/* X-axis labels */}
+                      <div className="ml-8 mt-2 flex justify-between text-xs text-neutral-gray-dark font-semibold">
+                        {data.sessions.map((session, i) => (
+                          <span key={i}>S{i + 1}</span>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="p-6 bg-gradient-to-br from-neutral-50 to-white rounded-[20px] border border-neutral-200 text-center">
+                    <div className="py-8">
+                      <BarChart3 className="w-12 h-12 text-neutral-gray-dark mx-auto mb-3 opacity-50" />
+                      <h4 className="text-lg font-bold text-neutral-black mb-2">No Session Data Yet</h4>
+                      <p className="text-sm text-neutral-gray-dark">
+                        Progress tracking will appear here once sessions are logged
+                      </p>
+                    </div>
+                  </div>
+                )}
               </Card>
 
                 {/* Session Reports Feed */}
@@ -618,14 +770,15 @@ export default function MentorshipDetails() {
                     </div>
                     <div>
                       <h2 className="text-2xl font-bold text-neutral-black">Session History & Reports</h2>
-                      <p className="text-sm text-neutral-gray-dark">{data.sessions.length} sessions completed</p>
+                      <p className="text-sm text-neutral-gray-dark">{data?.sessions?.length || 0} sessions completed</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Timeline */}
-                <div className="space-y-6">
-                  {[...data.sessions].reverse().map((session, index) => (
+                {data?.sessions && data.sessions.length > 0 ? (
+                  <div className="space-y-6">
+                    {[...data.sessions].reverse().map((session, index) => (
                     <div key={session.id} className="relative">
                       {index !== data.sessions.length - 1 && (
                         <div className="absolute left-6 top-16 bottom-0 w-0.5 bg-neutral-200"></div>
@@ -699,7 +852,18 @@ export default function MentorshipDetails() {
                       </Card>
                     </div>
                   ))}
-                </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 bg-gradient-to-br from-neutral-100 to-neutral-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <FileText className="w-8 h-8 text-neutral-gray-dark" />
+                    </div>
+                    <h4 className="text-lg font-bold text-neutral-black mb-2">No Sessions Logged Yet</h4>
+                    <p className="text-sm text-neutral-gray-dark mb-4">
+                      Session reports will appear here once the mentor logs them
+                    </p>
+                  </div>
+                )}
                 </Card>
               </div>
 
@@ -711,11 +875,11 @@ export default function MentorshipDetails() {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between p-3 bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-[12px]">
                       <span className="text-sm font-semibold text-neutral-gray-dark">Sessions</span>
-                      <span className="text-lg font-bold text-neutral-black">{data.completedSessions}/{data.totalSessions}</span>
+                      <span className="text-lg font-bold text-neutral-black">{data?.completedSessions || data?.sessionsCompleted || 0}/{data?.totalSessions || 0}</span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-gradient-to-br from-green-50 to-green-100/50 rounded-[12px]">
                       <span className="text-sm font-semibold text-neutral-gray-dark">Progress</span>
-                      <span className="text-lg font-bold text-neutral-black">{data.overallProgress}%</span>
+                      <span className="text-lg font-bold text-neutral-black">{data?.overallProgress || data?.progress || 0}%</span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-[12px]">
                       <span className="text-sm font-semibold text-neutral-gray-dark">Avg Rating</span>
@@ -770,266 +934,47 @@ export default function MentorshipDetails() {
                   <h3 className="text-lg font-bold text-neutral-black mb-4">Participants</h3>
                   <div className="space-y-4">
                     <div className="flex items-center gap-3 p-3 bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-[14px]">
-                      <Avatar src={data.mentee.avatar} size="md" />
+                      <Avatar 
+                        src={data?.menteeAvatar || data?.mentee?.avatar} 
+                        initials={(data?.menteeName || data?.mentee?.name)?.substring(0, 2)?.toUpperCase()}
+                        size="md" 
+                      />
                       <div className="flex-1 min-w-0">
                         <div className="text-xs font-bold text-neutral-gray-dark mb-0.5">MENTEE</div>
-                        <div className="font-bold text-neutral-black text-sm truncate">{data.mentee.name}</div>
+                        <div className="font-bold text-neutral-black text-sm truncate">{data?.menteeName || data?.mentee?.name || 'Unknown'}</div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 p-3 bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-[14px]">
-                      <Avatar src={data.mentor.avatar} size="md" />
-                      <div className="flex-1 min-w-0">
-                        <div className="text-xs font-bold text-neutral-gray-dark mb-0.5">MENTOR</div>
-                        <div className="font-bold text-neutral-black text-sm truncate">{data.mentor.name}</div>
+                    {(data?.mentorId || data?.mentor) && (
+                      <div className="flex items-center gap-3 p-3 bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-[14px]">
+                        <Avatar 
+                          src={data?.mentorAvatar || data?.mentor?.avatar} 
+                          initials={(data?.mentorName || data?.mentor?.name)?.substring(0, 2)?.toUpperCase()}
+                          size="md" 
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="text-xs font-bold text-neutral-gray-dark mb-0.5">MENTOR</div>
+                          <div className="font-bold text-neutral-black text-sm truncate">{data?.mentorName || data?.mentor?.name || 'Unknown'}</div>
+                        </div>
                       </div>
-                    </div>
+                    )}
+                    {data?.projectManagerName && (
+                      <div className="flex items-center gap-3 p-3 bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-[14px]">
+                        <Avatar 
+                          src={data?.projectManagerAvatar} 
+                          initials={data?.projectManagerName?.substring(0, 2)?.toUpperCase()}
+                          size="md" 
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="text-xs font-bold text-neutral-gray-dark mb-0.5">PROJECT MANAGER</div>
+                          <div className="font-bold text-neutral-black text-sm truncate">{data?.projectManagerName}</div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </Card>
                 </div>
               </div>
             </>
-          ) : (
-            // ==================== MENTOR VIEW ====================
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-              <div className="lg:col-span-2 space-y-6 md:space-y-8">
-                {/* AI Assistant for Logging */}
-                <Card padding="lg" className="bg-gradient-to-br from-orange-50 via-white to-blue-50 border-2 border-orange-200/50">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-gradient-to-br from-baires-orange to-orange-600 rounded-[14px] flex items-center justify-center shadow-lg">
-                      <Sparkles className="w-5 h-5 text-white animate-pulse" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-neutral-black flex items-center gap-2">
-                        AI Writing Assistant
-                        <Badge variant="orange" className="text-xs">Magic</Badge>
-                      </h3>
-                      <p className="text-xs text-neutral-gray-dark flex items-center gap-1">
-                        <Bot className="w-3 h-3 text-baires-orange" />
-                        Let AI help you write better logs
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <button className="w-full text-left p-4 bg-white rounded-[14px] border-2 border-neutral-200 hover:border-orange-400 hover:bg-orange-50/50 transition-all group">
-                      <div className="flex items-start gap-3">
-                        <Sparkles className="w-5 h-5 text-baires-orange flex-shrink-0 mt-0.5 group-hover:rotate-12 transition-transform" />
-                        <div>
-                          <div className="font-bold text-neutral-black mb-1">Generate Summary</div>
-                          <p className="text-sm text-neutral-gray-dark">AI will create a professional summary based on key points</p>
-                        </div>
-                      </div>
-                    </button>
-                    
-                    <button className="w-full text-left p-4 bg-white rounded-[14px] border-2 border-neutral-200 hover:border-blue-400 hover:bg-blue-50/50 transition-all group">
-                      <div className="flex items-start gap-3">
-                        <Target className="w-5 h-5 text-baires-blue flex-shrink-0 mt-0.5" />
-                        <div>
-                          <div className="font-bold text-neutral-black mb-1">Suggest Next Steps</div>
-                          <p className="text-sm text-neutral-gray-dark">Get AI recommendations for mentee's next goals</p>
-                        </div>
-                      </div>
-                    </button>
-
-                    <button className="w-full text-left p-4 bg-white rounded-[14px] border-2 border-neutral-200 hover:border-orange-400 hover:bg-orange-50/50 transition-all group">
-                      <div className="flex items-start gap-3">
-                        <TrendingUp className="w-5 h-5 text-baires-orange flex-shrink-0 mt-0.5" />
-                        <div>
-                          <div className="font-bold text-neutral-black mb-1">Progress Analysis</div>
-                          <p className="text-sm text-neutral-gray-dark">AI analyzes progress and provides insights</p>
-                        </div>
-                      </div>
-                    </button>
-                  </div>
-                </Card>
-
-                {/* Add Log Form */}
-                <Card padding="lg" className="bg-gradient-to-br from-orange-50 via-white to-blue-50 border-2 border-orange-200/50">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-gradient-to-br from-baires-orange to-orange-600 rounded-[14px] flex items-center justify-center shadow-lg">
-                    <Plus className="w-5 h-5 text-white" />
-                  </div>
-                  <h3 className="text-xl font-bold text-neutral-black">Log New Session</h3>
-                </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-bold text-neutral-black mb-2">Session Date</label>
-                    <input type="date" className="w-full px-4 py-3 rounded-[12px] border-2 border-neutral-200 focus:border-baires-orange focus:outline-none" />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-bold text-neutral-black mb-2">Duration (minutes)</label>
-                    <input type="number" placeholder="60" className="w-full px-4 py-3 rounded-[12px] border-2 border-neutral-200 focus:border-baires-orange focus:outline-none" />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-bold text-neutral-black mb-2">Progress Rating (1-5)</label>
-                    <div className="flex gap-2">
-                      {[1, 2, 3, 4, 5].map((rating) => (
-                        <button
-                          key={rating}
-                          className="flex-1 py-3 rounded-[12px] border-2 border-neutral-200 hover:border-baires-orange hover:bg-orange-50 transition-all font-bold"
-                        >
-                          {rating}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="block text-sm font-bold text-neutral-black">Session Summary</label>
-                      <button className="flex items-center gap-1 text-xs font-bold text-baires-orange hover:text-orange-700 transition-colors">
-                        <Sparkles className="w-3 h-3" />
-                        AI Assist
-                      </button>
-                    </div>
-                    <textarea 
-                      rows="4" 
-                      placeholder="Describe what was covered in this session... (Try using AI Assist above!)"
-                      className="w-full px-4 py-3 rounded-[12px] border-2 border-neutral-200 focus:border-baires-orange focus:outline-none resize-none"
-                    ></textarea>
-                  </div>
-
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="block text-sm font-bold text-neutral-black">Next Steps</label>
-                      <button className="flex items-center gap-1 text-xs font-bold text-baires-orange hover:text-orange-700 transition-colors">
-                        <Sparkles className="w-3 h-3" />
-                        AI Suggest
-                      </button>
-                    </div>
-                    <textarea 
-                      rows="3" 
-                      placeholder="What should the mentee focus on next? (AI can suggest based on progress)"
-                      className="w-full px-4 py-3 rounded-[12px] border-2 border-neutral-200 focus:border-baires-orange focus:outline-none resize-none"
-                    ></textarea>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-bold text-neutral-black mb-2">Recording URL (optional)</label>
-                    <input type="url" placeholder="https://..." className="w-full px-4 py-3 rounded-[12px] border-2 border-neutral-200 focus:border-baires-orange focus:outline-none" />
-                  </div>
-
-                  <Button variant="orange" className="w-full" icon={<Plus className="w-4 h-4" />}>
-                    Save Session Log
-                  </Button>
-                </div>
-              </Card>
-
-                {/* Recent Logs */}
-                <Card padding="lg">
-                <h3 className="text-xl font-bold text-neutral-black mb-6">Your Recent Logs</h3>
-                <div className="space-y-4">
-                  {data.sessions.slice(-3).reverse().map((session) => (
-                    <Card key={session.id} padding="md" hover className="bg-gradient-to-br from-neutral-50 to-white">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="font-bold text-neutral-black mb-1">
-                            {new Date(session.date).toLocaleDateString()}
-                          </div>
-                          <div className="text-sm text-neutral-gray-dark line-clamp-1">{session.summary}</div>
-                        </div>
-                        <button className="px-4 py-2 bg-neutral-100 hover:bg-neutral-200 rounded-[12px] font-semibold text-sm transition-colors flex items-center gap-2">
-                          <Edit className="w-4 h-4" />
-                          Edit
-                        </button>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-                </Card>
-              </div>
-
-              {/* Mentor Sidebar */}
-              <div className="space-y-6 md:space-y-8">
-                {/* Mentee Info */}
-                <Card padding="lg" className="bg-gradient-to-br from-blue-50 via-white to-blue-100/50 border-2 border-blue-200/50">
-                  <div className="text-center">
-                    <Avatar src={data.mentee.avatar} size="2xl" className="mx-auto mb-4" />
-                    <h3 className="text-xl font-bold text-neutral-black mb-1">{data.mentee.name}</h3>
-                    <p className="text-sm text-neutral-gray-dark mb-4">{data.mentee.role}</p>
-                    
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between p-2 bg-white rounded-[10px]">
-                        <span className="text-xs text-neutral-gray-dark">Sessions</span>
-                        <span className="text-sm font-bold">{data.completedSessions}/{data.totalSessions}</span>
-                      </div>
-                      <div className="flex items-center justify-between p-2 bg-white rounded-[10px]">
-                        <span className="text-xs text-neutral-gray-dark">Progress</span>
-                        <span className="text-sm font-bold text-green-600">{data.overallProgress}%</span>
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-
-                {/* AI Tips */}
-                <Card padding="lg" className="bg-gradient-to-br from-baires-orange via-orange-600 to-orange-700 text-white border-none shadow-[0_20px_50px_rgb(246,97,53,0.3)]">
-                  <div className="relative">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
-                    <div className="relative">
-                      <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-[16px] flex items-center justify-center mb-4 shadow-lg">
-                        <Lightbulb className="w-6 h-6 text-white" />
-                      </div>
-                      <h3 className="text-lg font-bold mb-2 flex items-center gap-2">
-                        AI Tips for This Session
-                      </h3>
-                      <div className="space-y-3 text-sm opacity-90">
-                        <div className="flex items-start gap-2">
-                          <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                          <p>Focus on practical coding exercises to reinforce concepts</p>
-                        </div>
-                        <div className="flex items-start gap-2">
-                          <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                          <p>Consider pair programming for complex topics</p>
-                        </div>
-                        <div className="flex items-start gap-2">
-                          <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                          <p>Ask about challenges from previous homework</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs opacity-75 mt-4">
-                        <Bot className="w-4 h-4" />
-                        <span>Powered by AI CoPilot</span>
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-
-                {/* Quick Actions */}
-                <Card padding="lg">
-                  <h3 className="text-lg font-bold text-neutral-black mb-4">Quick Tools</h3>
-                  <div className="space-y-3">
-                    <button className="w-full flex items-center gap-3 p-3 bg-gradient-to-r from-baires-blue to-blue-600 text-white rounded-[14px] font-semibold hover:shadow-lg transition-all">
-                      <MessageSquare className="w-5 h-5" />
-                      <span>Message {data.mentee.name}</span>
-                    </button>
-                    <button className="w-full flex items-center gap-3 p-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-[14px] font-semibold hover:shadow-lg transition-all">
-                      <Calendar className="w-5 h-5" />
-                      <span>Schedule Next Session</span>
-                    </button>
-                    <button className="w-full flex items-center gap-3 p-3 bg-neutral-100 text-neutral-black rounded-[14px] font-semibold hover:bg-neutral-200 transition-all">
-                      <Video className="w-5 h-5" />
-                      <span>Upload Recording</span>
-                    </button>
-                  </div>
-                </Card>
-
-                {/* Goal Progress */}
-                <Card padding="lg">
-                  <h3 className="text-lg font-bold text-neutral-black mb-4">Mentorship Goals</h3>
-                  <div className="space-y-3">
-                    {data.sessions[0]?.nextSteps.split('. ').slice(0, 3).map((goal, idx) => (
-                      <div key={idx} className="flex items-start gap-3 p-3 bg-gradient-to-br from-neutral-50 to-neutral-100 rounded-[12px]">
-                        <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                        <span className="text-sm text-neutral-black">{goal}</span>
-                      </div>
-                    ))}
-                  </div>
-                </Card>
-              </div>
-            </div>
           )}
         </div>
       </main>

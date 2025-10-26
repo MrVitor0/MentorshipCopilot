@@ -172,56 +172,108 @@ export default function PMDashboard({ user, upcomingSessions, mentorships, loadi
           {mentorships.length > 0 ? (
             <div className="space-y-4">
               {mentorships.slice(0, 3).map((mentorship) => {
+                // Helper function to format status
+                const formatStatus = (status) => {
+                  if (!status) return 'Unknown'
+                  return status
+                    .split('_')
+                    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                    .join(' ')
+                }
+                
                 const statusColors = {
                   'active': 'success',
+                  'pending': 'warning',
                   'pending_mentor': 'warning',
                   'pending_kickoff': 'blue',
                   'completed': 'gray'
                 }
-                const statusLabels = {
-                  'active': 'Active',
-                  'pending_mentor': 'Pending Mentor',
-                  'pending_kickoff': 'Pending Kickoff',
-                  'completed': 'Completed'
+                
+                const getStatusColor = (status) => {
+                  return statusColors[status] || 'gray'
                 }
                 
                 return (
-                  <button
+                  <div
                     key={mentorship.id}
-                    onClick={() => navigate(`/mentorship/${mentorship.id}`)}
-                    className="w-full p-5 bg-gradient-to-br from-white to-green-50/50 rounded-[20px] border border-green-100/50 hover:shadow-md transition-all duration-300 text-left"
+                    className="w-full p-5 bg-gradient-to-br from-white to-green-50/50 rounded-[20px] border border-green-100/50 hover:shadow-lg transition-all duration-300"
                   >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center gap-3 flex-1">
                         <Avatar 
                           src={mentorship.menteeAvatar} 
                           initials={mentorship.menteeName?.substring(0, 2)?.toUpperCase()}
-                          size="sm"
+                          size="md"
+                          ring
                         />
-                        <div>
-                          <h4 className="font-bold text-neutral-black">{mentorship.menteeName}</h4>
-                          <p className="text-xs text-neutral-gray-dark">
-                            {mentorship.technologies?.slice(0, 2).join(', ')}
+                        <div className="flex-1">
+                          <h4 className="font-bold text-neutral-black mb-1">{mentorship.menteeName}</h4>
+                          <p className="text-xs text-neutral-gray-dark mb-2">
+                            Mentor: {mentorship.mentorName || 'Not assigned yet'}
                           </p>
+                          {/* Technologies */}
+                          {mentorship.technologies && mentorship.technologies.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5 mt-2">
+                              {mentorship.technologies.slice(0, 3).map((tech, idx) => (
+                                <span key={idx} className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
+                                  {typeof tech === 'string' ? tech : tech.name || tech}
+                                </span>
+                              ))}
+                              {mentorship.technologies.length > 3 && (
+                                <span className="text-xs bg-neutral-100 text-neutral-600 px-2 py-1 rounded-full font-medium">
+                                  +{mentorship.technologies.length - 3}
+                                </span>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
-                      <Badge variant={statusColors[mentorship.status] || 'gray'} className="text-xs">
-                        {statusLabels[mentorship.status] || mentorship.status}
+                      <Badge variant={getStatusColor(mentorship.status)} className="text-xs flex-shrink-0">
+                        {formatStatus(mentorship.status)}
                       </Badge>
                     </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-neutral-gray-dark">Progress</span>
-                        <span className="font-semibold text-neutral-black">{mentorship.progress || 0}%</span>
+                    
+                    {/* Challenge Description Summary */}
+                    {mentorship.challengeDescription && (
+                      <div className="mb-3 p-3 bg-orange-50/50 rounded-[12px] border border-orange-100/50">
+                        <p className="text-xs text-neutral-gray-dark line-clamp-2 leading-relaxed">
+                          {mentorship.challengeDescription}
+                        </p>
                       </div>
-                      <div className="w-full bg-neutral-200 rounded-full h-2">
+                    )}
+                    
+                    {/* Invited Mentors Count for Pending Status */}
+                    {mentorship.status === 'pending' && mentorship.invitedMentorIds && (
+                      <div className="mb-3 flex items-center gap-2 text-xs">
+                        <Users className="w-4 h-4 text-baires-orange" />
+                        <span className="text-neutral-gray-dark">
+                          <span className="font-bold text-neutral-black">{mentorship.invitedMentorIds.length}</span> mentor{mentorship.invitedMentorIds.length !== 1 ? 's' : ''} invited
+                        </span>
+                      </div>
+                    )}
+                    
+                    <div className="space-y-2 mb-4">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-neutral-gray-dark font-medium">Progress</span>
+                        <span className="font-bold text-neutral-black">{mentorship.progress || 0}%</span>
+                      </div>
+                      <div className="w-full bg-neutral-200 rounded-full h-2.5">
                         <div 
-                          className="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full transition-all duration-300" 
+                          className="bg-gradient-to-r from-green-500 to-green-600 h-2.5 rounded-full transition-all duration-300" 
                           style={{ width: `${mentorship.progress || 0}%` }}
                         ></div>
                       </div>
                     </div>
-                  </button>
+                    
+                    {/* View Details Button */}
+                    <button
+                      onClick={() => navigate(`/mentorship/${mentorship.id}`)}
+                      className="w-full bg-gradient-to-r from-baires-orange to-orange-600 text-white px-4 py-2.5 rounded-[14px] font-bold hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2 group"
+                    >
+                      <span>View Details</span>
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </button>
+                  </div>
                 )
               })}
             </div>
