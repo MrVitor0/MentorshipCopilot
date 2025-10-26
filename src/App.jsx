@@ -1,25 +1,44 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { AuthProvider } from './contexts/AuthContext'
+import { ProtectedRoute, PublicRoute } from './components/ProtectedRoute'
 import Home from './pages/Home'
 import About from './pages/About'
+import Login from './pages/Login'
+import Register from './pages/Register'
+import Onboarding from './pages/Onboarding'
 import Dashboard from './pages/Dashboard'
 import Mentorship from './pages/Mentorship'
 import MentorshipDetails from './pages/MentorshipDetails'
 import CreateMentorship from './pages/CreateMentorship'
 import FindMentors from './pages/FindMentors'
+import Settings from './pages/Settings'
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/mentorship" element={<Mentorship />} />
-        <Route path="/mentorship/:id" element={<MentorshipDetails />} />
-        <Route path="/create-mentorship" element={<CreateMentorship />} />
-        <Route path="/find-mentors" element={<FindMentors />} />
-        <Route path="/about" element={<About />} />
-      </Routes>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<Home />} />
+          <Route path="/about" element={<About />} />
+          
+          {/* Auth Routes - redirect to dashboard if already logged in */}
+          <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+          <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+          
+          {/* Onboarding - accessible only to authenticated users who haven't completed it */}
+          <Route path="/onboarding" element={<Onboarding />} />
+          
+          {/* Protected Routes - require authentication and completed onboarding */}
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/mentorship" element={<ProtectedRoute><Mentorship /></ProtectedRoute>} />
+          <Route path="/mentorship/:id" element={<ProtectedRoute><MentorshipDetails /></ProtectedRoute>} />
+          <Route path="/create-mentorship" element={<ProtectedRoute><CreateMentorship /></ProtectedRoute>} />
+          <Route path="/find-mentors" element={<ProtectedRoute><FindMentors /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+        </Routes>
+      </Router>
+    </AuthProvider>
   )
 }
 

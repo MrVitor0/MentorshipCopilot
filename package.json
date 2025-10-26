@@ -7,10 +7,16 @@
     "dev": "vite --host",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "emulators": "firebase emulators:start",
+    "emulators:export": "firebase emulators:export ./firebase-data",
+    "emulators:import": "firebase emulators:start --import=./firebase-data",
+    "dev:full": "concurrently \"npm run emulators\" \"npm run dev\"",
+    "firebase:deploy": "npm run build && firebase deploy"
   },
   "dependencies": {
     "@splinetool/react-spline": "^4.1.0",
+    "firebase": "^12.4.0",
     "lucide-react": "^0.546.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",

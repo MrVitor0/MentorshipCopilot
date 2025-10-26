@@ -6,10 +6,10 @@ const colorVariants = {
     border: 'border-blue-200/50',
   },
   purple: {
-    gradient: 'from-orange-300/20 via-orange-200/15 to-transparent',
-    text: 'text-baires-orange',
-    iconBg: 'bg-gradient-to-br from-baires-orange-light to-baires-orange',
-    border: 'border-orange-200/50',
+    gradient: 'from-purple-300/20 via-purple-200/15 to-transparent',
+    text: 'text-purple-600',
+    iconBg: 'bg-gradient-to-br from-purple-500 to-purple-600',
+    border: 'border-purple-200/50',
   },
   orange: {
     gradient: 'from-orange-300/20 via-orange-200/15 to-transparent',
@@ -23,11 +23,17 @@ const colorVariants = {
     iconBg: 'bg-gradient-to-br from-amber-400 to-amber-600',
     border: 'border-amber-200/50',
   },
+  green: {
+    gradient: 'from-green-300/20 via-green-200/15 to-transparent',
+    text: 'text-green-600',
+    iconBg: 'bg-gradient-to-br from-green-500 to-green-600',
+    border: 'border-green-200/50',
+  },
 }
 
 export default function StatCard({ value, label, trend, IconComponent, color = 'blue' }) {
   const isPositive = trend?.startsWith('↑') || trend?.startsWith('+')
-  const variant = colorVariants[color]
+  const variant = colorVariants[color] || colorVariants.blue // Fallback to blue if color doesn't exist
   
   return (
     <div className={`

@@ -1,5 +1,8 @@
-import { Link, useLocation } from 'react-router-dom'
-import { Lightbulb, Palette, Settings, BarChart3 } from 'lucide-react'
+import { useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useAuth } from '../hooks/useAuth'
+import Avatar from './Avatar'
+import { Lightbulb, Palette, Settings as SettingsIcon, BarChart3, LogOut, ChevronDown } from 'lucide-react'
 
 const menuItems = [
   { 
@@ -21,26 +24,30 @@ const menuItems = [
     )
   },
 
-  { 
-    name: 'Feedback', 
-    path: '/feedback', 
-    icon: (
-      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-        <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
-      </svg>
-    )
-  },
+ 
 ]
 
 const teamItems = [
   { name: 'Ideas', color: 'bg-yellow-400', IconComponent: Lightbulb },
   { name: 'Design', color: 'bg-baires-orange', IconComponent: Palette },
-  { name: 'Operations', color: 'bg-yellow-300', IconComponent: Settings },
+  { name: 'Operations', color: 'bg-yellow-300', IconComponent: SettingsIcon },
   { name: 'Management', color: 'bg-yellow-500', IconComponent: BarChart3 },
 ]
 
-export default function Sidebar({ user }) {
+export default function Sidebar() {
   const location = useLocation()
+  const navigate = useNavigate()
+  const { user, logout } = useAuth()
+  const [showProfileMenu, setShowProfileMenu] = useState(false)
+
+  const handleLogout = async () => {
+    try {
+      await logout()
+      navigate('/login')
+    } catch (error) {
+      console.error('Error logging out:', error)
+    }
+  }
 
   return (
     <aside className="w-64 bg-gradient-to-b from-white to-neutral-50 h-screen flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.08)] border-r border-neutral-100">
@@ -94,37 +101,52 @@ export default function Sidebar({ user }) {
       </nav>
 
       <div className="p-4 border-t border-neutral-100 space-y-3">
-        <div className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-orange-100 to-orange-200/70 rounded-[18px] shadow-sm border border-orange-200/50">
-          <div className="relative w-10 h-10 rounded-full overflow-hidden ring-2 ring-white">
-            <img 
-              src={user?.avatar || 'https://i.pravatar.cc/150?img=33'} 
-              alt={user?.name}
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-gradient-to-br from-green-400 to-green-600 rounded-full border-2 border-white"></div>
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-bold text-neutral-black text-sm truncate">{user?.name || 'Alex Smith'}</p>
-            <p className="text-xs text-neutral-gray-dark truncate">{user?.email || 'alexsmith@example.io'}</p>
-          </div>
+        {/* Profile Button with Dropdown */}
+        <div className="relative">
+          <button
+            onClick={() => setShowProfileMenu(!showProfileMenu)}
+            className="w-full flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-orange-100 to-orange-200/70 rounded-[18px] shadow-sm border border-orange-200/50 hover:shadow-md transition-all duration-300"
+          >
+            <div className="relative">
+              <Avatar 
+                src={user?.photoURL}
+                initials={user?.displayName?.substring(0, 2)?.toUpperCase() || 'U'}
+                size="lg"
+                ring
+              />
+              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-gradient-to-br from-green-400 to-green-600 rounded-full border-2 border-white"></div>
+            </div>
+            <div className="flex-1 min-w-0 text-left">
+              <p className="font-bold text-neutral-black text-sm truncate">{user?.displayName || 'User'}</p>
+              <p className="text-xs text-neutral-gray-dark truncate">{user?.email || ''}</p>
+            </div>
+            <ChevronDown className={`w-4 h-4 text-neutral-gray-dark transition-transform ${showProfileMenu ? 'rotate-180' : ''}`} />
+          </button>
+
+          {/* Dropdown Menu */}
+          {showProfileMenu && (
+            <div className="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-[16px] shadow-xl border border-neutral-200 overflow-hidden">
+              <Link
+                to="/settings"
+                onClick={() => setShowProfileMenu(false)}
+                className="flex items-center gap-3 px-4 py-3 text-neutral-gray-dark hover:text-neutral-black hover:bg-neutral-50 transition-all duration-300"
+              >
+                <SettingsIcon className="w-5 h-5" />
+                <span className="text-sm font-semibold">Settings</span>
+              </Link>
+              <button 
+                onClick={() => {
+                  setShowProfileMenu(false)
+                  handleLogout()
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3 text-neutral-gray-dark hover:text-red-600 hover:bg-red-50 transition-all duration-300"
+              >
+                <LogOut className="w-5 h-5" />
+                <span className="text-sm font-semibold">Log out</span>
+              </button>
+            </div>
+          )}
         </div>
-
-        <Link
-          to="/settings"
-          className="flex items-center gap-3 px-4 py-2 rounded-[14px] text-neutral-gray-dark hover:text-neutral-black hover:bg-neutral-100 transition-all duration-300"
-        >
-          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
-          </svg>
-          <span className="text-sm font-semibold">Settings</span>
-        </Link>
-
-        <button className="flex items-center gap-3 px-4 py-2 rounded-[14px] text-neutral-gray-dark hover:text-neutral-black hover:bg-neutral-100 transition-all duration-300 w-full">
-          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clipRule="evenodd" />
-          </svg>
-          <span className="text-sm font-semibold">Log out</span>
-        </button>
       </div>
     </aside>
   )

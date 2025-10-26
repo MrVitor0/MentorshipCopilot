@@ -5,7 +5,7 @@ import Card from '../components/Card'
 import Button from '../components/Button'
 import Avatar from '../components/Avatar'
 import Badge from '../components/Badge'
-import AIChatModal from '../components/AIChatModal'
+import PageHeader from '../components/PageHeader'
 import SEO from '../components/SEO'
 import { 
   Users, 
@@ -120,7 +120,6 @@ const statusConfig = {
 
 export default function Mentorship() {
   const navigate = useNavigate()
-  const [isChatOpen, setIsChatOpen] = useState(false)
   const [filter, setFilter] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -140,42 +139,15 @@ export default function Mentorship() {
         description="Manage and track all your mentorship journeys. View active sessions, upcoming meetings, and monitor progress with AI insights."
       />
       <div className="flex h-screen bg-gradient-to-br from-neutral-50 via-white to-orange-50/15">
-      <Sidebar user={{ name: 'Alex Smith', email: 'alexsmith@example.io' }} />
-      
-      {/* AI Chat Modal */}
-      <AIChatModal isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
-
-      {/* Floating AI Chat Button */}
-      <button
-        onClick={() => setIsChatOpen(true)}
-        className="fixed bottom-8 right-8 w-16 h-16 bg-gradient-to-br from-baires-orange via-orange-600 to-orange-700 text-white rounded-full shadow-[0_10px_40px_rgb(246,97,53,0.4)] hover:shadow-[0_15px_50px_rgb(246,97,53,0.5)] hover:scale-110 transition-all duration-300 flex items-center justify-center z-40 group"
-      >
-        <Bot className="w-7 h-7 group-hover:rotate-12 transition-transform duration-300" />
-        <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse"></div>
-      </button>
+      <Sidebar />
       
       <main className="flex-1 overflow-y-auto">
         <div className="p-6 md:p-8 max-w-[1600px] mx-auto">
-          {/* Header */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-neutral-black to-baires-orange bg-clip-text text-transparent mb-2">
-                  My Mentorships
-                </h1>
-                <p className="text-neutral-gray-dark flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-baires-orange" />
-                  Manage and track all your mentorship journeys
-                </p>
-              </div>
-              <Button 
-                variant="orange" 
-                icon={<Plus className="w-4 h-4" />}
-                onClick={() => navigate('/create-mentorship')}
-              >
-                New Mentorship
-              </Button>
-            </div>
+          {/* Page Header - Reusable component */}
+          <PageHeader 
+            title="My Mentorships"
+            description="Manage and track all your mentorship journeys"
+          />
 
             {/* Stats Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -374,7 +346,6 @@ export default function Mentorship() {
               </div>
             </Card>
           )}
-        </div>
       </main>
       </div>
     </>

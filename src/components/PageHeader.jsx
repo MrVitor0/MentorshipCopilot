@@ -1,0 +1,79 @@
+import { Sparkles } from 'lucide-react'
+import { useState } from 'react'
+import usePermissions from '../hooks/usePermissions'
+import Button from './Button'
+import AIChatModal from './AIChatModal'
+import { Search, Plus } from 'lucide-react'
+
+/**
+ * Reusable page header component with title, description and action buttons
+ * Used across all main pages (Dashboard, Mentorship, etc.)
+ */
+export default function PageHeader({ 
+  title, 
+  description = "AI-powered mentorship at your fingertips",
+  showActions = true 
+}) {
+  const [isChatOpen, setIsChatOpen] = useState(false)
+  const permissions = usePermissions()
+
+  return (
+    <>
+      {/* AI Chat Modal */}
+      <AIChatModal 
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+      />
+
+      {/* Header Section */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-neutral-black to-baires-orange bg-clip-text text-transparent mb-2">
+              {title}
+            </h1>
+            <p className="text-neutral-gray-dark flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-baires-orange" />
+              {description}
+            </p>
+          </div>
+          
+          {showActions && (
+            <div className="flex gap-3">
+              <button
+                onClick={() => setIsChatOpen(true)}
+                className="group inline-flex items-center gap-2 bg-gradient-to-r from-baires-orange to-orange-600 text-white px-5 py-2.5 rounded-[14px] font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
+              >
+                <Sparkles className="w-4 h-4 group-hover:rotate-12 transition-transform" />
+                <span>Ask AI CoPilot</span>
+              </button>
+              
+              {/* Only Product Managers can see these buttons */}
+              {permissions.isPM && (
+                <>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    icon={<Search className="w-4 h-4" />}
+                    onClick={() => window.location.href = '/find-mentors'}
+                  >
+                    Find Mentor
+                  </Button>
+                  <Button 
+                    variant="orange" 
+                    size="sm" 
+                    icon={<Plus className="w-4 h-4" />}
+                    onClick={() => window.location.href = '/create-mentorship'}
+                  >
+                    New Mentorship
+                  </Button>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  )
+}
+

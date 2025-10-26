@@ -1,7 +1,6 @@
 ---
 alwaysApply: true
 ---
-
 # General Rules
 
 - Always avoid unnecessary code and complexity.
