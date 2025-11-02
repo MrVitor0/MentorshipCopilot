@@ -4,6 +4,13 @@ import Badge from '../../components/Badge'
 import Avatar from '../../components/Avatar'
 import { ActionCTA, StatsCard, MaterialsList, SessionHistory } from '../../components/mentorship-details'
 
+const DEFAULT_GOALS = [
+  { id: 'sessions', name: 'Total Sessions', description: 'Number of sessions completed', current: 0, target: 10, variant: 'blue' },
+  { id: 'progress', name: 'Overall Progress', description: 'Overall completion percentage', current: 0, target: 100, variant: 'green', unit: '%' },
+  { id: 'duration', name: 'Duration', description: 'Weeks since mentorship started', current: 0, target: 12, variant: 'purple', unit: 'w' },
+  { id: 'rating', name: 'Avg Rating', description: 'Average session rating', current: 0, target: 5, variant: 'orange', unit: '/5' }
+]
+
 export default function MentorView({ 
   data, 
   statusInfo, 
@@ -12,8 +19,17 @@ export default function MentorView({
   weeksDuration,
   mockMaterials,
   setIsSessionWizardOpen,
-  setIsMaterialWizardOpen
+  setIsMaterialWizardOpen,
+  customGoals
 }) {
+  const displayGoals = customGoals || DEFAULT_GOALS.map(goal => {
+    // Update current values based on actual data
+    if (goal.id === 'sessions') return { ...goal, current: data?.sessionsCompleted || 0 }
+    if (goal.id === 'progress') return { ...goal, current: data?.progress || 0 }
+    if (goal.id === 'duration') return { ...goal, current: weeksDuration || 0 }
+    if (goal.id === 'rating') return { ...goal, current: parseFloat(averageProgress) || 0 }
+    return goal
+  })
   return (
     <>
       {/* Mentorship Overview */}
@@ -76,16 +92,33 @@ export default function MentorView({
                 <BarChart3 className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-neutral-black">Progress Overview</h2>
+                <h2 className="text-2xl font-bold text-neutral-black">Progress Goals</h2>
                 <p className="text-sm text-neutral-gray-dark">Track your mentee's growth</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-              <StatsCard icon={Calendar} label="Sessions" value={data?.sessionsCompleted || 0} variant="blue" />
-              <StatsCard icon={Target} label="Progress" value={`${data?.progress || 0}%`} variant="green" />
-              <StatsCard icon={Clock} label="Duration" value={`${weeksDuration || 0}w`} variant="purple" />
-              <StatsCard icon={TrendingUp} label="Rating" value={`${averageProgress}/5`} variant="orange" />
+            <div className={`grid grid-cols-2 ${displayGoals.length > 4 ? 'md:grid-cols-4 lg:grid-cols-5' : 'md:grid-cols-4'} gap-4 mb-6`}>
+              {displayGoals.map((goal) => {
+                const variants = {
+                  blue: { icon: BarChart3, color: 'blue' },
+                  green: { icon: Target, color: 'green' },
+                  purple: { icon: Clock, color: 'purple' },
+                  orange: { icon: TrendingUp, color: 'orange' },
+                  pink: { icon: Sparkles, color: 'pink' },
+                  yellow: { icon: Calendar, color: 'yellow' }
+                }
+                const variantConfig = variants[goal.variant] || variants.blue
+                
+                return (
+                  <Card key={goal.id} padding="md" className={`bg-gradient-to-br from-${variantConfig.color}-50 to-${variantConfig.color}-100/50 border-2 border-${variantConfig.color}-200`}>
+                    <variantConfig.icon className={`w-8 h-8 text-${variantConfig.color}-600 mb-2`} />
+                    <div className="text-xs font-bold uppercase text-neutral-gray-dark mb-1">{goal.name}</div>
+                    <div className="text-xl font-bold text-neutral-black">
+                      {goal.current}{goal.unit} / {goal.target}{goal.unit}
+                    </div>
+                  </Card>
+                )
+              })}
             </div>
           </Card>
 
@@ -132,23 +165,7 @@ export default function MentorView({
 
         {/* Sidebar */}
         <div className="space-y-6 md:space-y-8">
-          <Card padding="lg">
-            <h3 className="text-lg font-bold text-neutral-black mb-4">Quick Stats</h3>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-[12px]">
-                <span className="text-sm font-semibold text-neutral-gray-dark">Sessions Logged</span>
-                <span className="text-lg font-bold text-neutral-black">{data?.sessionsCompleted || 0}</span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-gradient-to-br from-green-50 to-green-100/50 rounded-[12px]">
-                <span className="text-sm font-semibold text-neutral-gray-dark">Progress</span>
-                <span className="text-lg font-bold text-green-600">{data?.progress || 0}%</span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-[12px]">
-                <span className="text-sm font-semibold text-neutral-gray-dark">Avg Rating</span>
-                <span className="text-lg font-bold text-neutral-black">{averageProgress}/5</span>
-              </div>
-            </div>
-          </Card>
+      
 
           <Card padding="lg" className="bg-gradient-to-br from-orange-50 via-white to-blue-50 border-2 border-orange-200/50">
             <div className="flex items-center gap-3 mb-4">

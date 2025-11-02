@@ -11,6 +11,7 @@ import Sidebar from '../components/Sidebar'
 import SEO from '../components/SEO'
 import SessionLogWizard from '../components/SessionLogWizard'
 import MaterialWizard from '../components/MaterialWizard'
+import GoalWizard from '../components/GoalWizard'
 import AIChatModal from '../components/AIChatModal'
 import { 
   MaterialsList, 
@@ -52,7 +53,9 @@ export default function MentorshipDetails() {
   const [isChatOpen, setIsChatOpen] = useState(false)
   const [isSessionWizardOpen, setIsSessionWizardOpen] = useState(false)
   const [isMaterialWizardOpen, setIsMaterialWizardOpen] = useState(false)
+  const [isGoalWizardOpen, setIsGoalWizardOpen] = useState(false)
   const [processingRequest, setProcessingRequest] = useState(null)
+  const [customGoals, setCustomGoals] = useState(null)
   
   // Custom hooks
   const {
@@ -89,6 +92,12 @@ export default function MentorshipDetails() {
     alert('Material added successfully! (Note: Backend integration pending)')
   }
 
+  const handleGoalSubmit = async (goalsData) => {
+    console.log('Goals submitted:', goalsData)
+    setCustomGoals(goalsData)
+    alert('Goals saved successfully! (Note: Backend integration pending)')
+  }
+
   const viewProps = {
     data,
     statusInfo,
@@ -102,6 +111,8 @@ export default function MentorshipDetails() {
     handleJoinRequestResponse,
     setIsSessionWizardOpen,
     setIsMaterialWizardOpen,
+    setIsGoalWizardOpen,
+    customGoals,
     navigate,
     id
   }
@@ -163,6 +174,13 @@ export default function MentorshipDetails() {
           isOpen={isMaterialWizardOpen}
           onClose={() => setIsMaterialWizardOpen(false)}
           onSubmit={handleMaterialSubmit}
+        />
+
+        <GoalWizard
+          isOpen={isGoalWizardOpen}
+          onClose={() => setIsGoalWizardOpen(false)}
+          onSubmit={handleGoalSubmit}
+          initialGoals={customGoals}
         />
       </div>
     </>

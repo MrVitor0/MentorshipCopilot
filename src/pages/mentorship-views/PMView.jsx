@@ -3,7 +3,7 @@ import Card from '../../components/Card'
 import Badge from '../../components/Badge'
 import Button from '../../components/Button'
 import Avatar from '../../components/Avatar'
-import { MentorshipOverview, StatsCard, SessionHistory, ProgressChart, MaterialsList } from '../../components/mentorship-details'
+import { StatsCard, SessionHistory, ProgressChart, MaterialsList } from '../../components/mentorship-details'
 
 export default function PMView({ 
   data, 
@@ -16,6 +16,8 @@ export default function PMView({
   invitationsWithProfiles,
   processingRequest,
   handleJoinRequestResponse,
+  setIsGoalWizardOpen,
+  customGoals,
   navigate,
   id
 }) {
@@ -60,13 +62,98 @@ export default function PMView({
         </Card>
       )}
 
-      {/* Mentorship Overview */}
-      <MentorshipOverview 
-        data={data} 
-        statusInfo={statusInfo} 
-        formatStatus={formatStatus}
-        invitationsWithProfiles={invitationsWithProfiles}
-      />
+      {/* Mentorship Overview - Simplified for PM */}
+      <Card padding="lg" className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-baires-blue to-blue-600 rounded-[14px] flex items-center justify-center shadow-lg">
+              <Users className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-neutral-black">Mentorship Overview</h2>
+              <p className="text-xs text-neutral-gray-dark">Quick mentorship summary</p>
+            </div>
+          </div>
+          <Badge variant={statusInfo.color.includes('green') ? 'success' : statusInfo.color.includes('amber') ? 'warning' : 'blue'}>
+            {formatStatus(data?.status)}
+          </Badge>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-4">
+          {/* Mentee */}
+          <div className="flex items-center gap-3 p-3 bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-[12px] border border-blue-200">
+            <Avatar 
+              src={data.menteeAvatar || data.mentee?.avatar} 
+              initials={(data.menteeName || data.mentee?.name)?.substring(0, 2)?.toUpperCase()}
+              size="md" 
+            />
+            <div className="flex-1 min-w-0">
+              <div className="text-xs text-neutral-gray-dark font-semibold">MENTEE</div>
+              <div className="font-bold text-neutral-black text-sm truncate">{data.menteeName || data.mentee?.name}</div>
+            </div>
+          </div>
+
+          {/* Mentor */}
+          <div className="flex items-center gap-3 p-3 bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-[12px] border border-orange-200">
+            {data.mentorId || data.mentor ? (
+              <>
+                <Avatar 
+                  src={data.mentorAvatar || data.mentor?.avatar} 
+                  initials={(data.mentorName || data.mentor?.name)?.substring(0, 2)?.toUpperCase()}
+                  size="md" 
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs text-neutral-gray-dark font-semibold">MENTOR</div>
+                  <div className="font-bold text-neutral-black text-sm truncate">{data.mentorName || data.mentor?.name}</div>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
+                  <AlertCircle className="w-5 h-5 text-amber-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs text-neutral-gray-dark font-semibold">MENTOR</div>
+                  <div className="font-bold text-amber-700 text-sm">Awaiting...</div>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Duration */}
+          <div className="flex items-center gap-3 p-3 bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-[12px] border border-purple-200">
+            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center">
+              <Clock className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <div className="text-xs text-neutral-gray-dark font-semibold">DURATION</div>
+              <div className="font-bold text-neutral-black text-sm">{weeksDuration || 0} weeks</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Technologies */}
+        {data.technologies && data.technologies.length > 0 && (
+          <div className="mt-4 p-3 bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-[12px] border border-blue-200">
+            <div className="flex items-center gap-2 mb-2">
+              <Target className="w-4 h-4 text-baires-blue" />
+              <span className="text-xs font-bold text-neutral-black">Technologies</span>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {data.technologies.slice(0, 6).map((tech, idx) => (
+                <span key={idx} className="text-xs bg-white border border-blue-300 text-blue-700 px-2 py-1 rounded-full font-medium">
+                  {typeof tech === 'string' ? tech : tech.name || tech}
+                </span>
+              ))}
+              {data.technologies.length > 6 && (
+                <span className="text-xs text-blue-600 px-2 py-1 font-semibold">
+                  +{data.technologies.length - 6} more
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+      </Card>
 
       {/* Invited Mentors */}
       {!data?.mentorId && invitationsWithProfiles.length > 0 && (
@@ -257,40 +344,65 @@ export default function PMView({
               </Card>
             )}
 
-            {/* Progress Analytics */}
+
+            {/* Progress Goals - Customizable by PM */}
             <Card padding="lg">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-gradient-to-br from-baires-orange to-orange-600 rounded-[14px] flex items-center justify-center shadow-lg">
-                  <BarChart3 className="w-5 h-5 text-white" />
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-baires-blue to-blue-600 rounded-[14px] flex items-center justify-center shadow-lg">
+                    <Target className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-neutral-black">Mentorship Goals</h2>
+                    <p className="text-sm text-neutral-gray-dark">Define and track custom progress metrics</p>
+                  </div>
                 </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-neutral-black">Progress Analytics</h2>
-                  <p className="text-sm text-neutral-gray-dark flex items-center gap-1">
-                    <Sparkles className="w-3 h-3 text-baires-orange" />
-                    Data-driven insights
+                <button
+                  onClick={() => setIsGoalWizardOpen(true)}
+                  className="px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-[12px] font-semibold hover:shadow-md transition-all flex items-center gap-2"
+                >
+                  <AlertCircle className="w-4 h-4" />
+                  Manage Goals
+                </button>
+              </div>
+
+              <div className={`grid grid-cols-2 ${(customGoals?.length || 4) > 4 ? 'md:grid-cols-4 lg:grid-cols-5' : 'md:grid-cols-4'} gap-4`}>
+                {(customGoals || [
+                  { id: 'sessions', name: 'Total Sessions', current: data?.sessionsCompleted || 0, target: 10, variant: 'blue' },
+                  { id: 'progress', name: 'Overall Progress', current: data?.progress || 0, target: 100, variant: 'green', unit: '%' },
+                  { id: 'duration', name: 'Duration', current: weeksDuration || 0, target: 12, variant: 'purple', unit: 'w' },
+                  { id: 'rating', name: 'Avg Rating', current: parseFloat(averageProgress) || 0, target: 5, variant: 'orange', unit: '/5' }
+                ]).map((goal) => {
+                  const variants = {
+                    blue: { icon: BarChart3, color: 'blue' },
+                    green: { icon: Target, color: 'green' },
+                    purple: { icon: Clock, color: 'purple' },
+                    orange: { icon: TrendingUp, color: 'orange' },
+                    pink: { icon: Sparkles, color: 'pink' },
+                    yellow: { icon: Calendar, color: 'yellow' }
+                  }
+                  const variantConfig = variants[goal.variant] || variants.blue
+                  
+                  return (
+                    <Card key={goal.id} padding="md" className={`bg-gradient-to-br from-${variantConfig.color}-50 to-${variantConfig.color}-100/50 border-2 border-${variantConfig.color}-200`}>
+                      <variantConfig.icon className={`w-8 h-8 text-${variantConfig.color}-600 mb-2`} />
+                      <div className="text-xs font-bold uppercase text-neutral-gray-dark mb-1">{goal.name}</div>
+                      <div className="text-xl font-bold text-neutral-black">
+                        {goal.current}{goal.unit} / {goal.target}{goal.unit}
+                      </div>
+                    </Card>
+                  )
+                })}
+              </div>
+
+              {!customGoals && (
+                <div className="mt-4 p-3 bg-blue-50 rounded-[12px] border border-blue-200">
+                  <p className="text-xs text-blue-800 flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4" />
+                    <span>Click <strong>"Manage Goals"</strong> to customize these metrics for your mentorship</span>
                   </p>
                 </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-                <Card padding="md" className={`${statusInfo.color} border-2`}>
-                  <statusInfo.icon className={`w-8 h-8 ${statusInfo.iconColor} mb-2`} />
-                  <div className="text-xs font-bold uppercase mb-1">Current Status</div>
-                  <div className="text-xl font-bold">{statusInfo.label}</div>
-                </Card>
-
-                <StatsCard 
-                  icon={Calendar} 
-                  label="Sessions" 
-                  value={`${data?.completedSessions || data?.sessionsCompleted || 0}/${data?.totalSessions || 0}`} 
-                  variant="blue" 
-                />
-                
-                <StatsCard icon={Clock} label="Duration" value={`${weeksDuration || 0} weeks`} variant="purple" />
-                <StatsCard icon={TrendingUp} label="Avg Rating" value={`${averageProgress}/5.0`} variant="orange" />
-              </div>
-
-              <ProgressChart sessions={data?.sessions} />
+              )}
             </Card>
 
             <SessionHistory sessions={data?.sessions} />
@@ -301,25 +413,9 @@ export default function PMView({
 
           {/* Sidebar */}
           <div className="space-y-6 md:space-y-8">
-            <Card padding="lg">
-              <h3 className="text-lg font-bold text-neutral-black mb-4">Quick Overview</h3>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-3 bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-[12px]">
-                  <span className="text-sm font-semibold text-neutral-gray-dark">Sessions</span>
-                  <span className="text-lg font-bold text-neutral-black">{data?.completedSessions || data?.sessionsCompleted || 0}/{data?.totalSessions || 0}</span>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-gradient-to-br from-green-50 to-green-100/50 rounded-[12px]">
-                  <span className="text-sm font-semibold text-neutral-gray-dark">Progress</span>
-                  <span className="text-lg font-bold text-neutral-black">{data?.overallProgress || data?.progress || 0}%</span>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-[12px]">
-                  <span className="text-sm font-semibold text-neutral-gray-dark">Avg Rating</span>
-                  <span className="text-lg font-bold text-neutral-black">{averageProgress}/5</span>
-                </div>
-              </div>
-            </Card>
+        
 
-            <Card padding="lg" className="bg-gradient-to-br from-baires-orange via-orange-600 to-orange-700 text-white border-none shadow-[0_20px_50px_rgb(246,97,53,0.3)]">
+            <Card padding="lg" className="bg-gradient-to-br from-baires-orange  to-orange-600 text-white border-none shadow-[0_20px_50px_rgb(246,97,53,0.3)]">
               <div className="relative">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
                 <div className="relative">
@@ -329,7 +425,7 @@ export default function PMView({
                   <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
                     AI Summary
                   </h3>
-                  <p className="text-sm mb-4 opacity-90 leading-relaxed">
+                  <p className="text-sm  font-bold mb-4 opacity-90 leading-relaxed">
                     &quot;Sarah has shown exceptional growth, progressing from basic React concepts to building production-ready features. Her proactive learning approach and consistent practice have accelerated her development significantly.&quot;
                   </p>
                   <div className="flex items-center gap-2 text-xs opacity-90">
