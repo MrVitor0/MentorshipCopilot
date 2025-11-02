@@ -154,14 +154,6 @@ export default function Mentorship() {
 
   const getStatusColor = (status) => statusConfig[status]
   
-  // Helper to format status
-  const formatStatus = (status) => {
-    if (!status) return 'Unknown'
-    return status
-      .split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(' ')
-  }
 
   return (
     <>
@@ -180,19 +172,6 @@ export default function Mentorship() {
             description="Manage and track all your mentorship journeys"
           />
 
-          {/* Additional PM Actions */}
-          {permissions.canCreateMentorship && (
-            <div className="mb-6 -mt-4">
-              <Button 
-                variant="orange" 
-                icon={<Plus className="w-5 h-5" />}
-                onClick={() => navigate('/create-mentorship')}
-                className="shadow-lg hover:shadow-xl"
-              >
-                Start New Mentorship
-              </Button>
-            </div>
-          )}
 
             {/* Loading State */}
             {loading ? (
@@ -271,11 +250,17 @@ export default function Mentorship() {
                 </Card>
 
           {/* Mentorships Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
             {filteredMentorships.map((mentorship) => {
               const statusInfo = getStatusColor(mentorship.status) || statusConfig.active
               return (
-                <Card key={mentorship.id} hover padding="none" className="overflow-hidden group">
+                <Card 
+                  key={mentorship.id} 
+                  hover 
+                  padding="md" 
+                  className="overflow-hidden group cursor-pointer"
+                  onClick={() => navigate(`/mentorship/${mentorship.id}`)}
+                >
                   <div className="relative">
                     {/* Status Badge */}
                     <div className="absolute top-4 right-4 z-10">
@@ -374,14 +359,10 @@ export default function Mentorship() {
                       {/* Actions */}
                       <div className="flex gap-2">
                         <button 
-                          onClick={() => navigate(`/mentorship/${mentorship.id}`)}
                           className="flex-1 bg-gradient-to-r from-baires-orange to-orange-600 text-white px-4 py-3 rounded-[14px] font-semibold hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2"
                         >
                           <span>View Details</span>
                           <ArrowRight className="w-4 h-4" />
-                        </button>
-                        <button className="px-4 py-3 bg-gradient-to-br from-blue-50 to-blue-100 text-baires-blue rounded-[14px] font-semibold hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
-                          <MessageSquare className="w-5 h-5" />
                         </button>
                       </div>
                     </div>

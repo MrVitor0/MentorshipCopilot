@@ -161,7 +161,7 @@ export default function MentorSelectionStep({
                 <div
                   key={mentor.uid || mentor.id}
                   onClick={() => onMentorSelect(mentor)}
-                  className={`relative group cursor-pointer transition-all duration-500 rounded-[24px] overflow-hidden ${
+                  className={`relative group cursor-pointer transition-all duration-500 rounded-[24px] ${
                     isSelected 
                       ? 'ring-4 ring-baires-orange ring-offset-4 shadow-2xl scale-105' 
                       : 'hover:shadow-2xl hover:scale-105'
@@ -169,10 +169,10 @@ export default function MentorSelectionStep({
                 >
                   <Card
                     padding="none"
-                    className="overflow-hidden bg-white"
+                    className="bg-white overflow-hidden rounded-[24px] h-full flex flex-col"
                   >
                     {/* Banner Background - Blurred Photo or Gradient */}
-                    <div className="relative h-32 overflow-hidden">
+                    <div className="relative h-32 overflow-hidden rounded-t-[24px]">
                       {mentor.photoURL ? (
                         <>
                           <img 
@@ -199,14 +199,19 @@ export default function MentorSelectionStep({
                     </div>
 
                     {/* Profile Photo - Overlapping Banner */}
-                    <div className="relative -mt-16 mb-4 flex justify-center">
-                      <div className="relative">
-                        <Avatar 
-                          src={mentor.photoURL} 
-                          initials={mentor.displayName?.substring(0, 2)?.toUpperCase()}
-                          size="3xl" 
-                          className="shadow-2xl"
-                        />
+                    <div className="flex justify-center -mt-16 mb-4">
+                      <div className="relative inline-block">
+                        {mentor.photoURL ? (
+                          <img
+                            src={mentor.photoURL}
+                            alt={mentor.displayName}
+                            className="w-40 h-40 rounded-full object-cover shadow-2xl"
+                          />
+                        ) : (
+                          <div className="w-40 h-40 rounded-full bg-gradient-to-br from-baires-orange to-baires-blue flex items-center justify-center font-bold text-neutral-white text-6xl shadow-2xl">
+                            {mentor.displayName?.substring(0, 2)?.toUpperCase()}
+                          </div>
+                        )}
                         {/* Selected Check - Floating */}
                         {isSelected && (
                           <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-gradient-to-br from-baires-orange to-orange-600 rounded-full flex items-center justify-center shadow-xl animate-scaleIn border-4 border-white z-10">
@@ -217,7 +222,7 @@ export default function MentorSelectionStep({
                     </div>
 
                     {/* Content */}
-                    <div className="px-6 pb-6">
+                    <div className="px-6 pb-6 flex-1 flex flex-col">
                       {/* Name and Role */}
                       <div className="text-center mb-4">
                         <h4 className={`font-bold text-xl mb-1 transition-colors ${isSelected ? 'text-baires-orange' : 'text-neutral-black'}`}>
@@ -225,33 +230,31 @@ export default function MentorSelectionStep({
                         </h4>
                         <p className="text-sm text-neutral-gray-dark font-medium mb-2">{mentor.role || 'Senior Engineer'}</p>
                         
-                        {/* Technologies Pills */}
-                        <div className="flex flex-wrap gap-1.5 justify-center mb-4">
+                        {/* Technologies Pills - Fixed Height */}
+                        <div className="flex flex-wrap gap-1.5 justify-center mb-4 min-h-[32px] max-h-[64px] overflow-hidden">
                           {(mentor.technologies || []).slice(0, 4).map((tech, idx) => (
-                            <span key={idx} className="text-xs bg-gradient-to-r from-orange-100 to-orange-200 text-baires-orange px-3 py-1 rounded-full font-semibold border border-orange-300">
+                            <span key={idx} className="text-xs bg-gradient-to-r from-orange-100 to-orange-200 text-baires-orange px-3 py-1 rounded-full font-semibold border border-orange-300 whitespace-nowrap">
                               {typeof tech === 'string' ? tech : tech.name}
                             </span>
                           ))}
                         </div>
                       </div>
 
-                      {/* AI Magic Description */}
-                      {mentor.aiMagicReason && (
-                        <div className="mb-4 p-4 bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 rounded-[16px] border-2 border-purple-200 relative overflow-hidden">
+                      {/* AI Magic Description - Fixed Height */}
+                        <div className="mb-4 p-4 bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 rounded-[16px] border-2 border-purple-200 relative overflow-hidden h-[120px] flex flex-col">
                           <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-2xl"></div>
-                          <div className="relative">
+                          <div className="relative flex-1 flex flex-col">
                             <div className="flex items-center gap-2 mb-2">
                               <div className="w-6 h-6 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
                                 <Sparkles className="w-4 h-4 text-white" />
                               </div>
                               <span className="text-xs font-bold text-purple-900 uppercase tracking-wide">AI Insight</span>
                             </div>
-                            <p className="text-sm text-neutral-black leading-relaxed font-medium">
+                            <p className="text-sm text-neutral-black leading-relaxed font-medium line-clamp-3">
                               {mentor.aiMagicReason}
                             </p>
                           </div>
                         </div>
-                      )}
 
                       {/* Stats Grid - Compact */}
                       <div className="grid grid-cols-3 gap-2 mb-4">
@@ -272,38 +275,42 @@ export default function MentorSelectionStep({
                         </div>
                       </div>
 
-                      {/* Key Reasons - List */}
-                      {mentor.aiReasons && mentor.aiReasons.length > 0 && (
-                        <div className="space-y-2 mb-4">
-                          {mentor.aiReasons.slice(0, 3).map((reason, idx) => (
-                            <div key={idx} className="flex items-start gap-2 p-2 bg-orange-50 rounded-lg border border-orange-200">
-                              <CheckCircle className="w-4 h-4 text-baires-orange mt-0.5 flex-shrink-0" />
-                              <span className="text-xs text-neutral-black font-medium leading-relaxed">{reason}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Invite Button */}
-                      <button
-                        className={`w-full py-3 rounded-[14px] font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2 ${
-                          isSelected
-                            ? 'bg-gradient-to-r from-baires-orange to-orange-600 text-white shadow-lg ring-2 ring-baires-orange ring-offset-2'
-                            : 'bg-gradient-to-r from-baires-orange to-orange-600 text-white shadow-lg hover:shadow-xl hover:scale-105'
-                        }`}
-                      >
-                        {isSelected ? (
-                          <>
-                            <CheckCircle className="w-5 h-5" />
-                            <span>Invited</span>
-                          </>
-                        ) : (
-                          <>
-                            <Send className="w-5 h-5" />
-                            <span>Invite</span>
-                          </>
+                      {/* Key Reasons - List - Fixed Height */}
+                      <div className="mb-4 flex-1">
+                        {mentor.aiReasons && mentor.aiReasons.length > 0 && (
+                          <div className="space-y-2 h-full max-h-[180px] overflow-hidden">
+                            {mentor.aiReasons.slice(0, 3).map((reason, idx) => (
+                              <div key={idx} className="flex items-start gap-2 p-2 bg-orange-50 rounded-lg border border-orange-200">
+                                <CheckCircle className="w-4 h-4 text-baires-orange mt-0.5 flex-shrink-0" />
+                                <span className="text-xs text-neutral-black font-medium leading-relaxed line-clamp-2">{reason}</span>
+                              </div>
+                            ))}
+                          </div>
                         )}
-                      </button>
+                      </div>
+
+                      {/* Invite Button - Always at bottom */}
+                      <div className="mt-auto">
+                        <button
+                          className={`w-full py-3 rounded-[14px] font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2 ${
+                            isSelected
+                              ? 'bg-gradient-to-r from-baires-orange to-orange-600 text-white shadow-lg ring-2 ring-baires-orange ring-offset-2'
+                              : 'bg-gradient-to-r from-baires-orange to-orange-600 text-white shadow-lg hover:shadow-xl hover:scale-105'
+                          }`}
+                        >
+                          {isSelected ? (
+                            <>
+                              <CheckCircle className="w-5 h-5" />
+                              <span>Invited</span>
+                            </>
+                          ) : (
+                            <>
+                              <Send className="w-5 h-5" />
+                              <span>Invite</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
                     </div>
                   </Card>
                 </div>

@@ -12,6 +12,7 @@ import Mentorship from './pages/Mentorship'
 import MentorshipDetails from './pages/MentorshipDetails'
 import CreateMentorship from './pages/CreateMentorship'
 import FindMentors from './pages/FindMentors'
+import FindMentorsForMentorship from './pages/FindMentorsForMentorship'
 import Settings from './pages/Settings'
 
 function App() {
@@ -50,6 +51,16 @@ function App() {
               <ProtectedRoute>
                 <PermissionRoute permission="canManageMentorships">
                   <MentorshipDetails />
+                </PermissionRoute>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/mentorship/:id/find-mentors" 
+            element={
+              <ProtectedRoute>
+                <PermissionRoute permission="canCreateMentorship">
+                  <FindMentorsForMentorship />
                 </PermissionRoute>
               </ProtectedRoute>
             } 

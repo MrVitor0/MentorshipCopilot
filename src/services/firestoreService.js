@@ -809,5 +809,88 @@ export const updateJoinRequestStatus = async (requestId, status) => {
   }
 }
 
+/**
+ * Get all available mentors
+ * Returns all users with userType 'mentor'
+ * Uses memory filtering to avoid index requirements
+ */
+export const getAllMentors = async () => {
+  try {
+    // Get all users and filter in memory (same pattern as getMentors)
+    const users = await safeGetCollection(COLLECTIONS.USERS)
+    
+    // Filter for mentors only
+    const mentors = users.filter(user => user.userType === 'mentor')
+    
+    // Map id to uid for consistency
+    return mentors.map(({ id, ...rest }) => ({ uid: id, ...rest }))
+  } catch (error) {
+    console.error('Error getting all mentors:', error)
+    return []
+  }
+}
+
+/**
+ * Invite a mentor to a mentorship
+ * Creates an invitation document that the mentor can accept/decline
+ */
+export const inviteMentorToMentorship = async (mentorshipId, mentorId, message = '') => {
+  try {
+    // Get mentorship data
+    const mentorshipRef = doc(db, COLLECTIONS.MENTORSHIPS, mentorshipId)
+    const mentorshipSnap = await getDoc(mentorshipRef)
+    
+    if (!mentorshipSnap.exists()) {
+      throw new Error('Mentorship not found')
+    }
+    
+    const mentorship = mentorshipSnap.data()
+    
+    // Check if already has a mentor
+    if (mentorship.mentorId) {
+      throw new Error('Mentorship already has a mentor assigned')
+    }
+    
+    // Check if already invited
+    const invitationsRef = collection(db, 'mentorship_invitations')
+    const existingQuery = query(
+      invitationsRef,
+      where('mentorshipId', '==', mentorshipId),
+      where('mentorId', '==', mentorId)
+    )
+    const existingSnap = await getDocs(existingQuery)
+    
+    if (!existingSnap.empty) {
+      // Check if there's a pending invitation
+      const pending = existingSnap.docs.find(doc => doc.data().status === 'pending')
+      if (pending) {
+        throw new Error('Mentor already has a pending invitation for this mentorship')
+      }
+    }
+    
+    // Create invitation
+    const invitationData = {
+      mentorshipId,
+      mentorId,
+      menteeId: mentorship.menteeId,
+      projectManagerId: mentorship.projectManagerId,
+      message,
+      status: 'pending',
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now()
+    }
+    
+    const invitationRef = await addDoc(invitationsRef, invitationData)
+    
+    return {
+      id: invitationRef.id,
+      ...invitationData
+    }
+  } catch (error) {
+    console.error('Error inviting mentor to mentorship:', error)
+    throw error
+  }
+}
+
 export { COLLECTIONS }
 
