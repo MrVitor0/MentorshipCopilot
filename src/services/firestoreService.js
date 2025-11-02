@@ -28,7 +28,8 @@ const COLLECTIONS = {
   USERS: 'users',
   MENTORSHIPS: 'mentorships',
   SESSIONS: 'sessions',
-  ACTIVITIES: 'activities'
+  ACTIVITIES: 'activities',
+  GOALS: 'goals'
 }
 
 /**
@@ -889,6 +890,96 @@ export const inviteMentorToMentorship = async (mentorshipId, mentorId, message =
   } catch (error) {
     console.error('Error inviting mentor to mentorship:', error)
     throw error
+  }
+}
+
+/**
+ * GOALS OPERATIONS
+ */
+
+/**
+ * Create a new goal for a mentorship
+ * @param {Object} goalData - Goal data (name, description, current, target, variant, unit, mentorshipId)
+ * @returns {Promise<Object>} Created goal with ID
+ */
+export const createGoal = async (goalData) => {
+  try {
+    const data = {
+      ...goalData,
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now()
+    }
+    
+    const docRef = await addDoc(collection(db, COLLECTIONS.GOALS), data)
+    return { id: docRef.id, ...data }
+  } catch (error) {
+    console.error('Error creating goal:', error)
+    throw new Error('Error creating goal')
+  }
+}
+
+/**
+ * Get all goals for a specific mentorship
+ * @param {string} mentorshipId - The mentorship ID
+ * @returns {Promise<Array>} Array of goals
+ */
+export const getGoalsByMentorship = async (mentorshipId) => {
+  try {
+    const goalsQuery = query(
+      collection(db, COLLECTIONS.GOALS),
+      where('mentorshipId', '==', mentorshipId)
+    )
+    const snapshot = await getDocs(goalsQuery)
+    
+    const goals = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }))
+    
+    return sortByTimestamp(goals, 'createdAt', false)
+  } catch (error) {
+    console.error('Error getting goals:', error)
+    return []
+  }
+}
+
+/**
+ * Update a goal
+ * @param {string} goalId - The goal ID
+ * @param {Object} updates - Fields to update
+ * @returns {Promise<Object>} Updated data
+ */
+export const updateGoal = async (goalId, updates) => {
+  try {
+    const goalRef = doc(db, COLLECTIONS.GOALS, goalId)
+    const data = {
+      ...updates,
+      updatedAt: Timestamp.now()
+    }
+    
+    await updateDoc(goalRef, data)
+    return data
+  } catch (error) {
+    console.error('Error updating goal:', error)
+    throw new Error('Error updating goal')
+  }
+}
+
+/**
+ * Delete a goal
+ * @param {string} goalId - The goal ID
+ * @returns {Promise<void>}
+ */
+export const deleteGoal = async (goalId) => {
+  try {
+    const goalRef = doc(db, COLLECTIONS.GOALS, goalId)
+    await updateDoc(goalRef, {
+      deleted: true,
+      deletedAt: Timestamp.now()
+    })
+  } catch (error) {
+    console.error('Error deleting goal:', error)
+    throw new Error('Error deleting goal')
   }
 }
 

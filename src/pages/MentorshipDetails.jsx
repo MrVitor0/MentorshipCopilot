@@ -1,10 +1,16 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import usePermissions from '../hooks/usePermissions'
 import useMentorshipData from '../hooks/useMentorshipData'
 import useMentorshipHelpers from '../hooks/useMentorshipHelpers'
-import { updateJoinRequestStatus } from '../services/firestoreService'
+import { 
+  updateJoinRequestStatus,
+  getGoalsByMentorship,
+  createGoal,
+  updateGoal,
+  deleteGoal
+} from '../services/firestoreService'
 
 // Components
 import Sidebar from '../components/Sidebar'
@@ -56,6 +62,7 @@ export default function MentorshipDetails() {
   const [isGoalWizardOpen, setIsGoalWizardOpen] = useState(false)
   const [processingRequest, setProcessingRequest] = useState(null)
   const [customGoals, setCustomGoals] = useState(null)
+  const [loadingGoals, setLoadingGoals] = useState(true)
   
   // Custom hooks
   const {
@@ -67,6 +74,27 @@ export default function MentorshipDetails() {
   
   const data = mentorship || mockMentorshipData
   const { formatStatus, statusInfo, averageProgress, weeksDuration } = useMentorshipHelpers(data)
+
+  // Fetch goals from Firestore
+  useEffect(() => {
+    const fetchGoals = async () => {
+      if (!id) return
+      
+      setLoadingGoals(true)
+      try {
+        const goals = await getGoalsByMentorship(id)
+        // Filter out deleted goals
+        const activeGoals = goals.filter(g => !g.deleted)
+        setCustomGoals(activeGoals.length > 0 ? activeGoals : null)
+      } catch (error) {
+        console.error('Error fetching goals:', error)
+      } finally {
+        setLoadingGoals(false)
+      }
+    }
+
+    fetchGoals()
+  }, [id])
 
   // Handlers
   const handleJoinRequestResponse = async (requestId, action) => {
@@ -93,9 +121,49 @@ export default function MentorshipDetails() {
   }
 
   const handleGoalSubmit = async (goalsData) => {
-    console.log('Goals submitted:', goalsData)
-    setCustomGoals(goalsData)
-    alert('Goals saved successfully! (Note: Backend integration pending)')
+    try {
+      // Get existing goals from Firestore
+      const existingGoals = await getGoalsByMentorship(id)
+      const existingGoalIds = existingGoals.filter(g => !g.deleted).map(g => g.id)
+      
+      // Separate new goals from existing ones
+      const goalsToProcess = goalsData || []
+      
+      for (const goal of goalsToProcess) {
+        // Check if goal has a Firestore ID (starts with goal_ means it's new from wizard)
+        const isNewGoal = goal.id.startsWith('goal_') || !existingGoalIds.includes(goal.id)
+        
+        if (isNewGoal) {
+          // Create new goal in Firestore
+          const { id: tempId, ...goalDataWithoutId } = goal
+          await createGoal({
+            ...goalDataWithoutId,
+            mentorshipId: id
+          })
+        } else {
+          // Update existing goal
+          const { id: goalId, createdAt, updatedAt, ...updates } = goal
+          await updateGoal(goalId, updates)
+        }
+      }
+      
+      // Mark deleted goals (goals that were in DB but not in new data)
+      const newGoalIds = goalsToProcess.map(g => g.id)
+      const deletedGoalIds = existingGoalIds.filter(id => !newGoalIds.includes(id))
+      
+      for (const goalId of deletedGoalIds) {
+        await deleteGoal(goalId)
+      }
+      
+      // Refresh goals from Firestore
+      const updatedGoals = await getGoalsByMentorship(id)
+      const activeGoals = updatedGoals.filter(g => !g.deleted)
+      setCustomGoals(activeGoals.length > 0 ? activeGoals : null)
+      
+    } catch (error) {
+      console.error('Error saving goals:', error)
+      throw error
+    }
   }
 
   const viewProps = {

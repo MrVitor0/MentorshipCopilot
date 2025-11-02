@@ -135,5 +135,21 @@ service cloud.firestore {
         && 'participantIds' in resource.data
         && request.auth.uid in resource.data.participantIds;
     }
+    
+    // Goals collection
+    match /goals/{goalId} {
+      // Authenticated users can read goals for their mentorships
+      allow read: if isAuthenticated();
+      
+      // Authenticated users can create goals
+      allow create: if isAuthenticated()
+        && 'mentorshipId' in request.resource.data;
+      
+      // Authenticated users can update goals
+      allow update: if isAuthenticated();
+      
+      // Authenticated users can delete goals
+      allow delete: if isAuthenticated();
+    }
   }
 }

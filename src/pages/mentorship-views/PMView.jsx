@@ -373,6 +373,14 @@ export default function PMView({
                   { id: 'duration', name: 'Duration', current: weeksDuration || 0, target: 12, variant: 'purple', unit: 'w' },
                   { id: 'rating', name: 'Avg Rating', current: parseFloat(averageProgress) || 0, target: 5, variant: 'orange', unit: '/5' }
                 ]).map((goal) => {
+                  // Update current values based on actual mentorship data
+                  let currentValue = goal.current || 0
+                  if (goal.id === 'sessions') currentValue = data?.sessionsCompleted || 0
+                  else if (goal.id === 'progress') currentValue = data?.progress || 0
+                  else if (goal.id === 'duration') currentValue = weeksDuration || 0
+                  else if (goal.id === 'rating') currentValue = parseFloat(averageProgress) || 0
+                  
+                  const displayGoal = { ...goal, current: currentValue }
                   const variants = {
                     blue: { icon: BarChart3, color: 'blue' },
                     green: { icon: Target, color: 'green' },
@@ -381,14 +389,14 @@ export default function PMView({
                     pink: { icon: Sparkles, color: 'pink' },
                     yellow: { icon: Calendar, color: 'yellow' }
                   }
-                  const variantConfig = variants[goal.variant] || variants.blue
+                  const variantConfig = variants[displayGoal.variant] || variants.blue
                   
                   return (
-                    <Card key={goal.id} padding="md" className={`bg-gradient-to-br from-${variantConfig.color}-50 to-${variantConfig.color}-100/50 border-2 border-${variantConfig.color}-200`}>
+                    <Card key={displayGoal.id} padding="md" className={`bg-gradient-to-br from-${variantConfig.color}-50 to-${variantConfig.color}-100/50 border-2 border-${variantConfig.color}-200`}>
                       <variantConfig.icon className={`w-8 h-8 text-${variantConfig.color}-600 mb-2`} />
-                      <div className="text-xs font-bold uppercase text-neutral-gray-dark mb-1">{goal.name}</div>
+                      <div className="text-xs font-bold uppercase text-neutral-gray-dark mb-1">{displayGoal.name}</div>
                       <div className="text-xl font-bold text-neutral-black">
-                        {goal.current}{goal.unit} / {goal.target}{goal.unit}
+                        {displayGoal.current}{displayGoal.unit || ''} / {displayGoal.target}{displayGoal.unit || ''}
                       </div>
                     </Card>
                   )
