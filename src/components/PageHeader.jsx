@@ -39,12 +39,12 @@ export default function PageHeader({
           </div>
           
           {showActions && (
-            <div className="flex gap-3">
+            <div className="flex items-center gap-4">
               <button
                 onClick={() => setIsChatOpen(true)}
-                className="group inline-flex items-center gap-2 bg-gradient-to-r from-baires-orange to-orange-600 text-white px-5 py-2.5 rounded-[14px] font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
+                className="group inline-flex items-center gap-2 bg-gradient-to-r from-baires-orange to-orange-600 text-white px-6 py-3 rounded-[14px] font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
               >
-                <Sparkles className="w-4 h-4 group-hover:rotate-12 transition-transform" />
+                <Sparkles className="w-5 h-5 group-hover:rotate-12 transition-transform" />
                 <span>Ask AI CoPilot</span>
               </button>
               
@@ -53,7 +53,7 @@ export default function PageHeader({
                 <>
                   <Button 
                     variant="outline" 
-                    size="sm" 
+                    size="md" 
                     icon={<Search className="w-4 h-4" />}
                     onClick={() => window.location.href = '/find-mentors'}
                   >
@@ -61,7 +61,7 @@ export default function PageHeader({
                   </Button>
                   <Button 
                     variant="orange" 
-                    size="sm" 
+                    size="md" 
                     icon={<Plus className="w-4 h-4" />}
                     onClick={() => window.location.href = '/create-mentorship'}
                   >

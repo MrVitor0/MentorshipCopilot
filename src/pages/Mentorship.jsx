@@ -180,6 +180,20 @@ export default function Mentorship() {
             description="Manage and track all your mentorship journeys"
           />
 
+          {/* Additional PM Actions */}
+          {permissions.canCreateMentorship && (
+            <div className="mb-6 -mt-4">
+              <Button 
+                variant="orange" 
+                icon={<Plus className="w-5 h-5" />}
+                onClick={() => navigate('/create-mentorship')}
+                className="shadow-lg hover:shadow-xl"
+              >
+                Start New Mentorship
+              </Button>
+            </div>
+          )}
+
             {/* Loading State */}
             {loading ? (
               <div className="flex justify-center items-center py-20">

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { getMentees, createMentorshipWithDetails, createMentorshipInvitation } from '../services/firestoreService'
 import { httpsCallable } from 'firebase/functions'
@@ -49,7 +49,6 @@ const technologies = [
 
 export default function CreateMentorship() {
   const navigate = useNavigate()
-  const location = useLocation()
   const { user } = useAuth()
   const [currentStep, setCurrentStep] = useState(1)
   const [selectedTechs, setSelectedTechs] = useState([])
@@ -68,6 +67,11 @@ export default function CreateMentorship() {
   
   // State to control FindMentors integration
   const [showFindMentors, setShowFindMentors] = useState(false)
+  
+  // State for drag to scroll functionality
+  const [isDragging, setIsDragging] = useState(false)
+  const [startX, setStartX] = useState(0)
+  const [scrollLeft, setScrollLeft] = useState(0)
 
   // Load mentees when component mounts
   useEffect(() => {
@@ -267,6 +271,38 @@ export default function CreateMentorship() {
     return selectedMentors.some(m => m.uid === mentorUid)
   }
 
+  /**
+   * Handle mouse down for drag scroll
+   */
+  const handleMouseDown = (e) => {
+    // Don't start drag if clicking on a button/card
+    if (e.target.closest('button')) return
+    
+    const slider = e.currentTarget
+    setIsDragging(true)
+    setStartX(e.pageX - slider.offsetLeft)
+    setScrollLeft(slider.scrollLeft)
+  }
+
+  /**
+   * Handle mouse leave/up for drag scroll
+   */
+  const handleMouseLeaveOrUp = () => {
+    setIsDragging(false)
+  }
+
+  /**
+   * Handle mouse move for drag scroll
+   */
+  const handleMouseMove = (e) => {
+    if (!isDragging) return
+    e.preventDefault()
+    const slider = e.currentTarget
+    const x = e.pageX - slider.offsetLeft
+    const walk = (x - startX) * 2 // Scroll speed multiplier
+    slider.scrollLeft = scrollLeft - walk
+  }
+
   return (
     <>
       <SEO 
@@ -309,7 +345,7 @@ export default function CreateMentorship() {
       <div className="absolute bottom-1/2 left-1/2 w-4 h-4 bg-orange-300/40 rounded-full animate-pulse" style={{ animationDelay: '2s' }}></div>
       <div className="absolute top-1/2 right-1/3 w-2 h-2 bg-baires-blue/40 rounded-full animate-pulse" style={{ animationDelay: '1.5s' }}></div>
 
-      <div className="max-w-4xl mx-auto relative z-10">
+      <div className="max-w-4xl mx-auto relative z-10 pb-32">
         {/* Progress Indicator */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
@@ -497,14 +533,7 @@ export default function CreateMentorship() {
                   })}
                 </div>
 
-                {(selectedTechs.length > 0 || customSkills.length > 0) && (
-                  <div className="mt-6 p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-[16px] border border-green-200 flex items-center gap-3 animate-slideInUp">
-                    <CheckCircle className="w-5 h-5 text-green-600" />
-                    <span className="text-sm font-semibold text-green-900">
-                      {selectedTechs.length + customSkills.length} skill{selectedTechs.length + customSkills.length > 1 ? 's' : ''} selected - AI will find specialists in these areas
-                    </span>
-                  </div>
-                )}
+             
               </div>
             </div>
           )}
@@ -567,8 +596,28 @@ export default function CreateMentorship() {
                 {/* Mentee Cards */}
                 {!loadingMentees && searchQuery && (
                   <div className="relative animate-slideInUp">
-                    <div className="overflow-x-auto pb-4 -mx-4 px-4">
-                      <div className="flex gap-4 min-w-max">
+                    {/* Drag instruction hint */}
+                    <div className="text-center mb-4">
+                      <p className="text-xs text-neutral-gray-dark flex items-center justify-center gap-2">
+                        <span className="inline-flex items-center gap-1 bg-orange-100 text-baires-orange px-3 py-1 rounded-full font-semibold">
+                          💡 Click cards to select • Drag empty space to scroll
+                        </span>
+                      </p>
+                    </div>
+                    
+                    <div 
+                      className="overflow-x-auto overflow-y-visible pb-8 pt-4 -mx-4 px-4 scrollbar-hide"
+                      style={{ 
+                        scrollbarWidth: 'none', 
+                        msOverflowStyle: 'none',
+                        cursor: isDragging ? 'grabbing' : 'default'
+                      }}
+                      onMouseDown={handleMouseDown}
+                      onMouseLeave={handleMouseLeaveOrUp}
+                      onMouseUp={handleMouseLeaveOrUp}
+                      onMouseMove={handleMouseMove}
+                    >
+                      <div className="flex gap-6 min-w-max py-2">
                         {filteredMentees.map((mentee) => {
                           const isSelected = selectedMentee?.uid === mentee.uid
                           
@@ -576,14 +625,18 @@ export default function CreateMentorship() {
                             <button
                               key={mentee.uid}
                               onClick={() => setSelectedMentee(mentee)}
-                              className={`group relative w-64 p-6 rounded-[24px] border-2 transition-all duration-300 flex-shrink-0 ${
+                              className={`group relative w-64 p-6 rounded-[24px] border-2 transition-all duration-300 flex-shrink-0 cursor-pointer ${
                                 isSelected
-                                  ? 'border-baires-orange bg-gradient-to-br from-orange-50 to-orange-100 shadow-xl scale-105'
-                                  : 'border-neutral-200 bg-white hover:border-orange-300 hover:shadow-lg hover:scale-105'
+                                  ? 'border-baires-orange bg-gradient-to-br from-orange-50 to-orange-100 shadow-xl'
+                                  : 'border-neutral-200 bg-white hover:border-orange-300 hover:shadow-lg hover:scale-[1.02]'
                               }`}
+                              style={{
+                                transform: isSelected ? 'scale(1.05)' : 'scale(1)',
+                                margin: isSelected ? '0 8px' : '0'
+                              }}
                             >
                               {isSelected && (
-                                <div className="absolute -top-3 -right-3 w-8 h-8 bg-gradient-to-br from-baires-orange to-orange-600 rounded-full flex items-center justify-center shadow-lg animate-scaleIn">
+                                <div className="absolute -top-3 -right-3 w-8 h-8 bg-gradient-to-br from-baires-orange to-orange-600 rounded-full flex items-center justify-center shadow-lg animate-scaleIn z-10">
                                   <CheckCircle className="w-5 h-5 text-white" />
                                 </div>
                               )}
@@ -626,17 +679,7 @@ export default function CreateMentorship() {
                   </div>
                 )}
 
-                {selectedMentee && (
-                  <div className="mt-6 p-5 bg-gradient-to-r from-blue-50 to-blue-100 rounded-[20px] border-2 border-blue-300 flex items-center gap-4 animate-slideInUp">
-                    <CheckCircle className="w-6 h-6 text-baires-blue" />
-                    <div className="flex-1">
-                      <span className="text-sm font-semibold text-blue-900">
-                        Selected: <span className="text-neutral-black">{selectedMentee.displayName}</span>
-                      </span>
-                      <p className="text-xs text-blue-800">AI will find the best mentors for {selectedMentee.displayName}</p>
-                    </div>
-                  </div>
-                )}
+             
               </div>
             </div>
           )}
@@ -834,24 +877,60 @@ export default function CreateMentorship() {
             </div>
           )}
 
-          {/* Navigation */}
-          <div className="border-t border-neutral-200 p-6 bg-gradient-to-r from-neutral-50 to-white flex items-center justify-between">
-            <div>
-              {currentStep > 1 && !isProcessing && (
+        </Card>
+
+        {/* Fixed Floating Footer Navigation */}
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t-2 border-neutral-200 shadow-[0_-10px_40px_rgba(0,0,0,0.1)]">
+          <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
+            {/* Left: Back Button */}
+            <div className="flex-1">
+              {currentStep === 1 && !isProcessing ? (
+                <button
+                  onClick={() => navigate('/')}
+                  className="flex items-center gap-2 bg-gradient-to-r from-neutral-100 to-neutral-200 hover:from-neutral-200 hover:to-neutral-300 text-neutral-black font-bold transition-all group hover:gap-3 px-5 py-2.5 rounded-[12px] border-2 border-neutral-300 hover:border-neutral-400 shadow-md hover:shadow-lg"
+                >
+                  <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                  <span>Back to Home</span>
+                </button>
+              ) : currentStep > 1 && !isProcessing ? (
                 <button
                   onClick={() => setCurrentStep(prev => prev - 1)}
-                  className="flex items-center gap-2 text-neutral-gray-dark hover:text-neutral-black font-semibold transition-colors group"
+                  className="flex items-center gap-2 text-neutral-gray-dark hover:text-neutral-black font-semibold transition-all group hover:gap-3 px-4 py-2 rounded-[12px] hover:bg-neutral-100"
                 >
-                  <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                  Back
+                  <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                  <span>Back</span>
                 </button>
+              ) : (
+                <div></div>
               )}
             </div>
 
-            <div className="flex items-center gap-3">
+            {/* Center: Step Indicator */}
+            <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-50 to-orange-100 rounded-full border border-orange-200">
+              <div className="flex items-center gap-1">
+                {[1, 2, 3, 4, 5].map((step) => (
+                  <div
+                    key={step}
+                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                      step === currentStep
+                        ? 'bg-baires-orange w-6'
+                        : step < currentStep
+                        ? 'bg-green-500'
+                        : 'bg-neutral-300'
+                    }`}
+                  ></div>
+                ))}
+              </div>
+              <span className="text-sm font-bold text-neutral-black ml-2">
+                Step {currentStep} of {totalSteps}
+              </span>
+            </div>
+
+            {/* Right: Cancel & Continue Buttons */}
+            <div className="flex-1 flex items-center justify-end gap-3">
               <button
                 onClick={() => navigate('/dashboard')}
-                className="px-6 py-3 text-neutral-gray-dark hover:text-neutral-black font-semibold transition-colors"
+                className="px-5 py-2.5 text-neutral-gray-dark hover:text-neutral-black font-semibold transition-all hover:bg-neutral-100 rounded-[12px]"
               >
                 Cancel
               </button>
@@ -860,7 +939,7 @@ export default function CreateMentorship() {
                 <button
                   onClick={handleNext}
                   disabled={!canProceed()}
-                  className={`group inline-flex items-center gap-2 px-8 py-3 rounded-[16px] font-bold transition-all duration-300 ${
+                  className={`group inline-flex items-center gap-2 px-6 py-2.5 rounded-[14px] font-bold transition-all duration-300 ${
                     canProceed()
                       ? 'bg-gradient-to-r from-baires-orange to-orange-600 text-white shadow-lg hover:shadow-xl hover:scale-105'
                       : 'bg-neutral-200 text-neutral-gray-dark cursor-not-allowed'
@@ -869,13 +948,13 @@ export default function CreateMentorship() {
                   {currentStep === 4 ? (
                     <>
                       <Sparkles className="w-5 h-5" />
-                      <span>Find Mentors with AI</span>
+                      <span>Find Mentors</span>
                       <Zap className="w-5 h-5 group-hover:rotate-12 transition-transform" />
                     </>
                   ) : currentStep === 5 ? (
                     <>
                       <Send className="w-5 h-5" />
-                      <span>Send Invitations & Create</span>
+                      <span>Send Invitations</span>
                       <UserPlus className="w-5 h-5" />
                     </>
                   ) : (
@@ -888,7 +967,7 @@ export default function CreateMentorship() {
               )}
             </div>
           </div>
-        </Card>
+        </div>
       </div>
       </div>
     </>

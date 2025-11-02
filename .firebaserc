@@ -1,5 +1,11 @@
 {
   "projects": {
     "default": "mentorship-copilot"
+  },
+  "targets": {},
+  "etags": {
+    "mentorship-copilot": {
+      "extensionInstances": {}
+    }
   }
 }
