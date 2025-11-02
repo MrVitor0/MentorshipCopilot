@@ -9,7 +9,7 @@ import Button from '../components/Button'
 import Avatar from '../components/Avatar'
 import Badge from '../components/Badge'
 import SEO from '../components/SEO'
-import FindMentors from './FindMentors'
+import MentorSelectionStep from '../components/MentorSelectionStep'
 import { 
   Sparkles, 
   ArrowRight, 
@@ -265,13 +265,6 @@ export default function CreateMentorship() {
   }
   
   /**
-   * Check if a mentor is selected
-   */
-  const isMentorSelected = (mentorUid) => {
-    return selectedMentors.some(m => m.uid === mentorUid)
-  }
-
-  /**
    * Handle mouse down for drag scroll
    */
   const handleMouseDown = (e) => {
@@ -345,9 +338,9 @@ export default function CreateMentorship() {
       <div className="absolute bottom-1/2 left-1/2 w-4 h-4 bg-orange-300/40 rounded-full animate-pulse" style={{ animationDelay: '2s' }}></div>
       <div className="absolute top-1/2 right-1/3 w-2 h-2 bg-baires-blue/40 rounded-full animate-pulse" style={{ animationDelay: '1.5s' }}></div>
 
-      <div className="max-w-4xl mx-auto relative z-10 pb-32">
+      <div className={`${currentStep === 5 ? 'max-w-full' : 'max-w-4xl'} mx-auto relative z-10 pb-32 transition-all duration-500`}>
         {/* Progress Indicator */}
-        <div className="mb-8">
+        <div className={`mb-8 ${currentStep === 5 ? 'max-w-7xl mx-auto' : ''}`}>
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-3xl font-bold bg-gradient-to-r from-neutral-black to-baires-orange bg-clip-text text-transparent flex items-center gap-2">
               <Sparkles className="w-7 h-7 text-baires-orange animate-pulse" />
@@ -824,56 +817,17 @@ export default function CreateMentorship() {
             </div>
           )}
 
-          {/* Step 5: Invite Mentors - Show full FindMentors page */}
+          {/* Step 5: Invite Mentors - Full width mentor selection */}
           {currentStep === 5 && showFindMentors && !isProcessing && (
             <div className="p-0">
-              <FindMentors 
-                wizardMode={true}
-                menteeData={{
-                  mentee: selectedMentee,
-                  technologies: [...selectedTechs, ...customSkills],
-                  problem: problemDescription
-                }}
+              <MentorSelectionStep
+                selectedMentee={selectedMentee}
+                technologies={[...selectedTechs, ...customSkills]}
+                problemDescription={problemDescription}
                 recommendedMentors={recommendedMentors}
                 selectedMentors={selectedMentors}
                 onMentorSelect={handleMentorSelect}
-                isMentorSelected={isMentorSelected}
               />
-              
-              {/* Selected Mentors Summary */}
-              {selectedMentors.length > 0 && (
-                <div className="p-6 bg-gradient-to-r from-green-50 to-green-100 border-t-2 border-green-300">
-                  <div className="max-w-4xl mx-auto">
-                    <div className="flex items-start gap-4">
-                      <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-1" />
-                      <div className="flex-1">
-                        <span className="text-sm font-semibold text-green-900 block mb-2">
-                          {selectedMentors.length} {selectedMentors.length === 1 ? 'mentor' : 'mentors'} selected
-                        </span>
-                        <div className="flex flex-wrap gap-2">
-                          {selectedMentors.map(mentor => (
-                            <div key={mentor.uid} className="flex items-center gap-2 bg-white px-3 py-2 rounded-full border border-green-200">
-                              <Avatar 
-                                src={mentor.photoURL} 
-                                initials={mentor.displayName?.substring(0, 2)?.toUpperCase()}
-                                size="sm" 
-                              />
-                              <span className="text-sm font-semibold text-neutral-black">{mentor.displayName}</span>
-                              <button
-                                onClick={() => handleMentorSelect(mentor)}
-                                className="w-5 h-5 bg-red-100 hover:bg-red-200 rounded-full flex items-center justify-center transition-colors"
-                              >
-                                <X className="w-3 h-3 text-red-600" />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                        <p className="text-xs text-green-800 mt-2">Invitations will be sent to all selected mentors</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           )}
 
@@ -881,7 +835,31 @@ export default function CreateMentorship() {
 
         {/* Fixed Floating Footer Navigation */}
         <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t-2 border-neutral-200 shadow-[0_-10px_40px_rgba(0,0,0,0.1)]">
-          <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
+          {/* Selected Mentors Summary Bar - Only on Step 5 */}
+          {currentStep === 5 && selectedMentors.length > 0 && (
+            <div className="bg-gradient-to-r from-green-50 to-green-100 border-b-2 border-green-300 px-6 py-3">
+              <div className="max-w-7xl mx-auto flex items-center gap-3">
+                <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+                <span className="text-sm font-semibold text-green-900">
+                  {selectedMentors.length} {selectedMentors.length === 1 ? 'mentor' : 'mentors'} selected:
+                </span>
+                <div className="flex flex-wrap gap-2 flex-1">
+                  {selectedMentors.slice(0, 3).map(mentor => (
+                    <span key={mentor.uid} className="text-xs bg-white text-neutral-black px-2 py-1 rounded-full border border-green-200 font-medium">
+                      {mentor.displayName}
+                    </span>
+                  ))}
+                  {selectedMentors.length > 3 && (
+                    <span className="text-xs bg-white text-neutral-black px-2 py-1 rounded-full border border-green-200 font-medium">
+                      +{selectedMentors.length - 3} more
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <div className={`${currentStep === 5 ? 'max-w-7xl' : 'max-w-4xl'} mx-auto px-6 py-4 flex items-center justify-between`}>
             {/* Left: Back Button */}
             <div className="flex-1">
               {currentStep === 1 && !isProcessing ? (

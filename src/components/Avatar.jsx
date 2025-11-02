@@ -5,6 +5,7 @@ const sizes = {
   lg: 'w-16 h-16 text-xl',
   xl: 'w-24 h-24 text-3xl',
   '2xl': 'w-32 h-32 text-5xl',
+  '3xl': 'w-40 h-40 text-6xl',
 }
 
 export default function Avatar({ 

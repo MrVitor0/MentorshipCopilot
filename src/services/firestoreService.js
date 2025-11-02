@@ -183,6 +183,126 @@ export const getMentees = async () => {
 }
 
 /**
+ * Get mentors with advanced filters and pagination support
+ * Returns mentors that match the specified filters
+ * 
+ * @param {Object} options - Filter and pagination options
+ * @param {Array} options.technologies - Array of technology names to filter by
+ * @param {Array} options.excludeIds - Array of mentor IDs to exclude from results
+ * @param {number} options.page - Page number (1-indexed)
+ * @param {number} options.pageSize - Number of items per page
+ * @param {string} options.searchQuery - Search query for name/bio
+ * @param {string} options.sortBy - Sort field (rating, experience, name)
+ * @param {string} options.sortOrder - Sort order (asc, desc)
+ * @returns {Object} { mentors: Array, totalCount: number, totalPages: number, currentPage: number }
+ */
+export const getMentorsWithPagination = async (options = {}) => {
+  try {
+    const {
+      technologies = [],
+      excludeIds = [],
+      page = 1,
+      pageSize = 10,
+      searchQuery = '',
+      sortBy = 'displayName',
+      sortOrder = 'asc'
+    } = options
+
+    // Get all users and filter in memory
+    const users = await safeGetCollection(COLLECTIONS.USERS)
+    let mentors = users.filter(user => user.userType === 'mentor')
+    
+    // Exclude specific IDs (e.g., already recommended mentors)
+    if (excludeIds.length > 0) {
+      mentors = mentors.filter(mentor => !excludeIds.includes(mentor.id))
+    }
+    
+    // Apply technology filters
+    if (technologies.length > 0) {
+      mentors = mentors.filter(mentor => {
+        const mentorTechs = mentor.technologies || []
+        return technologies.some(tech => 
+          mentorTechs.some(mt => {
+            const techName = typeof mt === 'string' ? mt : mt.name
+            return techName?.toLowerCase() === tech.toLowerCase()
+          })
+        )
+      })
+    }
+    
+    // Apply search query filter
+    if (searchQuery.trim()) {
+      const lowerQuery = searchQuery.toLowerCase()
+      mentors = mentors.filter(mentor => 
+        mentor.displayName?.toLowerCase().includes(lowerQuery) ||
+        mentor.bio?.toLowerCase().includes(lowerQuery) ||
+        mentor.role?.toLowerCase().includes(lowerQuery)
+      )
+    }
+    
+    // Sort mentors
+    mentors.sort((a, b) => {
+      let aVal, bVal
+      
+      switch (sortBy) {
+        case 'rating':
+          aVal = a.rating || 0
+          bVal = b.rating || 0
+          break
+        case 'experience':
+          aVal = a.yearsExperience || 0
+          bVal = b.yearsExperience || 0
+          break
+        case 'displayName':
+        default:
+          aVal = (a.displayName || '').toLowerCase()
+          bVal = (b.displayName || '').toLowerCase()
+          break
+      }
+      
+      if (sortOrder === 'desc') {
+        return aVal < bVal ? 1 : -1
+      }
+      return aVal > bVal ? 1 : -1
+    })
+    
+    // Calculate pagination
+    const totalCount = mentors.length
+    const totalPages = Math.ceil(totalCount / pageSize)
+    const startIndex = (page - 1) * pageSize
+    const endIndex = startIndex + pageSize
+    
+    // Get page of results
+    const paginatedMentors = mentors.slice(startIndex, endIndex)
+    
+    // Rename id to uid for consistency
+    const formattedMentors = paginatedMentors.map(({ id, ...rest }) => ({ 
+      uid: id, 
+      ...rest 
+    }))
+    
+    return {
+      mentors: formattedMentors,
+      totalCount,
+      totalPages,
+      currentPage: page,
+      hasNextPage: page < totalPages,
+      hasPrevPage: page > 1
+    }
+  } catch (error) {
+    console.error('Error getting mentors with pagination:', error)
+    return {
+      mentors: [],
+      totalCount: 0,
+      totalPages: 0,
+      currentPage: 1,
+      hasNextPage: false,
+      hasPrevPage: false
+    }
+  }
+}
+
+/**
  * MENTORSHIP OPERATIONS
  */
 
