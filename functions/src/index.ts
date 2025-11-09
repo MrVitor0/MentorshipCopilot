@@ -3,6 +3,10 @@
  * Backend endpoints for AI-powered recommendations and complex operations
  */
 
+// Load environment variables from .env file (for local development)
+import dotenv from "dotenv";
+dotenv.config();
+
 import {onCall, HttpsError} from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 import * as logger from "firebase-functions/logger";
@@ -183,6 +187,141 @@ export const createMentorshipInvitation = onCall(
       throw new HttpsError(
         "internal",
         "Failed to create mentorship invitation",
+        error
+      );
+    }
+  }
+);
+
+/**
+ * Get AI-Powered Mentor Recommendations
+ * 
+ * This function uses Claude AI with LangChain to analyze the mentee's needs
+ * and return the top 3 most compatible mentors with AI-generated insights.
+ * 
+ * @param data - Request data with mentee info, technologies, and challenge description
+ * @returns {Object} - AI-generated mentor recommendations with insights
+ */
+export const getAIMentorRecommendations = onCall(
+  {
+    cors: true,
+    region: "us-central1",
+    timeoutSeconds: 60,
+    memory: "512MiB",
+  },
+  async (request) => {
+    try {
+      const {menteeId, technologies, challengeDescription} = request.data;
+
+      logger.info("Getting AI mentor recommendations", {
+        menteeId,
+        technologies,
+        challengeDescription: challengeDescription?.substring(0, 50),
+      });
+
+      // Validate input
+      if (!menteeId || !technologies || technologies.length === 0) {
+        throw new HttpsError(
+          "invalid-argument",
+          "menteeId and technologies are required"
+        );
+      }
+
+      if (!challengeDescription || challengeDescription.length < 20) {
+        throw new HttpsError(
+          "invalid-argument",
+          "challengeDescription must be at least 20 characters"
+        );
+      }
+
+      // Import AI service dynamically to avoid cold start issues
+      const aiService = await import("./ai/service.js");
+
+      // Get AI recommendations
+      const recommendations = await aiService.getAIMentorRecommendations(
+        menteeId,
+        technologies,
+        challengeDescription
+      );
+
+      logger.info("AI recommendations generated successfully", {
+        topCount: recommendations.topMentors.length,
+        otherCount: recommendations.otherMentors.length,
+      });
+
+      return recommendations;
+    } catch (error) {
+      logger.error("Error getting AI mentor recommendations:", error);
+      if (error instanceof HttpsError) {
+        throw error;
+      }
+      throw new HttpsError(
+        "internal",
+        "Failed to get AI mentor recommendations. " +
+        "Please ensure ANTHROPIC_API_KEY is set in environment.",
+        error
+      );
+    }
+  }
+);
+
+/**
+ * Mentorship CoPilot Chat (Streaming)
+ * 
+ * AI-powered chat assistant that can answer questions and use tools
+ * to fetch information from the system.
+ * 
+ * @param data - Message and chat history
+ * @returns Stream of AI responses
+ */
+export const mentorshipCopilotChat = onCall(
+  {
+    cors: true,
+    region: "us-central1",
+    timeoutSeconds: 60,
+    memory: "512MiB",
+  },
+  async (request) => {
+    try {
+      const {message, chatHistory = []} = request.data;
+
+      logger.info("Mentorship CoPilot chat request", {
+        messageLength: message?.length,
+        historyLength: chatHistory.length,
+      });
+
+      // Validate input
+      if (!message || typeof message !== "string") {
+        throw new HttpsError(
+          "invalid-argument",
+          "message is required and must be a string"
+        );
+      }
+
+      // Import AI service
+      const aiService = await import("./ai/service.js");
+
+      // Get AI response
+      const response = await aiService.chatWithAI(message, chatHistory);
+
+      logger.info("Chat response generated", {
+        responseLength: response.length,
+      });
+
+      return {
+        success: true,
+        response: response,
+        timestamp: new Date().toISOString(),
+      };
+    } catch (error) {
+      logger.error("Error in mentorship copilot chat:", error);
+      if (error instanceof HttpsError) {
+        throw error;
+      }
+      throw new HttpsError(
+        "internal",
+        "Failed to process chat message. " +
+        "Please ensure ANTHROPIC_API_KEY is set in environment.",
         error
       );
     }

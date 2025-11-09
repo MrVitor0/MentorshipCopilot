@@ -133,8 +133,8 @@ export default function CreateMentorship() {
           challengeDescription: problemDescription
         })
         
-        const getMentorRecommendations = httpsCallable(functions, 'getMentorRecommendations')
-        const result = await getMentorRecommendations({
+        const getAIMentorRecommendations = httpsCallable(functions, 'getAIMentorRecommendations')
+        const result = await getAIMentorRecommendations({
           menteeId: selectedMentee.uid,
           technologies: [...selectedTechs, ...customSkills],
           challengeDescription: problemDescription

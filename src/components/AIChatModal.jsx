@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { X, Send, Sparkles, Zap, MessageCircle, Lightbulb } from 'lucide-react'
+import { httpsCallable } from 'firebase/functions'
+import { functions } from '../config/firebase'
 
 export default function AIChatModal({ isOpen, onClose }) {
   const [messages, setMessages] = useState([
@@ -29,7 +31,7 @@ export default function AIChatModal({ isOpen, onClose }) {
     }
   }, [isOpen])
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!inputValue.trim()) return
 
     const userMessage = {
@@ -40,20 +42,46 @@ export default function AIChatModal({ isOpen, onClose }) {
     }
 
     setMessages([...messages, userMessage])
+    const messageToSend = inputValue
     setInputValue('')
     setIsTyping(true)
 
-    // Simulate AI response
-    setTimeout(() => {
+    try {
+      // Call the AI chat endpoint
+      const chatFunction = httpsCallable(functions, 'mentorshipCopilotChat')
+      
+      // Build chat history for context
+      const chatHistory = messages.map(msg => ({
+        role: msg.type === 'user' ? 'user' : 'assistant',
+        content: msg.content
+      }))
+
+      const result = await chatFunction({
+        message: messageToSend,
+        chatHistory: chatHistory.slice(-10) // Keep last 10 messages for context
+      })
+
+      // Add AI response
       const aiMessage = {
         id: messages.length + 2,
         type: 'ai',
-        content: "I understand! Let me help you with that. As your AI-powered assistant, I can help you find the perfect mentor, schedule sessions, and track your progress. What would you like to do?",
+        content: result.data.response,
         time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
       }
       setMessages(prev => [...prev, aiMessage])
+    } catch (error) {
+      console.error('Error calling AI chat:', error)
+      // Add error message
+      const errorMessage = {
+        id: messages.length + 2,
+        type: 'ai',
+        content: "I apologize, but I'm having trouble connecting right now. Please make sure the ANTHROPIC_API_KEY is configured in your Firebase environment. You can try asking again in a moment.",
+        time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+      }
+      setMessages(prev => [...prev, errorMessage])
+    } finally {
       setIsTyping(false)
-    }, 1500)
+    }
   }
 
   const handleKeyPress = (e) => {
@@ -64,9 +92,9 @@ export default function AIChatModal({ isOpen, onClose }) {
   }
 
   const quickActions = [
-    { icon: Lightbulb, text: 'Find a mentor', color: 'orange' },
-    { icon: MessageCircle, text: 'Schedule session', color: 'blue' },
-    { icon: Zap, text: 'Get recommendations', color: 'purple' },
+    { icon: Lightbulb, text: 'Find mentors for JavaScript', color: 'orange' },
+    { icon: MessageCircle, text: 'Show me React mentors', color: 'blue' },
+    { icon: Zap, text: 'Who are the Python experts?', color: 'purple' },
   ]
 
   if (!isOpen) return null

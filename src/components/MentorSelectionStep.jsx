@@ -240,7 +240,7 @@ export default function MentorSelectionStep({
                         </div>
                       </div>
 
-                      {/* AI Magic Description - Fixed Height */}
+                      {/* AI Insight Description - Fixed Height */}
                         <div className="mb-4 p-4 bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 rounded-[16px] border-2 border-purple-200 relative overflow-hidden h-[120px] flex flex-col">
                           <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-2xl"></div>
                           <div className="relative flex-1 flex flex-col">
@@ -251,7 +251,7 @@ export default function MentorSelectionStep({
                               <span className="text-xs font-bold text-purple-900 uppercase tracking-wide">AI Insight</span>
                             </div>
                             <p className="text-sm text-neutral-black leading-relaxed font-medium line-clamp-3">
-                              {mentor.aiMagicReason}
+                              {mentor.aiInsight || mentor.aiMagicReason || "Perfect match for your requirements. Strong expertise and proven track record."}
                             </p>
                           </div>
                         </div>
