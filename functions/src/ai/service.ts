@@ -633,15 +633,6 @@ Language: Respond in the same language the user uses
         
         // Notify frontend about tool usage (thinking step)
         if (onThinkingStep) {
-          const toolEmojis: Record<string, string> = {
-            search_mentors_by_technology: "🔍",
-            get_all_mentors: "👥",
-            get_mentor_details: "📋",
-            get_active_mentorships: "🤝",
-            get_mentees: "🎓",
-            get_system_statistics: "📊",
-          };
-          
           const toolMessages: Record<string, string> = {
             search_mentors_by_technology: `Searching for ${(toolCall.args as any).technologies?.join(", ")} mentors...`,
             get_all_mentors: "Fetching all available mentors...",
@@ -653,7 +644,7 @@ Language: Respond in the same language the user uses
           
           onThinkingStep({
             type: "tool_call",
-            message: `${toolEmojis[toolCall.name] || "⚙️"} ${toolMessages[toolCall.name] || "Using tool..."}`,
+            message: toolMessages[toolCall.name] || "Using tool...",
             toolName: toolCall.name,
           });
         }
@@ -691,7 +682,7 @@ Language: Respond in the same language the user uses
             if (count > 0) {
               onThinkingStep({
                 type: "tool_result",
-                message: `✅ Found ${count} result${count > 1 ? "s" : ""} in database`,
+                message: `Found ${count} result${count > 1 ? "s" : ""} in database`,
               });
             }
           }
@@ -711,7 +702,7 @@ Language: Respond in the same language the user uses
           if (onThinkingStep) {
             onThinkingStep({
               type: "error",
-              message: "❌ Tool execution failed",
+              message: "Tool execution failed",
             });
           }
           
@@ -732,7 +723,7 @@ Language: Respond in the same language the user uses
       if (onThinkingStep && iterations < maxIterations) {
         onThinkingStep({
           type: "analyzing",
-          message: "🧠 Analyzing results...",
+          message: "Analyzing results...",
         });
       }
 
@@ -751,7 +742,7 @@ Language: Respond in the same language the user uses
     if (onThinkingStep) {
       onThinkingStep({
         type: "validating",
-        message: "🔒 Validating mentor data...",
+        message: "Validating mentor data...",
       });
     }
     
@@ -769,7 +760,7 @@ Language: Respond in the same language the user uses
     if (onThinkingStep) {
       onThinkingStep({
         type: "complete",
-        message: "✨ Response ready!",
+        message: "Response ready!",
       });
     }
 

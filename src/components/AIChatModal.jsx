@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { X, Send, Sparkles, Zap, MessageCircle, Lightbulb } from 'lucide-react'
+import { X, Send, Sparkles, Zap, MessageCircle, Lightbulb, Search, CheckCircle, Brain, Shield, CheckCheck, AlertCircle } from 'lucide-react'
 import { httpsCallable } from 'firebase/functions'
 import { functions } from '../config/firebase'
 
@@ -48,6 +48,14 @@ export default function AIChatModal({ isOpen, onClose }) {
     setIsTyping(true)
     setThinkingSteps([]) // Clear previous thinking steps
 
+    // Simulate initial thinking step while waiting for backend
+    const initialStep = {
+      type: 'initializing',
+      message: 'Initializing AI CoPilot...',
+      timestamp: new Date().toISOString()
+    }
+    setThinkingSteps([initialStep])
+
     try {
       // Call the AI chat endpoint
       const chatFunction = httpsCallable(functions, 'mentorshipCopilotChat')
@@ -63,9 +71,21 @@ export default function AIChatModal({ isOpen, onClose }) {
         chatHistory: chatHistory.slice(-10) // Keep last 10 messages for context
       })
 
-      // Display thinking steps if available
+      // Display thinking steps if available and animate them
       if (result.data.thinkingSteps && result.data.thinkingSteps.length > 0) {
-        setThinkingSteps(result.data.thinkingSteps)
+        console.log('[ThinkingSteps] Received:', result.data.thinkingSteps)
+        
+        // Animate steps appearing one by one
+        const steps = result.data.thinkingSteps
+        for (let i = 0; i < steps.length; i++) {
+          await new Promise(resolve => setTimeout(resolve, 150))
+          setThinkingSteps(steps.slice(0, i + 1))
+        }
+        
+        // Keep steps visible for a moment before showing final response
+        await new Promise(resolve => setTimeout(resolve, 800))
+      } else {
+        console.log('[ThinkingSteps] No thinking steps received from backend')
       }
 
       // Add AI response
@@ -77,6 +97,10 @@ export default function AIChatModal({ isOpen, onClose }) {
         thinkingSteps: result.data.thinkingSteps
       }
       setMessages(prev => [...prev, aiMessage])
+      
+      // Clear thinking steps after response is added
+      setThinkingSteps([])
+      setIsTyping(false)
     } catch (error) {
       console.error('Error calling AI chat:', error)
       // Add error message
@@ -87,10 +111,8 @@ export default function AIChatModal({ isOpen, onClose }) {
         time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
       }
       setMessages(prev => [...prev, errorMessage])
-    } finally {
+      setThinkingSteps([])
       setIsTyping(false)
-      // Clear thinking steps after a short delay
-      setTimeout(() => setThinkingSteps([]), 1000)
     }
   }
 
@@ -221,45 +243,83 @@ export default function AIChatModal({ isOpen, onClose }) {
                         <span className="animate-pulse">Initializing...</span>
                       </div>
                     ) : (
-                      thinkingSteps.map((step, index) => (
-                        <div 
-                          key={index}
-                          className="flex items-start gap-2.5 animate-slideInUp"
-                          style={{ animationDelay: `${index * 0.1}s` }}
-                        >
-                          {/* Icon indicator */}
-                          <div className={`w-7 h-7 rounded-[8px] flex items-center justify-center flex-shrink-0 shadow-sm ${
-                            step.type === 'tool_call' ? 'bg-blue-100 text-blue-600' :
-                            step.type === 'tool_result' ? 'bg-green-100 text-green-600' :
-                            step.type === 'analyzing' ? 'bg-purple-100 text-purple-600' :
-                            step.type === 'validating' ? 'bg-orange-100 text-orange-600' :
-                            step.type === 'complete' ? 'bg-green-100 text-green-600' :
-                            'bg-red-100 text-red-600'
-                          }`}>
-                            <span className="text-sm">{step.message.split(' ')[0]}</span>
-                          </div>
+                      thinkingSteps.map((step, index) => {
+                        // Get icon and color based on step type
+                        const getStepIcon = () => {
+                          switch(step.type) {
+                            case 'initializing':
+                              return <Zap className="w-4 h-4" />
+                            case 'tool_call':
+                              return <Search className="w-4 h-4" />
+                            case 'tool_result':
+                              return <CheckCircle className="w-4 h-4" />
+                            case 'analyzing':
+                              return <Brain className="w-4 h-4" />
+                            case 'validating':
+                              return <Shield className="w-4 h-4" />
+                            case 'complete':
+                              return <CheckCheck className="w-4 h-4" />
+                            case 'error':
+                              return <AlertCircle className="w-4 h-4" />
+                            default:
+                              return <Sparkles className="w-4 h-4" />
+                          }
+                        }
 
-                          {/* Step message */}
-                          <div className="flex-1 pt-1">
-                            <p className="text-sm text-neutral-black leading-relaxed">
-                              {step.message}
-                            </p>
-                            {step.toolName && (
-                              <p className="text-xs text-neutral-gray-dark mt-0.5 font-mono">
-                                {step.toolName}
+                        const getStepColor = () => {
+                          switch(step.type) {
+                            case 'initializing':
+                              return 'bg-orange-100 text-orange-600'
+                            case 'tool_call':
+                              return 'bg-blue-100 text-blue-600'
+                            case 'tool_result':
+                              return 'bg-green-100 text-green-600'
+                            case 'analyzing':
+                              return 'bg-purple-100 text-purple-600'
+                            case 'validating':
+                              return 'bg-yellow-100 text-yellow-600'
+                            case 'complete':
+                              return 'bg-green-100 text-green-600'
+                            case 'error':
+                              return 'bg-red-100 text-red-600'
+                            default:
+                              return 'bg-neutral-100 text-neutral-600'
+                          }
+                        }
+
+                        return (
+                          <div 
+                            key={index}
+                            className="flex items-start gap-2.5 animate-slideInUp"
+                            style={{ animationDelay: `${index * 0.1}s` }}
+                          >
+                            {/* Icon indicator */}
+                            <div className={`w-8 h-8 rounded-[10px] flex items-center justify-center flex-shrink-0 shadow-sm ${getStepColor()}`}>
+                              {getStepIcon()}
+                            </div>
+
+                            {/* Step message */}
+                            <div className="flex-1 pt-1">
+                              <p className="text-sm text-neutral-black leading-relaxed font-medium">
+                                {step.message}
                               </p>
+                              {step.toolName && (
+                                <p className="text-xs text-neutral-gray-dark mt-0.5 font-mono bg-neutral-100 px-2 py-0.5 rounded inline-block">
+                                  {step.toolName}
+                                </p>
+                              )}
+                            </div>
+
+                            {/* Animated indicator for active step */}
+                            {index === thinkingSteps.length - 1 && step.type !== 'complete' && (
+                              <div className="flex items-center gap-1 pt-1">
+                                <div className="w-1.5 h-1.5 bg-baires-orange rounded-full animate-ping"></div>
+                                <div className="w-1.5 h-1.5 bg-baires-orange rounded-full"></div>
+                              </div>
                             )}
                           </div>
-
-                          {/* Animated indicator for active step */}
-                          {index === thinkingSteps.length - 1 && step.type !== 'complete' && (
-                            <div className="flex items-center gap-1 pt-1">
-                              <div className="w-1.5 h-1.5 bg-baires-orange rounded-full animate-ping"></div>
-                              <div className="w-1.5 h-1.5 bg-baires-orange rounded-full"></div>
-                            </div>
-                          )}
-                        </div>
-                      ))
+                        )
+                      })
                     )}
                   </div>
 
