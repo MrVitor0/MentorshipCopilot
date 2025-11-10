@@ -43,7 +43,6 @@ export default function FindMentorsForMentorship() {
   const { user: _user } = useAuth()
   const permissions = usePermissions()
   
-  const [isChatOpen, setIsChatOpen] = useState(false)
   const [mentorship, setMentorship] = useState(null)
   const [allMentors, setAllMentors] = useState([])
   const [filteredMentors, setFilteredMentors] = useState([])
@@ -274,16 +273,7 @@ export default function FindMentorsForMentorship() {
       <div className="flex h-screen bg-gradient-to-br from-neutral-50 via-white to-orange-50/15">
         <Sidebar />
         
-        <AIChatModal isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
-
-        <button
-          onClick={() => setIsChatOpen(true)}
-          className="fixed bottom-8 right-8 w-16 h-16 bg-gradient-to-br from-baires-orange via-orange-600 to-orange-700 text-white rounded-full shadow-[0_10px_40px_rgb(246,97,53,0.4)] hover:shadow-[0_15px_50px_rgb(246,97,53,0.5)] hover:scale-110 transition-all duration-300 flex items-center justify-center z-40 group"
-        >
-          <Bot className="w-7 h-7 group-hover:rotate-12 transition-transform duration-300" />
-          <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse"></div>
-        </button>
-        
+ 
         <main className="flex-1 overflow-y-auto">
           <div className="p-6 md:p-8 max-w-[1800px] mx-auto">
             {/* Back Button */}

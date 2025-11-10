@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import { ProtectedRoute, PublicRoute } from './components/ProtectedRoute'
 import PermissionRoute from './components/PermissionRoute'
+import FloatingChatButton from './components/FloatingChatButton'
 import Home from './pages/Home'
 import About from './pages/About'
 import Login from './pages/Login'
@@ -80,6 +81,9 @@ function App() {
           {/* <Route path="/find-mentors" element={<ProtectedRoute><FindMentors /></ProtectedRoute>} /> */}
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
         </Routes>
+        
+        {/* Global Floating Chat Button - Available for all authenticated users */}
+        <FloatingChatButton />
       </Router>
     </AuthProvider>
   )

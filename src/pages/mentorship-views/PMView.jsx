@@ -114,7 +114,7 @@ export default function PMView({
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-xs text-neutral-gray-dark font-semibold">MENTOR</div>
-                  <div className="font-bold text-amber-700 text-sm">Awaiting...</div>
+                  <div className="font-bold text-amber-700 text-sm">Pending Invites</div>
                 </div>
               </>
             )}

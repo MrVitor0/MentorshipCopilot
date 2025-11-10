@@ -111,7 +111,6 @@ export default function FindMentors({
   wizardMode = false, 
   menteeData = {}, 
   recommendedMentors = { topMentors: [], otherMentors: [] },
-  selectedMentors = [],
   onMentorSelect = () => {},
   isMentorSelected = () => false
 }) {
@@ -122,7 +121,7 @@ export default function FindMentors({
   const [filterAvailability, setFilterAvailability] = useState('all')
   
   // Support both wizard mode and standalone mode
-  const { mentee, technologies, problem } = wizardMode ? menteeData : (location.state || {})
+  const { mentee, technologies } = wizardMode ? menteeData : (location.state || {})
 
   // Use recommended mentors in wizard mode, fallback to static data
   const topThree = wizardMode && recommendedMentors.topMentors.length > 0 
@@ -162,16 +161,6 @@ export default function FindMentors({
       {!wizardMode && <Sidebar user={{ name: 'Alex Smith', email: 'alexsmith@example.io' }} />}
       
       {!wizardMode && <AIChatModal isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />}
-
-      {!wizardMode && (
-        <button
-          onClick={() => setIsChatOpen(true)}
-          className="fixed bottom-8 right-8 w-16 h-16 bg-gradient-to-br from-baires-orange via-orange-600 to-orange-700 text-white rounded-full shadow-[0_10px_40px_rgb(246,97,53,0.4)] hover:shadow-[0_15px_50px_rgb(246,97,53,0.5)] hover:scale-110 transition-all duration-300 flex items-center justify-center z-40 group"
-        >
-          <Bot className="w-7 h-7 group-hover:rotate-12 transition-transform duration-300" />
-          <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse"></div>
-        </button>
-      )}
       
       <main className={wizardMode ? "w-full" : "flex-1 overflow-y-auto"}>
         <div className="p-6 md:p-8 max-w-[1600px] mx-auto">
