@@ -20,7 +20,8 @@ export default function MentorView({
   mockMaterials,
   setIsSessionWizardOpen,
   setIsMaterialWizardOpen,
-  customGoals
+  customGoals,
+  sessions
 }) {
   const displayGoals = customGoals || DEFAULT_GOALS.map(goal => {
     // Update current values based on actual data
@@ -160,7 +161,7 @@ export default function MentorView({
 
           <MaterialsList materials={mockMaterials} />
           
-          <SessionHistory sessions={data?.sessions} title="Your Session Logs" showEdit={true} />
+          <SessionHistory sessions={sessions} title="Your Session Logs" showEdit={true} />
         </div>
 
         {/* Sidebar */}

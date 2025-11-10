@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import usePermissions from '../hooks/usePermissions'
-import { getUserMentorships, getPMMentorships } from '../services/firestoreService'
+import { getUserMentorships, getPMMentorships, getInvitationsForMentor, updateInvitationStatus } from '../services/firestoreService'
 import Sidebar from '../components/Sidebar'
 import Card from '../components/Card'
 import Button from '../components/Button'
@@ -27,7 +27,8 @@ import {
   MessageSquare,
   Star,
   Bot,
-  Loader2
+  Loader2,
+  X
 } from 'lucide-react'
 
 // Removed static data - now using dynamic data from Firestore
@@ -67,33 +68,42 @@ export default function Mentorship() {
   const [filter, setFilter] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [mentorships, setMentorships] = useState([])
+  const [invitations, setInvitations] = useState([])
   const [loading, setLoading] = useState(true)
+  const [processingInvitation, setProcessingInvitation] = useState(null)
 
-  // Fetch mentorships based on user role
+  // Fetch mentorships and invitations based on user role
   useEffect(() => {
-    const fetchMentorships = async () => {
+    const fetchData = async () => {
       if (!user?.uid) return
       
       setLoading(true)
       try {
-        let data = []
+        let mentorshipData = []
+        let invitationData = []
+        
         if (permissions.isPM) {
-          data = await getPMMentorships(user.uid)
+          mentorshipData = await getPMMentorships(user.uid)
         } else if (permissions.isMentor) {
-          data = await getUserMentorships(user.uid)
+          mentorshipData = await getUserMentorships(user.uid)
+          // Fetch invitations for mentors
+          invitationData = await getInvitationsForMentor(user.uid)
         } else {
-          data = await getUserMentorships(user.uid)
+          mentorshipData = await getUserMentorships(user.uid)
         }
-        setMentorships(data || [])
+        
+        setMentorships(mentorshipData || [])
+        setInvitations(invitationData || [])
       } catch (error) {
-        console.error('Error fetching mentorships:', error)
+        console.error('Error fetching data:', error)
         setMentorships([])
+        setInvitations([])
       } finally {
         setLoading(false)
       }
     }
 
-    fetchMentorships()
+    fetchData()
   }, [user, permissions.isPM, permissions.isMentor])
 
   // Calculate stats from actual data
@@ -127,6 +137,34 @@ export default function Mentorship() {
       trend: '↑' 
     },
   ]
+
+  // Handle invitation accept/decline
+  const handleInvitationResponse = async (invitationId, action) => {
+    setProcessingInvitation(invitationId)
+    try {
+      console.log(`🔄 Processing invitation ${invitationId}, action: ${action}`)
+      
+      await updateInvitationStatus(
+        invitationId, 
+        action === 'accept' ? 'accepted' : 'declined',
+        action === 'accept' ? user : null
+      )
+      
+      console.log(`✅ Invitation ${action === 'accept' ? 'accepted' : 'declined'} successfully`)
+      
+      if (action === 'accept') {
+        alert('🎉 Mentorship accepted! You are now the mentor for this mentorship.')
+      }
+      
+      // Refresh data
+      window.location.reload()
+    } catch (error) {
+      console.error('❌ Error handling invitation:', error)
+      alert(`Error processing invitation: ${error.message}\n\nPlease try again.`)
+    } finally {
+      setProcessingInvitation(null)
+    }
+  }
 
   const filteredMentorships = mentorships.filter(m => {
     // Filter logic with support for multiple pending statuses
@@ -211,6 +249,110 @@ export default function Mentorship() {
                     </Card>
                   ))}
                 </div>
+
+                {/* Mentorship Invitations - Only for Mentors */}
+                {permissions.isMentor && invitations.length > 0 && (
+                  <Card padding="lg" className="mb-6 bg-gradient-to-br from-orange-50 via-white to-orange-100/50 border-2 border-orange-300/70">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-12 h-12 bg-gradient-to-br from-baires-orange to-orange-600 rounded-[16px] flex items-center justify-center shadow-lg">
+                        <Sparkles className="w-6 h-6 text-white animate-pulse" />
+                      </div>
+                      <div className="flex-1">
+                        <h2 className="text-2xl font-bold text-neutral-black flex items-center gap-2">
+                          Mentorship Invitations
+                          <Badge variant="orange">{invitations.length} New</Badge>
+                        </h2>
+                        <p className="text-sm text-neutral-gray-dark">You have pending mentorship invitations</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      {invitations.map((invitation) => (
+                        <div key={invitation.id} className="p-5 bg-gradient-to-br from-white to-orange-50/50 rounded-[20px] border-2 border-orange-200/70 shadow-lg hover:shadow-xl transition-all">
+                          <div className="flex items-start gap-4 mb-4">
+                            <div className="w-12 h-12 bg-gradient-to-br from-baires-orange to-orange-600 rounded-[14px] flex items-center justify-center shadow-md flex-shrink-0">
+                              <Users className="w-6 h-6 text-white" />
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <h3 className="font-bold text-neutral-black text-lg">Mentorship Invitation</h3>
+                                <Badge variant="orange" className="text-xs">New</Badge>
+                              </div>
+                              
+                              {/* Mentee Info */}
+                              {invitation.menteeName && (
+                                <div className="flex items-center gap-2 mb-3 p-3 bg-white rounded-[12px] border border-blue-200/50">
+                                  <div>
+                                    <p className="text-xs text-neutral-gray-dark font-semibold mb-1">MENTEE</p>
+                                    <p className="text-sm font-bold text-neutral-black">{invitation.menteeName}</p>
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {/* Technologies */}
+                              {invitation.technologies && invitation.technologies.length > 0 && (
+                                <div className="mb-3">
+                                  <p className="text-xs text-neutral-gray-dark font-semibold mb-2">Technologies:</p>
+                                  <div className="flex flex-wrap gap-1.5">
+                                    {invitation.technologies.slice(0, 5).map((tech, idx) => (
+                                      <span key={idx} className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
+                                        {typeof tech === 'string' ? tech : tech.name || tech}
+                                      </span>
+                                    ))}
+                                    {invitation.technologies.length > 5 && (
+                                      <span className="text-xs bg-neutral-100 text-neutral-600 px-2 py-1 rounded-full font-medium">
+                                        +{invitation.technologies.length - 5}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {/* Message */}
+                              {invitation.message && (
+                                <div className="mb-3 p-3 bg-blue-50/50 rounded-[12px] border border-blue-100/50">
+                                  <p className="text-xs text-neutral-gray-dark font-semibold mb-1">MESSAGE</p>
+                                  <p className="text-sm text-neutral-black">{invitation.message}</p>
+                                </div>
+                              )}
+                              
+                              <div className="flex items-center gap-3 text-xs text-neutral-gray-dark">
+                                <span>From: {invitation.projectManagerName || 'PM'}</span>
+                                <span>•</span>
+                                <span>{invitation.createdAt?.toDate?.().toLocaleDateString() || 'Recently'}</span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleInvitationResponse(invitation.id, 'accept')}
+                              disabled={processingInvitation === invitation.id}
+                              className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-3 rounded-[14px] font-bold hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0 transition-all flex items-center justify-center gap-2"
+                            >
+                              {processingInvitation === invitation.id ? (
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                              ) : (
+                                <>
+                                  <CheckCircle className="w-4 h-4" />
+                                  Accept & Start
+                                </>
+                              )}
+                            </button>
+                            <button
+                              onClick={() => handleInvitationResponse(invitation.id, 'decline')}
+                              disabled={processingInvitation === invitation.id}
+                              className="flex-1 bg-neutral-200 text-neutral-black px-4 py-3 rounded-[14px] font-bold hover:bg-neutral-300 hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0 transition-all flex items-center justify-center gap-2"
+                            >
+                              <X className="w-4 h-4" />
+                              Decline
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
+                )}
 
                 {/* Filters and Search */}
                 <Card padding="md">

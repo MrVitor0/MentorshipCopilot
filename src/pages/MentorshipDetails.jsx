@@ -9,7 +9,9 @@ import {
   getGoalsByMentorship,
   createGoal,
   updateGoal,
-  deleteGoal
+  deleteGoal,
+  createSession,
+  getSessionsByMentorship
 } from '../services/firestoreService'
 
 // Components
@@ -18,6 +20,7 @@ import SEO from '../components/SEO'
 import SessionLogWizard from '../components/SessionLogWizard'
 import MaterialWizard from '../components/MaterialWizard'
 import GoalWizard from '../components/GoalWizard'
+import Toast from '../components/Toast'
 
 // Icons
 import { 
@@ -48,6 +51,8 @@ export default function MentorshipDetails() {
   const [processingRequest, setProcessingRequest] = useState(null)
   const [customGoals, setCustomGoals] = useState(null)
   const [setLoadingGoals] = useState(true)
+  const [sessions, setSessions] = useState([])
+  const [toast, setToast] = useState({ show: false, variant: 'info', title: '', description: '' })
   
   // Custom hooks
   const {
@@ -81,6 +86,22 @@ export default function MentorshipDetails() {
     fetchGoals()
   }, [id])
 
+  // Fetch sessions from Firestore
+  useEffect(() => {
+    const fetchSessions = async () => {
+      if (!id) return
+      
+      try {
+        const sessionData = await getSessionsByMentorship(id)
+        setSessions(sessionData)
+      } catch (error) {
+        console.error('Error fetching sessions:', error)
+      }
+    }
+
+    fetchSessions()
+  }, [id])
+
   // Handlers
   const handleJoinRequestResponse = async (requestId, action) => {
     setProcessingRequest(requestId)
@@ -96,8 +117,39 @@ export default function MentorshipDetails() {
   }
 
   const handleSessionLogSubmit = async (sessionData) => {
-    console.log('Session log submitted:', sessionData)
-    alert('Session logged successfully! (Note: Backend integration pending)')
+    try {
+      // Create session with mentorshipId
+      const newSession = await createSession({
+        ...sessionData,
+        mentorshipId: id,
+        mentorId: data?.mentorId,
+        menteeId: data?.menteeId
+      })
+
+      // Refresh sessions list
+      const updatedSessions = await getSessionsByMentorship(id)
+      setSessions(updatedSessions)
+
+      // Show success toast
+      setToast({
+        show: true,
+        variant: 'success',
+        title: 'Session Logged Successfully!',
+        description: 'Your session has been saved and will appear in the history.'
+      })
+
+      setIsSessionWizardOpen(false)
+    } catch (error) {
+      console.error('Error saving session:', error)
+      
+      // Show error toast
+      setToast({
+        show: true,
+        variant: 'error',
+        title: 'Error Saving Session',
+        description: 'There was a problem saving your session. Please try again.'
+      })
+    }
   }
 
   const handleMaterialSubmit = async (materialData) => {
@@ -167,7 +219,8 @@ export default function MentorshipDetails() {
     setIsGoalWizardOpen,
     customGoals,
     navigate,
-    id
+    id,
+    sessions
   }
 
   return (
@@ -224,6 +277,15 @@ export default function MentorshipDetails() {
           onClose={() => setIsGoalWizardOpen(false)}
           onSubmit={handleGoalSubmit}
           initialGoals={customGoals}
+        />
+
+        <Toast
+          variant={toast.variant}
+          title={toast.title}
+          description={toast.description}
+          show={toast.show}
+          onClose={() => setToast({ ...toast, show: false })}
+          duration={5000}
         />
       </div>
     </>

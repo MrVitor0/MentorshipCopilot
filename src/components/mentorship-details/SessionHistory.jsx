@@ -44,33 +44,41 @@ export default function SessionHistory({ sessions = [], title = "Session History
       </div>
 
       <div className="space-y-6">
-        {[...sessions].reverse().map((session, index) => (
-          <div key={session.id} className="relative">
-            {index !== sessions.length - 1 && (
-              <div className="absolute left-6 top-16 bottom-0 w-0.5 bg-neutral-200"></div>
-            )}
-            
-            <Card hover padding="lg" className="relative bg-gradient-to-br from-white to-neutral-50">
-              <div className="flex gap-6">
-                {/* Date Circle */}
-                <div className="flex-shrink-0">
-                  <div className="w-12 h-12 bg-gradient-to-br from-baires-orange to-orange-600 rounded-full flex items-center justify-center shadow-lg">
-                    <span className="text-white font-bold text-sm">{sessions.length - index}</span>
+        {[...sessions].reverse().map((session, index) => {
+          // Handle both string dates and Firebase Timestamps
+          const sessionDate = session.date 
+            ? typeof session.date === 'string' 
+              ? new Date(session.date)
+              : session.date.toDate?.() || new Date(session.date)
+            : new Date()
+          
+          return (
+            <div key={session.id} className="relative">
+              {index !== sessions.length - 1 && (
+                <div className="absolute left-6 top-16 bottom-0 w-0.5 bg-neutral-200"></div>
+              )}
+              
+              <Card hover padding="lg" className="relative bg-gradient-to-br from-white to-neutral-50">
+                <div className="flex gap-6">
+                  {/* Date Circle */}
+                  <div className="flex-shrink-0">
+                    <div className="w-12 h-12 bg-gradient-to-br from-baires-orange to-orange-600 rounded-full flex items-center justify-center shadow-lg">
+                      <span className="text-white font-bold text-sm">{sessions.length - index}</span>
+                    </div>
                   </div>
-                </div>
 
-                {/* Content */}
-                <div className="flex-1">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <div className="flex items-center gap-3 mb-1">
-                        <h3 className="text-lg font-bold text-neutral-black">
-                          Session #{sessions.length - index}
-                        </h3>
-                        <Badge variant="blue" className="text-xs">
-                          {new Date(session.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                        </Badge>
-                      </div>
+                  {/* Content */}
+                  <div className="flex-1">
+                    <div className="flex items-start justify-between mb-4">
+                      <div>
+                        <div className="flex items-center gap-3 mb-1">
+                          <h3 className="text-lg font-bold text-neutral-black">
+                            Session #{sessions.length - index}
+                          </h3>
+                          <Badge variant="blue" className="text-xs">
+                            {sessionDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </Badge>
+                        </div>
                       <div className="flex items-center gap-4 text-sm text-neutral-gray-dark">
                         <span className="flex items-center gap-1">
                           <Clock className="w-4 h-4" />
@@ -123,11 +131,12 @@ export default function SessionHistory({ sessions = [], title = "Session History
                       Note: {session.mentorNotes}
                     </div>
                   )}
+                  </div>
                 </div>
-              </div>
-            </Card>
-          </div>
-        ))}
+              </Card>
+            </div>
+          )
+        })}
       </div>
     </Card>
   )

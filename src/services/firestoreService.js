@@ -384,6 +384,27 @@ export const createSession = async (sessionData) => {
   }
 }
 
+export const getSessionsByMentorship = async (mentorshipId) => {
+  try {
+    const sessionsQuery = query(
+      collection(db, COLLECTIONS.SESSIONS),
+      where('mentorshipId', '==', mentorshipId)
+    )
+    const snapshot = await getDocs(sessionsQuery)
+    
+    const sessions = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }))
+    
+    // Sort by date (most recent first)
+    return sortByTimestamp(sessions, 'createdAt', true)
+  } catch (error) {
+    console.error('Error getting sessions by mentorship:', error)
+    return []
+  }
+}
+
 export const getUpcomingSessions = async (uid, limitCount = 10) => {
   try {
     // Query sessions where user is a participant

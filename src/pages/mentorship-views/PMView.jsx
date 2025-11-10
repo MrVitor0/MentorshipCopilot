@@ -19,7 +19,8 @@ export default function PMView({
   setIsGoalWizardOpen,
   customGoals,
   navigate,
-  id
+  id,
+  sessions
 }) {
   const isPending = data?.status === 'pending' || data?.status === 'pending_mentor'
 
@@ -413,7 +414,7 @@ export default function PMView({
               )}
             </Card>
 
-            <SessionHistory sessions={data?.sessions} />
+            <SessionHistory sessions={sessions} />
 
             {/* Learning Materials */}
             <MaterialsList materials={mockMaterials} description={`${mockMaterials.length} resources shared`} />
