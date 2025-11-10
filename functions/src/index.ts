@@ -301,16 +301,29 @@ export const mentorshipCopilotChat = onCall(
       // Import AI service
       const aiService = await import("./ai/service.js");
 
-      // Get AI response
-      const response = await aiService.chatWithAI(message, chatHistory);
+      // Collect thinking steps for UI display
+      const thinkingSteps: Array<{type: string; message: string; toolName?: string; timestamp: string}> = [];
+      
+      const onThinkingStep = (step: {type: string; message: string; toolName?: string}) => {
+        thinkingSteps.push({
+          ...step,
+          timestamp: new Date().toISOString(),
+        });
+        logger.info("Thinking step", step);
+      };
+
+      // Get AI response with thinking breakdown
+      const response = await aiService.chatWithAI(message, chatHistory, onThinkingStep);
 
       logger.info("Chat response generated", {
         responseLength: response.length,
+        thinkingStepsCount: thinkingSteps.length,
       });
 
       return {
         success: true,
         response: response,
+        thinkingSteps: thinkingSteps,
         timestamp: new Date().toISOString(),
       };
     } catch (error) {

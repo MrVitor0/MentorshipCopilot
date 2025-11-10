@@ -144,6 +144,13 @@ export default function MentorSelectionStep({
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {recommendedMentors.topMentors.map((mentor, index) => {
+              console.log(`🎯 Mentor ${index + 1} data:`, {
+                name: mentor.displayName,
+                matchPercentage: mentor.matchPercentage,
+                aiScore: mentor.aiScore,
+                fullMentor: mentor
+              })
+              
               const isSelected = isMentorSelected(mentor.uid || mentor.id)
               
               // Generate a color from the palette if no photo
@@ -156,6 +163,14 @@ export default function MentorSelectionStep({
               ]
               const colorIndex = (mentor.displayName?.charCodeAt(0) || 0) % colors.length
               const bannerColor = colors[colorIndex]
+              
+              // Dynamic match percentage colors
+              const matchPercentage = mentor.matchPercentage || mentor.aiScore || 95
+              const matchColor = matchPercentage >= 90 
+                ? 'text-green-600 border-green-300 bg-green-50/95' 
+                : matchPercentage >= 85 
+                ? 'text-baires-orange border-orange-300 bg-orange-50/95'
+                : 'text-yellow-600 border-yellow-300 bg-yellow-50/95'
               
               return (
                 <div
@@ -186,10 +201,10 @@ export default function MentorSelectionStep({
                         <div className={`w-full h-full bg-gradient-to-br ${bannerColor} opacity-80`}></div>
                       )}
                       
-                      {/* AI Score Badge */}
-                      <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm text-baires-orange px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1 border-2 border-orange-200">
+                      {/* AI Score Badge - Dynamic Color */}
+                      <div className={`absolute top-4 right-4 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1 border-2 ${matchColor}`}>
                         <Sparkles className="w-3 h-3 animate-pulse" />
-                        {mentor.aiScore || 95}% Match
+                        {matchPercentage}% Match
                       </div>
 
                       {/* Rank Badge */}
@@ -240,17 +255,17 @@ export default function MentorSelectionStep({
                         </div>
                       </div>
 
-                      {/* AI Insight Description - Fixed Height */}
-                        <div className="mb-4 p-4 bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 rounded-[16px] border-2 border-purple-200 relative overflow-hidden h-[120px] flex flex-col">
-                          <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-2xl"></div>
-                          <div className="relative flex-1 flex flex-col">
+                      {/* AI Insight Description - Auto Height */}
+                        <div className="mb-4 p-4 bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 rounded-[16px] border-2 border-purple-200 relative overflow-hidden min-h-[120px] max-h-[300px] overflow-y-auto">
+                          <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-2xl pointer-events-none"></div>
+                          <div className="relative">
                             <div className="flex items-center gap-2 mb-2">
                               <div className="w-6 h-6 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
                                 <Sparkles className="w-4 h-4 text-white" />
                               </div>
                               <span className="text-xs font-bold text-purple-900 uppercase tracking-wide">AI Insight</span>
                             </div>
-                            <p className="text-sm text-neutral-black leading-relaxed font-medium line-clamp-3">
+                            <p className="text-sm text-neutral-black leading-relaxed font-medium">
                               {mentor.aiInsight || mentor.aiMagicReason || "Perfect match for your requirements. Strong expertise and proven track record."}
                             </p>
                           </div>

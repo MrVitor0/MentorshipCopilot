@@ -8,12 +8,13 @@ export default function AIChatModal({ isOpen, onClose }) {
     {
       id: 1,
       type: 'ai',
-      content: "👋 Hello! I'm your Mentorship CoPilot. How can I help you today?",
+      content: "Hello! I'm your Mentorship CoPilot. How can I help you today?",
       time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
     }
   ])
   const [inputValue, setInputValue] = useState('')
   const [isTyping, setIsTyping] = useState(false)
+  const [thinkingSteps, setThinkingSteps] = useState([])
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
 
@@ -45,6 +46,7 @@ export default function AIChatModal({ isOpen, onClose }) {
     const messageToSend = inputValue
     setInputValue('')
     setIsTyping(true)
+    setThinkingSteps([]) // Clear previous thinking steps
 
     try {
       // Call the AI chat endpoint
@@ -61,12 +63,18 @@ export default function AIChatModal({ isOpen, onClose }) {
         chatHistory: chatHistory.slice(-10) // Keep last 10 messages for context
       })
 
+      // Display thinking steps if available
+      if (result.data.thinkingSteps && result.data.thinkingSteps.length > 0) {
+        setThinkingSteps(result.data.thinkingSteps)
+      }
+
       // Add AI response
       const aiMessage = {
         id: messages.length + 2,
         type: 'ai',
         content: result.data.response,
-        time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+        time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+        thinkingSteps: result.data.thinkingSteps
       }
       setMessages(prev => [...prev, aiMessage])
     } catch (error) {
@@ -81,6 +89,8 @@ export default function AIChatModal({ isOpen, onClose }) {
       setMessages(prev => [...prev, errorMessage])
     } finally {
       setIsTyping(false)
+      // Clear thinking steps after a short delay
+      setTimeout(() => setThinkingSteps([]), 1000)
     }
   }
 
@@ -167,7 +177,14 @@ export default function AIChatModal({ isOpen, onClose }) {
                       : 'bg-gradient-to-br from-neutral-50 to-neutral-100 text-neutral-black border border-neutral-200'
                   }`}
                 >
-                  <p className="text-sm leading-relaxed">{message.content}</p>
+                  <div className="text-sm leading-relaxed whitespace-pre-wrap">
+                    {message.content.split('\n').map((line, idx) => (
+                      <span key={idx}>
+                        {line}
+                        {idx < message.content.split('\n').length - 1 && <br />}
+                      </span>
+                    ))}
+                  </div>
                 </div>
                 <p className={`text-xs text-neutral-gray-dark mt-1 ${message.type === 'user' ? 'text-right' : 'text-left'}`}>
                   {message.time}
@@ -178,11 +195,87 @@ export default function AIChatModal({ isOpen, onClose }) {
 
           {isTyping && (
             <div className="flex justify-start animate-slideInUp">
-              <div className="bg-gradient-to-br from-neutral-50 to-neutral-100 rounded-[20px] p-4 border border-neutral-200">
-                <div className="flex gap-2">
-                  <div className="w-2 h-2 bg-baires-orange rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-baires-orange rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                  <div className="w-2 h-2 bg-baires-orange rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+              <div className="max-w-[85%]">
+                {/* Thinking Breakdown Card */}
+                <div className="bg-gradient-to-br from-orange-50 via-white to-blue-50 rounded-[20px] p-5 border-2 border-orange-200/50 shadow-lg backdrop-blur-sm">
+                  {/* Header */}
+                  <div className="flex items-center gap-3 mb-4 pb-3 border-b border-orange-200/50">
+                    <div className="w-10 h-10 bg-gradient-to-br from-baires-orange to-orange-600 rounded-[12px] flex items-center justify-center shadow-md">
+                      <Sparkles className="w-5 h-5 text-white animate-pulse" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-neutral-black">AI Thinking...</h4>
+                      <p className="text-xs text-neutral-gray-dark">Processing your request</p>
+                    </div>
+                  </div>
+
+                  {/* Thinking Steps */}
+                  <div className="space-y-2.5">
+                    {thinkingSteps.length === 0 ? (
+                      <div className="flex items-center gap-3 text-sm text-neutral-gray-dark">
+                        <div className="flex gap-1.5">
+                          <div className="w-2 h-2 bg-baires-orange rounded-full animate-bounce"></div>
+                          <div className="w-2 h-2 bg-baires-orange rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                          <div className="w-2 h-2 bg-baires-orange rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+                        </div>
+                        <span className="animate-pulse">Initializing...</span>
+                      </div>
+                    ) : (
+                      thinkingSteps.map((step, index) => (
+                        <div 
+                          key={index}
+                          className="flex items-start gap-2.5 animate-slideInUp"
+                          style={{ animationDelay: `${index * 0.1}s` }}
+                        >
+                          {/* Icon indicator */}
+                          <div className={`w-7 h-7 rounded-[8px] flex items-center justify-center flex-shrink-0 shadow-sm ${
+                            step.type === 'tool_call' ? 'bg-blue-100 text-blue-600' :
+                            step.type === 'tool_result' ? 'bg-green-100 text-green-600' :
+                            step.type === 'analyzing' ? 'bg-purple-100 text-purple-600' :
+                            step.type === 'validating' ? 'bg-orange-100 text-orange-600' :
+                            step.type === 'complete' ? 'bg-green-100 text-green-600' :
+                            'bg-red-100 text-red-600'
+                          }`}>
+                            <span className="text-sm">{step.message.split(' ')[0]}</span>
+                          </div>
+
+                          {/* Step message */}
+                          <div className="flex-1 pt-1">
+                            <p className="text-sm text-neutral-black leading-relaxed">
+                              {step.message}
+                            </p>
+                            {step.toolName && (
+                              <p className="text-xs text-neutral-gray-dark mt-0.5 font-mono">
+                                {step.toolName}
+                              </p>
+                            )}
+                          </div>
+
+                          {/* Animated indicator for active step */}
+                          {index === thinkingSteps.length - 1 && step.type !== 'complete' && (
+                            <div className="flex items-center gap-1 pt-1">
+                              <div className="w-1.5 h-1.5 bg-baires-orange rounded-full animate-ping"></div>
+                              <div className="w-1.5 h-1.5 bg-baires-orange rounded-full"></div>
+                            </div>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  {/* Progress bar */}
+                  <div className="mt-4 pt-3 border-t border-orange-200/50">
+                    <div className="h-1.5 bg-neutral-100 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-baires-orange via-orange-500 to-orange-600 rounded-full transition-all duration-500 ease-out animate-pulse"
+                        style={{ 
+                          width: thinkingSteps.length === 0 ? '20%' : 
+                                 thinkingSteps.some(s => s.type === 'complete') ? '100%' : 
+                                 `${Math.min(20 + (thinkingSteps.length * 15), 95)}%` 
+                        }}
+                      ></div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

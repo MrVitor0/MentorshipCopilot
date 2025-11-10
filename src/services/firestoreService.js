@@ -309,12 +309,12 @@ export const getMentorsWithPagination = async (options = {}) => {
 
 export const createMentorship = async (mentorshipData) => {
   try {
-    const data = {
+    const data = sanitizeForFirestore({
       ...mentorshipData,
       status: 'active',
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now()
-    }
+    })
     
     const docRef = await addDoc(collection(db, COLLECTIONS.MENTORSHIPS), data)
     return { id: docRef.id, ...data }
@@ -370,11 +370,11 @@ export const getUserMentorships = async (uid) => {
 
 export const createSession = async (sessionData) => {
   try {
-    const data = {
+    const data = sanitizeForFirestore({
       ...sessionData,
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now()
-    }
+    })
     
     const docRef = await addDoc(collection(db, COLLECTIONS.SESSIONS), data)
     return { id: docRef.id, ...data }
@@ -426,10 +426,10 @@ export const getRecentActivities = async (limitCount = 10) => {
 
 export const createActivity = async (activityData) => {
   try {
-    const data = {
+    const data = sanitizeForFirestore({
       ...activityData,
       createdAt: Timestamp.now()
-    }
+    })
     
     const docRef = await addDoc(collection(db, COLLECTIONS.ACTIVITIES), data)
     return { id: docRef.id, ...data }
@@ -488,14 +488,14 @@ export const getSmartSuggestions = async (uid) => {
 
 export const createMentorshipWithDetails = async (mentorshipData) => {
   try {
-    const data = {
+    const data = sanitizeForFirestore({
       ...mentorshipData,
       status: mentorshipData.status || 'pending_mentor',
       progress: 0,
       sessionsCompleted: 0,
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now()
-    }
+    })
     
     const docRef = await addDoc(collection(db, COLLECTIONS.MENTORSHIPS), data)
     return { id: docRef.id, ...data }
@@ -564,13 +564,13 @@ export const getPMMentorships = async (pmId) => {
 
 export const createKickoffMeeting = async (meetingData) => {
   try {
-    const data = {
+    const data = sanitizeForFirestore({
       ...meetingData,
       type: 'kickoff',
       status: 'pending_acceptance',
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now()
-    }
+    })
     
     const docRef = await addDoc(collection(db, COLLECTIONS.SESSIONS), data)
     return { id: docRef.id, ...data }
@@ -622,14 +622,28 @@ export const getMeetingsByUser = async (userId) => {
  * INVITATION MANAGEMENT
  */
 
+/**
+ * Helper: Remove undefined values from object (Firestore doesn't accept undefined)
+ * Converts undefined to null or removes the field
+ */
+const sanitizeForFirestore = (obj) => {
+  const sanitized = {}
+  for (const [key, value] of Object.entries(obj)) {
+    if (value !== undefined) {
+      sanitized[key] = value
+    }
+  }
+  return sanitized
+}
+
 export const createMentorshipInvitation = async (invitationData) => {
   try {
-    const data = {
+    const data = sanitizeForFirestore({
       ...invitationData,
       status: 'pending',
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now()
-    }
+    })
     
     const docRef = await addDoc(collection(db, 'mentorship_invitations'), data)
     return { id: docRef.id, ...data }
@@ -757,12 +771,12 @@ export const getInvitationsForMentorship = async (mentorshipId) => {
 
 export const createJoinRequest = async (requestData) => {
   try {
-    const data = {
+    const data = sanitizeForFirestore({
       ...requestData,
       status: 'pending',
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now()
-    }
+    })
     
     const docRef = await addDoc(collection(db, 'mentorship_join_requests'), data)
     return { id: docRef.id, ...data }
@@ -904,11 +918,11 @@ export const inviteMentorToMentorship = async (mentorshipId, mentorId, message =
  */
 export const createGoal = async (goalData) => {
   try {
-    const data = {
+    const data = sanitizeForFirestore({
       ...goalData,
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now()
-    }
+    })
     
     const docRef = await addDoc(collection(db, COLLECTIONS.GOALS), data)
     return { id: docRef.id, ...data }

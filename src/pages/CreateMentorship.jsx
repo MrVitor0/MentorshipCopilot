@@ -153,6 +153,11 @@ export default function CreateMentorship() {
             otherMentors: result.data.otherMentors || []
           }
           console.log('📊 Processed recommendations:', recommendations)
+          console.log('🎯 Match percentages:', recommendations.topMentors.map(m => ({
+            name: m.displayName,
+            matchPercentage: m.matchPercentage,
+            aiScore: m.aiScore
+          })))
           setRecommendedMentors(recommendations)
         }
         
@@ -213,7 +218,7 @@ export default function CreateMentorship() {
           mentorshipId: createdMentorship.id,
           mentorId: mentor.uid,
           mentorName: mentor.displayName,
-          mentorAvatar: mentor.photoURL,
+          mentorAvatar: mentor.photoURL || null,
           projectManagerId: user.uid,
           projectManagerName: user.displayName,
           menteeName: selectedMentee.displayName,
