@@ -39,13 +39,13 @@ export default function PageHeader({
           </div>
           
           {showActions && (
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 cursor-pointer">
               <button
                 onClick={() => setIsChatOpen(true)}
-                className="group inline-flex items-center gap-2 bg-gradient-to-r from-baires-orange to-orange-600 text-white px-6 py-3 rounded-[14px] font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
+                className="group  cursor-pointer inline-flex items-center gap-2 bg-gradient-to-r from-baires-orange to-orange-600 text-white px-6 py-3 rounded-[14px] font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
               >
                 <Sparkles className="w-5 h-5 group-hover:rotate-12 transition-transform" />
-                <span>Ask AI CoPilot</span>
+                <span>Ask Mentorship Copilot</span>
               </button>
               
               {/* Only Product Managers can see these buttons */}

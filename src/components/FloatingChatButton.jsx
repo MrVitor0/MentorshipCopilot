@@ -63,7 +63,7 @@ export default function FloatingChatButton() {
           <div className="bg-neutral-black text-white px-5 py-3 rounded-[16px] text-sm font-semibold whitespace-nowrap shadow-[0_8px_30px_rgba(0,0,0,0.3)] border border-neutral-800">
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-baires-orange" />
-              <span>Chat with AI CoPilot</span>
+              <span>Chat with Mentorship Copilot</span>
             </div>
             {/* Arrow */}
             <div className="absolute top-full right-8 -mt-1">

@@ -247,7 +247,7 @@ export default function MentorView({
                 </div>
                 <div className="flex items-center gap-2 text-xs opacity-75 mt-4">
                   <Bot className="w-4 h-4" />
-                  <span>AI CoPilot</span>
+                  <span>Mentorship Copilot</span>
                 </div>
               </div>
             </div>

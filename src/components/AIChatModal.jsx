@@ -51,7 +51,7 @@ export default function AIChatModal({ isOpen, onClose }) {
     // Simulate initial thinking step while waiting for backend
     const initialStep = {
       type: 'initializing',
-      message: 'Initializing AI CoPilot...',
+      message: 'Initializing Mentorship Copilot...',
       timestamp: new Date().toISOString()
     }
     setThinkingSteps([initialStep])
