@@ -488,7 +488,7 @@ export default function PMDashboard({ user, upcomingSessions, mentorships, loadi
           {/* Second Row - 3 Columns: AI Chat + Project Progress + Teams */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
             {/* AI Mentorship CoPilot Chat */}
-            <AIChatCard onQuickActionClick={(action) => console.log('Quick action clicked:', action)} />
+            <AIChatCard />
 
             {/* Project Progress Overview */}
             <ProjectProgressCard mentorships={mentorships} />
