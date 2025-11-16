@@ -53,14 +53,14 @@ export default function Login() {
         title="Login"
         description="Sign in to your Mentorship CoPilot account"
       />
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-neutral-50 via-white to-orange-50/15 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-neutral-50 via-white to-indigo-50/15 p-4">
         <div className="w-full max-w-md">
           {/* Logo and Header */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-baires-orange to-orange-600 rounded-[20px] shadow-lg mb-4">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-baires-indigo to-indigo-600 rounded-[20px] shadow-lg mb-4">
               <Sparkles className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-neutral-black to-baires-orange bg-clip-text text-transparent mb-2">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-neutral-black to-baires-indigo bg-clip-text text-transparent mb-2">
               Welcome back
             </h1>
             <p className="text-neutral-gray-dark">
@@ -89,7 +89,7 @@ export default function Login() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3 bg-neutral-50 border border-neutral-200 rounded-[14px] focus:outline-none focus:ring-2 focus:ring-baires-orange focus:border-transparent transition-all"
+                    className="w-full pl-12 pr-4 py-3 bg-neutral-50 border border-neutral-200 rounded-[14px] focus:outline-none focus:ring-2 focus:ring-baires-indigo focus:border-transparent transition-all"
                     placeholder="your@email.com"
                     required
                   />
@@ -107,7 +107,7 @@ export default function Login() {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3 bg-neutral-50 border border-neutral-200 rounded-[14px] focus:outline-none focus:ring-2 focus:ring-baires-orange focus:border-transparent transition-all"
+                    className="w-full pl-12 pr-4 py-3 bg-neutral-50 border border-neutral-200 rounded-[14px] focus:outline-none focus:ring-2 focus:ring-baires-indigo focus:border-transparent transition-all"
                     placeholder="••••••••"
                     required
                   />
@@ -157,7 +157,7 @@ export default function Login() {
               Don't have an account?{' '}
               <Link 
                 to="/register" 
-                className="font-semibold text-baires-orange hover:text-orange-600 transition-colors"
+                className="font-semibold text-baires-indigo hover:text-indigo-600 transition-colors"
               >
                 Sign up
               </Link>

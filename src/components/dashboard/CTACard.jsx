@@ -5,7 +5,7 @@ export default function CTACard({
   description, 
   icon: Icon, 
   tags = [], 
-  gradient = 'from-baires-orange via-orange-500 to-orange-600',
+  gradient = 'from-baires-indigo via-indigo-500 to-indigo-600',
   shadowColor = 'rgb(249,115,22,0.3)',
   shadowColorHover = 'rgb(249,115,22,0.4)',
   onClick 

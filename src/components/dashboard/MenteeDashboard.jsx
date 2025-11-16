@@ -211,7 +211,7 @@ export default function MenteeDashboard({ user, upcomingSessions, mentorships, l
         {/* Recommended Courses */}
         <Card gradient hover padding="lg">
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-[16px] flex items-center justify-center shadow-lg">
+            <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-[16px] flex items-center justify-center shadow-lg">
               <GraduationCap className="w-6 h-6 text-white" />
             </div>
             <div>
@@ -230,10 +230,10 @@ export default function MenteeDashboard({ user, upcomingSessions, mentorships, l
                 href={course.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group p-5 bg-gradient-to-br from-white to-orange-50/50 rounded-[20px] border border-orange-100/50 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 cursor-pointer"
+                className="group p-5 bg-gradient-to-br from-white to-indigo-50/50 rounded-[20px] border border-indigo-100/50 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 cursor-pointer"
               >
                 <div className="flex items-start gap-4">
-                  <div className="w-16 h-16 bg-gradient-to-br from-orange-100 to-orange-200 rounded-[14px] flex items-center justify-center text-3xl shadow-md group-hover:scale-110 transition-transform duration-300">
+                  <div className="w-16 h-16 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-[14px] flex items-center justify-center text-3xl shadow-md group-hover:scale-110 transition-transform duration-300">
                     {course.image}
                   </div>
                   <div className="flex-1">
@@ -266,7 +266,7 @@ export default function MenteeDashboard({ user, upcomingSessions, mentorships, l
               href="https://www.udemy.com/" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="text-sm text-baires-orange hover:text-orange-600 font-semibold flex items-center gap-2 transition-colors"
+              className="text-sm text-baires-indigo hover:text-orange-600 font-semibold flex items-center gap-2 transition-colors"
             >
               Explore more courses on Udemy
               <ExternalLink className="w-4 h-4" />
@@ -292,8 +292,8 @@ export default function MenteeDashboard({ user, upcomingSessions, mentorships, l
               const colorClasses = {
                 red: 'from-red-500 to-red-600',
                 green: 'from-green-500 to-green-600',
-                yellow: 'from-yellow-500 to-orange-500',
-                orange: 'from-orange-500 to-orange-600'
+                yellow: 'from-yellow-500 to-indigo-500',
+                orange: 'from-indigo-500 to-indigo-600'
               }
               return (
                 <button
@@ -318,7 +318,7 @@ export default function MenteeDashboard({ user, upcomingSessions, mentorships, l
       <div className="space-y-6 md:space-y-8">
         {/* Next Session */}
         {upcomingSessions.length > 0 && (
-          <Card hover padding="lg" className="bg-gradient-to-br from-baires-orange via-orange-600 to-orange-700 text-white border-none shadow-[0_20px_50px_rgb(246,97,53,0.3)]">
+          <Card hover padding="lg" className="bg-gradient-to-br from-baires-indigo via-indigo-600 to-indigo-700 text-white border-none shadow-[0_20px_50px_rgb(79,70,229,0.3)]">
             <div className="relative">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
               <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>

@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 @theme {
-  --color-baires-orange: #F66135;
-  --color-baires-orange-light: #FBB39E;
   --color-baires-blue: #1A73E8;
+  --color-baires-blue-light: #5B9EF0;
+  --color-baires-indigo: #4F46E5;
   
   --color-neutral-black: #111111;
   --color-neutral-gray-dark: #666666;

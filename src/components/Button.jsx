@@ -1,8 +1,8 @@
 const variants = {
   primary: 'bg-gradient-to-r from-baires-blue to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 shadow-[0_8px_20px_rgb(26,115,232,0.25)] hover:shadow-[0_12px_30px_rgb(26,115,232,0.35)]',
   secondary: 'bg-gradient-to-r from-neutral-100 to-neutral-200 text-neutral-black hover:from-neutral-200 hover:to-neutral-300 shadow-[0_4px_15px_rgb(0,0,0,0.08)] hover:shadow-[0_8px_20px_rgb(0,0,0,0.12)]',
-  orange: 'bg-gradient-to-r from-baires-orange to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 shadow-[0_8px_20px_rgb(246,97,53,0.25)] hover:shadow-[0_12px_30px_rgb(246,97,53,0.35)]',
-  outline: 'border-2 border-neutral-200 text-neutral-black hover:border-orange-300 hover:bg-orange-50/30 shadow-sm hover:shadow-md',
+  orange: 'bg-gradient-to-r from-baires-indigo to-indigo-600 text-white hover:from-indigo-600 hover:to-indigo-700 shadow-[0_8px_20px_rgb(79,70,229,0.25)] hover:shadow-[0_12px_30px_rgb(79,70,229,0.35)]',
+  outline: 'border-2 border-neutral-200 text-neutral-black hover:border-blue-300 hover:bg-blue-50/30 shadow-sm hover:shadow-md',
 }
 
 const sizes = {

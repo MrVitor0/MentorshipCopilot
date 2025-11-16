@@ -16,9 +16,9 @@ export default function FeaturesSection() {
       icon: BarChart3,
       title: 'Centralized Tracking',
       description: 'No more scattered spreadsheets. Track all mentorship progress from one unified dashboard.',
-      bgGradient: 'bg-gradient-to-br from-orange-50 to-white',
-      borderColor: 'border-orange-100',
-      iconGradient: 'bg-gradient-to-br from-baires-orange to-orange-600'
+      bgGradient: 'bg-gradient-to-br from-indigo-50 to-white',
+      borderColor: 'border-indigo-100',
+      iconGradient: 'bg-gradient-to-br from-baires-indigo to-indigo-600'
     },
     {
       icon: Zap,

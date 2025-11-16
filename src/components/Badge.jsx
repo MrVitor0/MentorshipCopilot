@@ -1,5 +1,5 @@
 const variants = {
-  orange: 'bg-gradient-to-r from-orange-100 to-orange-200/70 text-baires-orange border-orange-200',
+  orange: 'bg-gradient-to-r from-indigo-100 to-indigo-200/70 text-baires-indigo border-indigo-200',
   blue: 'bg-gradient-to-r from-blue-100 to-blue-200/70 text-baires-blue border-blue-200',
   gray: 'bg-gradient-to-r from-neutral-100 to-neutral-200/70 text-neutral-gray-dark border-neutral-200',
   success: 'bg-gradient-to-r from-green-100 to-green-200/70 text-green-700 border-green-200',
@@ -9,7 +9,7 @@ const variants = {
 
 export default function Badge({ 
   children, 
-  variant = 'orange',
+  variant = 'blue',
   className = '',
   ...props 
 }) {

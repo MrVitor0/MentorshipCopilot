@@ -114,11 +114,11 @@ export default function MentorSelectionStep({
   }
 
   return (
-    <div className="p-8 md:p-12 bg-gradient-to-br from-white to-orange-50/20">
+    <div className="p-8 md:p-12 bg-gradient-to-br from-white to-indigo-50/20">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-baires-orange to-orange-600 text-white px-4 py-2 rounded-full mb-4">
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-baires-indigo to-indigo-600 text-white px-4 py-2 rounded-full mb-4">
             <Sparkles className="w-4 h-4" />
             <span className="font-semibold text-sm">AI-Powered Recommendations</span>
           </div>
@@ -133,7 +133,7 @@ export default function MentorSelectionStep({
         {/* AI Top 3 Recommendations */}
         <div className="mb-12">
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-gradient-to-br from-baires-orange to-orange-600 rounded-[14px] flex items-center justify-center shadow-lg">
+            <div className="w-10 h-10 bg-gradient-to-br from-baires-indigo to-indigo-600 rounded-[14px] flex items-center justify-center shadow-lg">
               <Sparkles className="w-5 h-5 text-white animate-pulse" />
             </div>
             <div>
@@ -155,11 +155,11 @@ export default function MentorSelectionStep({
               
               // Generate a color from the palette if no photo
               const colors = [
-                'from-baires-orange to-orange-600',
+                'from-baires-indigo to-indigo-600',
                 'from-baires-blue to-blue-600',
-                'from-purple-500 to-purple-600',
-                'from-green-500 to-green-600',
-                'from-pink-500 to-pink-600'
+                'from-indigo-500 to-indigo-700',
+                'from-blue-500 to-blue-700',
+                'from-sky-500 to-sky-600'
               ]
               const colorIndex = (mentor.displayName?.charCodeAt(0) || 0) % colors.length
               const bannerColor = colors[colorIndex]
@@ -169,7 +169,7 @@ export default function MentorSelectionStep({
               const matchColor = matchPercentage >= 90 
                 ? 'text-green-600 border-green-300 bg-green-50/95' 
                 : matchPercentage >= 85 
-                ? 'text-baires-orange border-orange-300 bg-orange-50/95'
+                ? 'text-baires-indigo border-indigo-300 bg-indigo-50/95'
                 : 'text-yellow-600 border-yellow-300 bg-yellow-50/95'
               
               return (
@@ -178,7 +178,7 @@ export default function MentorSelectionStep({
                   onClick={() => onMentorSelect(mentor)}
                   className={`relative group cursor-pointer transition-all duration-500 rounded-[24px] ${
                     isSelected 
-                      ? 'ring-4 ring-baires-orange ring-offset-4 shadow-2xl scale-105' 
+                      ? 'ring-4 ring-baires-indigo ring-offset-4 shadow-2xl scale-105' 
                       : 'hover:shadow-2xl hover:scale-105'
                   }`}
                 >
@@ -223,13 +223,13 @@ export default function MentorSelectionStep({
                             className="w-40 h-40 rounded-full object-cover shadow-2xl"
                           />
                         ) : (
-                          <div className="w-40 h-40 rounded-full bg-gradient-to-br from-baires-orange to-baires-blue flex items-center justify-center font-bold text-neutral-white text-6xl shadow-2xl">
+                          <div className="w-40 h-40 rounded-full bg-gradient-to-br from-baires-indigo to-baires-blue flex items-center justify-center font-bold text-neutral-white text-6xl shadow-2xl">
                             {mentor.displayName?.substring(0, 2)?.toUpperCase()}
                           </div>
                         )}
                         {/* Selected Check - Floating */}
                         {isSelected && (
-                          <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-gradient-to-br from-baires-orange to-orange-600 rounded-full flex items-center justify-center shadow-xl animate-scaleIn border-4 border-white z-10">
+                          <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-gradient-to-br from-baires-indigo to-indigo-600 rounded-full flex items-center justify-center shadow-xl animate-scaleIn border-4 border-white z-10">
                             <CheckCircle className="w-6 h-6 text-white" />
                           </div>
                         )}
@@ -240,7 +240,7 @@ export default function MentorSelectionStep({
                     <div className="px-6 pb-6 flex-1 flex flex-col">
                       {/* Name and Role */}
                       <div className="text-center mb-4">
-                        <h4 className={`font-bold text-xl mb-1 transition-colors ${isSelected ? 'text-baires-orange' : 'text-neutral-black'}`}>
+                        <h4 className={`font-bold text-xl mb-1 transition-colors ${isSelected ? 'text-baires-indigo' : 'text-neutral-black'}`}>
                           {mentor.displayName}
                         </h4>
                         <p className="text-sm text-neutral-gray-dark font-medium mb-2">{mentor.role || 'Senior Engineer'}</p>
@@ -248,7 +248,7 @@ export default function MentorSelectionStep({
                         {/* Technologies Pills - Fixed Height */}
                         <div className="flex flex-wrap gap-1.5 justify-center mb-4 min-h-[32px] max-h-[64px] overflow-hidden">
                           {(mentor.technologies || []).slice(0, 4).map((tech, idx) => (
-                            <span key={idx} className="text-xs bg-gradient-to-r from-orange-100 to-orange-200 text-baires-orange px-3 py-1 rounded-full font-semibold border border-orange-300 whitespace-nowrap">
+                            <span key={idx} className="text-xs bg-gradient-to-r from-indigo-100 to-indigo-200 text-baires-indigo px-3 py-1 rounded-full font-semibold border border-indigo-300 whitespace-nowrap">
                               {typeof tech === 'string' ? tech : tech.name}
                             </span>
                           ))}
@@ -256,14 +256,14 @@ export default function MentorSelectionStep({
                       </div>
 
                       {/* AI Insight Description - Auto Height */}
-                        <div className="mb-4 p-4 bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 rounded-[16px] border-2 border-purple-200 relative overflow-hidden min-h-[120px] max-h-[300px] overflow-y-auto">
-                          <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-2xl pointer-events-none"></div>
+                        <div className="mb-4 p-4 bg-gradient-to-br from-indigo-50 via-blue-50 to-indigo-100 rounded-[16px] border-2 border-indigo-200 relative overflow-hidden min-h-[120px] max-h-[300px] overflow-y-auto">
+                          <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-indigo-400/20 to-blue-400/20 rounded-full blur-2xl pointer-events-none"></div>
                           <div className="relative">
                             <div className="flex items-center gap-2 mb-2">
-                              <div className="w-6 h-6 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                              <div className="w-6 h-6 bg-gradient-to-br from-baires-indigo to-indigo-600 rounded-lg flex items-center justify-center">
                                 <Sparkles className="w-4 h-4 text-white" />
                               </div>
-                              <span className="text-xs font-bold text-purple-900 uppercase tracking-wide">AI Insight</span>
+                              <span className="text-xs font-bold text-indigo-900 uppercase tracking-wide">AI Insight</span>
                             </div>
                             <p className="text-sm text-neutral-black leading-relaxed font-medium">
                               {mentor.aiInsight || mentor.aiMagicReason || "Perfect match for your requirements. Strong expertise and proven track record."}
@@ -273,18 +273,18 @@ export default function MentorSelectionStep({
 
                       {/* Stats Grid - Compact */}
                       <div className="grid grid-cols-3 gap-2 mb-4">
-                        <div className="text-center p-3 bg-gradient-to-br from-orange-50 to-orange-100 rounded-[12px] border border-orange-200">
-                          <Star className="w-5 h-5 text-baires-orange mx-auto mb-1" />
+                        <div className="text-center p-3 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-[12px] border border-indigo-200">
+                          <Star className="w-5 h-5 text-baires-indigo mx-auto mb-1" />
                           <div className="text-lg font-bold text-neutral-black">{mentor.rating || 4.8}</div>
                           <div className="text-xs text-neutral-gray-dark font-medium">Rating</div>
                         </div>
-                        <div className="text-center p-3 bg-gradient-to-br from-orange-50 to-orange-100 rounded-[12px] border border-orange-200">
-                          <Users className="w-5 h-5 text-baires-orange mx-auto mb-1" />
+                        <div className="text-center p-3 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-[12px] border border-indigo-200">
+                          <Users className="w-5 h-5 text-baires-indigo mx-auto mb-1" />
                           <div className="text-lg font-bold text-neutral-black">{mentor.totalMentees || 0}</div>
                           <div className="text-xs text-neutral-gray-dark font-medium">Mentees</div>
                         </div>
-                        <div className="text-center p-3 bg-gradient-to-br from-orange-50 to-orange-100 rounded-[12px] border border-orange-200">
-                          <TrendingUp className="w-5 h-5 text-baires-orange mx-auto mb-1" />
+                        <div className="text-center p-3 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-[12px] border border-indigo-200">
+                          <TrendingUp className="w-5 h-5 text-baires-indigo mx-auto mb-1" />
                           <div className="text-lg font-bold text-neutral-black">{mentor.successRate || 95}%</div>
                           <div className="text-xs text-neutral-gray-dark font-medium">Success</div>
                         </div>
@@ -295,8 +295,8 @@ export default function MentorSelectionStep({
                         {mentor.aiReasons && mentor.aiReasons.length > 0 && (
                           <div className="space-y-2 h-full max-h-[180px] overflow-hidden">
                             {mentor.aiReasons.slice(0, 3).map((reason, idx) => (
-                              <div key={idx} className="flex items-start gap-2 p-2 bg-orange-50 rounded-lg border border-orange-200">
-                                <CheckCircle className="w-4 h-4 text-baires-orange mt-0.5 flex-shrink-0" />
+                              <div key={idx} className="flex items-start gap-2 p-2 bg-indigo-50 rounded-lg border border-indigo-200">
+                                <CheckCircle className="w-4 h-4 text-baires-indigo mt-0.5 flex-shrink-0" />
                                 <span className="text-xs text-neutral-black font-medium leading-relaxed line-clamp-2">{reason}</span>
                               </div>
                             ))}
@@ -309,8 +309,8 @@ export default function MentorSelectionStep({
                         <button
                           className={`w-full py-3 rounded-[14px] font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2 ${
                             isSelected
-                              ? 'bg-gradient-to-r from-baires-orange to-orange-600 text-white shadow-lg ring-2 ring-baires-orange ring-offset-2'
-                              : 'bg-gradient-to-r from-baires-orange to-orange-600 text-white shadow-lg hover:shadow-xl hover:scale-105'
+                              ? 'bg-gradient-to-r from-baires-indigo to-indigo-600 text-white shadow-lg ring-2 ring-baires-indigo ring-offset-2'
+                              : 'bg-gradient-to-r from-baires-indigo to-indigo-600 text-white shadow-lg hover:shadow-xl hover:scale-105'
                           }`}
                         >
                           {isSelected ? (
@@ -345,7 +345,7 @@ export default function MentorSelectionStep({
         <div>
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-baires-orange to-orange-600 rounded-[14px] flex items-center justify-center shadow-lg">
+              <div className="w-10 h-10 bg-gradient-to-br from-baires-indigo to-indigo-600 rounded-[14px] flex items-center justify-center shadow-lg">
                 <Users className="w-5 h-5 text-white" />
               </div>
               <div>
@@ -389,11 +389,11 @@ export default function MentorSelectionStep({
                     <th className="text-left p-4 text-sm font-bold text-neutral-black">
                       <button
                         onClick={() => handleSort('displayName')}
-                        className="flex items-center gap-2 hover:text-baires-orange transition-colors"
+                        className="flex items-center gap-2 hover:text-baires-indigo transition-colors"
                       >
                         Mentor
                         {sortBy === 'displayName' && (
-                          <span className="text-baires-orange">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                          <span className="text-baires-indigo">{sortOrder === 'asc' ? '↑' : '↓'}</span>
                         )}
                       </button>
                     </th>
@@ -401,22 +401,22 @@ export default function MentorSelectionStep({
                     <th className="text-center p-4 text-sm font-bold text-neutral-black">
                       <button
                         onClick={() => handleSort('rating')}
-                        className="flex items-center gap-2 hover:text-baires-orange transition-colors mx-auto"
+                        className="flex items-center gap-2 hover:text-baires-indigo transition-colors mx-auto"
                       >
                         Rating
                         {sortBy === 'rating' && (
-                          <span className="text-baires-orange">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                          <span className="text-baires-indigo">{sortOrder === 'asc' ? '↑' : '↓'}</span>
                         )}
                       </button>
                     </th>
                     <th className="text-center p-4 text-sm font-bold text-neutral-black">
                       <button
                         onClick={() => handleSort('experience')}
-                        className="flex items-center gap-2 hover:text-baires-orange transition-colors mx-auto"
+                        className="flex items-center gap-2 hover:text-baires-indigo transition-colors mx-auto"
                       >
                         Experience
                         {sortBy === 'experience' && (
-                          <span className="text-baires-orange">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                          <span className="text-baires-indigo">{sortOrder === 'asc' ? '↑' : '↓'}</span>
                         )}
                       </button>
                     </th>
@@ -441,8 +441,8 @@ export default function MentorSelectionStep({
                       return (
                         <tr
                           key={mentor.uid}
-                          className={`border-b border-neutral-100 hover:bg-orange-50/50 transition-colors ${
-                            isSelected ? 'bg-orange-50' : ''
+                          className={`border-b border-neutral-100 hover:bg-indigo-50/50 transition-colors ${
+                            isSelected ? 'bg-indigo-50' : ''
                           }`}
                         >
                           <td className="p-4">
@@ -453,7 +453,7 @@ export default function MentorSelectionStep({
                                 size="md" 
                               />
                               <div>
-                                <div className={`font-bold ${isSelected ? 'text-baires-orange' : 'text-neutral-black'}`}>
+                                <div className={`font-bold ${isSelected ? 'text-baires-indigo' : 'text-neutral-black'}`}>
                                   {mentor.displayName}
                                 </div>
                                 <div className="text-xs text-neutral-gray-dark">{mentor.bio?.substring(0, 50) || 'No bio available'}...</div>
@@ -489,8 +489,8 @@ export default function MentorSelectionStep({
                               onClick={() => onMentorSelect(mentor)}
                               className={`px-4 py-2 rounded-[10px] font-semibold text-sm transition-all ${
                                 isSelected
-                                  ? 'bg-gradient-to-r from-baires-orange to-orange-600 text-white shadow-md hover:shadow-lg ring-2 ring-baires-orange ring-offset-2'
-                                  : 'bg-gradient-to-r from-baires-orange to-orange-600 text-white shadow-md hover:shadow-lg hover:scale-105'
+                                  ? 'bg-gradient-to-r from-baires-indigo to-indigo-600 text-white shadow-md hover:shadow-lg ring-2 ring-baires-indigo ring-offset-2'
+                                  : 'bg-gradient-to-r from-baires-indigo to-indigo-600 text-white shadow-md hover:shadow-lg hover:scale-105'
                               }`}
                             >
                               {isSelected ? (
@@ -521,7 +521,7 @@ export default function MentorSelectionStep({
                   <button
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="px-3 py-2 rounded-[10px] border-2 border-neutral-200 hover:border-baires-orange hover:bg-orange-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    className="px-3 py-2 rounded-[10px] border-2 border-neutral-200 hover:border-baires-indigo hover:bg-indigo-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </button>
@@ -545,8 +545,8 @@ export default function MentorSelectionStep({
                           onClick={() => handlePageChange(pageNum)}
                           className={`w-10 h-10 rounded-[10px] font-semibold text-sm transition-all ${
                             currentPage === pageNum
-                              ? 'bg-gradient-to-r from-baires-orange to-orange-600 text-white shadow-md'
-                              : 'border-2 border-neutral-200 text-neutral-gray-dark hover:border-baires-orange hover:bg-orange-50'
+                              ? 'bg-gradient-to-r from-baires-indigo to-indigo-600 text-white shadow-md'
+                              : 'border-2 border-neutral-200 text-neutral-gray-dark hover:border-baires-indigo hover:bg-indigo-50'
                           }`}
                         >
                           {pageNum}
@@ -558,7 +558,7 @@ export default function MentorSelectionStep({
                   <button
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
-                    className="px-3 py-2 rounded-[10px] border-2 border-neutral-200 hover:border-baires-orange hover:bg-orange-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    className="px-3 py-2 rounded-[10px] border-2 border-neutral-200 hover:border-baires-indigo hover:bg-indigo-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                   >
                     <ChevronRight className="w-4 h-4" />
                   </button>

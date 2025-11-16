@@ -142,7 +142,7 @@ export default function AIChatModal({ isOpen, onClose }) {
       {/* Modal */}
       <div className="relative w-full max-w-3xl h-[80vh] bg-white rounded-[32px] shadow-[0_20px_60px_rgb(0,0,0,0.3)] border border-neutral-100 flex flex-col animate-scaleIn overflow-hidden">
         {/* Header */}
-        <div className="relative bg-gradient-to-r from-baires-orange via-orange-600 to-orange-700 text-white p-6 rounded-t-[32px]">
+        <div className="relative bg-gradient-to-r from-baires-indigo via-indigo-600 to-indigo-700 text-white p-6 rounded-t-[32px]">
           <div className="absolute inset-0 bg-white/5 backdrop-blur-sm"></div>
           <div className="relative flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -167,13 +167,13 @@ export default function AIChatModal({ isOpen, onClose }) {
         </div>
 
         {/* Quick Actions */}
-        <div className="flex gap-2 p-4 border-b border-neutral-100 bg-gradient-to-r from-orange-50 to-blue-50">
+        <div className="flex gap-2 p-4 border-b border-neutral-100 bg-gradient-to-r from-indigo-50 to-blue-50">
           {quickActions.map((action, index) => (
             <button
               key={index}
               onClick={() => setInputValue(action.text)}
               className={`flex items-center gap-2 px-4 py-2 rounded-[12px] bg-white border-2 ${
-                action.color === 'orange' ? 'border-orange-200 hover:border-orange-400 text-baires-orange' :
+                action.color === 'orange' ? 'border-indigo-200 hover:border-indigo-400 text-baires-indigo' :
                 action.color === 'blue' ? 'border-blue-200 hover:border-blue-400 text-baires-blue' :
                 'border-purple-200 hover:border-purple-400 text-purple-600'
               } hover:shadow-md transition-all duration-300 text-sm font-semibold`}
@@ -195,7 +195,7 @@ export default function AIChatModal({ isOpen, onClose }) {
                 <div
                   className={`rounded-[20px] p-4 ${
                     message.type === 'user'
-                      ? 'bg-gradient-to-br from-baires-orange to-orange-600 text-white'
+                      ? 'bg-gradient-to-br from-baires-indigo to-indigo-600 text-white'
                       : 'bg-gradient-to-br from-neutral-50 to-neutral-100 text-neutral-black border border-neutral-200'
                   }`}
                 >
@@ -219,10 +219,10 @@ export default function AIChatModal({ isOpen, onClose }) {
             <div className="flex justify-start animate-slideInUp">
               <div className="max-w-[85%]">
                 {/* Thinking Breakdown Card */}
-                <div className="bg-gradient-to-br from-orange-50 via-white to-blue-50 rounded-[20px] p-5 border-2 border-orange-200/50 shadow-lg backdrop-blur-sm">
+                <div className="bg-gradient-to-br from-indigo-50 via-white to-blue-50 rounded-[20px] p-5 border-2 border-indigo-200/50 shadow-lg backdrop-blur-sm">
                   {/* Header */}
-                  <div className="flex items-center gap-3 mb-4 pb-3 border-b border-orange-200/50">
-                    <div className="w-10 h-10 bg-gradient-to-br from-baires-orange to-orange-600 rounded-[12px] flex items-center justify-center shadow-md">
+                  <div className="flex items-center gap-3 mb-4 pb-3 border-b border-indigo-200/50">
+                    <div className="w-10 h-10 bg-gradient-to-br from-baires-indigo to-indigo-600 rounded-[12px] flex items-center justify-center shadow-md">
                       <Sparkles className="w-5 h-5 text-white animate-pulse" />
                     </div>
                     <div>
@@ -236,9 +236,9 @@ export default function AIChatModal({ isOpen, onClose }) {
                     {thinkingSteps.length === 0 ? (
                       <div className="flex items-center gap-3 text-sm text-neutral-gray-dark">
                         <div className="flex gap-1.5">
-                          <div className="w-2 h-2 bg-baires-orange rounded-full animate-bounce"></div>
-                          <div className="w-2 h-2 bg-baires-orange rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                          <div className="w-2 h-2 bg-baires-orange rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+                          <div className="w-2 h-2 bg-baires-indigo rounded-full animate-bounce"></div>
+                          <div className="w-2 h-2 bg-baires-indigo rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                          <div className="w-2 h-2 bg-baires-indigo rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
                         </div>
                         <span className="animate-pulse">Initializing...</span>
                       </div>
@@ -269,7 +269,7 @@ export default function AIChatModal({ isOpen, onClose }) {
                         const getStepColor = () => {
                           switch(step.type) {
                             case 'initializing':
-                              return 'bg-orange-100 text-orange-600'
+                              return 'bg-indigo-100 text-indigo-600'
                             case 'tool_call':
                               return 'bg-blue-100 text-blue-600'
                             case 'tool_result':
@@ -313,8 +313,8 @@ export default function AIChatModal({ isOpen, onClose }) {
                             {/* Animated indicator for active step */}
                             {index === thinkingSteps.length - 1 && step.type !== 'complete' && (
                               <div className="flex items-center gap-1 pt-1">
-                                <div className="w-1.5 h-1.5 bg-baires-orange rounded-full animate-ping"></div>
-                                <div className="w-1.5 h-1.5 bg-baires-orange rounded-full"></div>
+                                <div className="w-1.5 h-1.5 bg-baires-indigo rounded-full animate-ping"></div>
+                                <div className="w-1.5 h-1.5 bg-baires-indigo rounded-full"></div>
                               </div>
                             )}
                           </div>
@@ -324,10 +324,10 @@ export default function AIChatModal({ isOpen, onClose }) {
                   </div>
 
                   {/* Progress bar */}
-                  <div className="mt-4 pt-3 border-t border-orange-200/50">
+                  <div className="mt-4 pt-3 border-t border-indigo-200/50">
                     <div className="h-1.5 bg-neutral-100 rounded-full overflow-hidden">
                       <div 
-                        className="h-full bg-gradient-to-r from-baires-orange via-orange-500 to-orange-600 rounded-full transition-all duration-500 ease-out animate-pulse"
+                        className="h-full bg-gradient-to-r from-baires-indigo via-indigo-500 to-indigo-600 rounded-full transition-all duration-500 ease-out animate-pulse"
                         style={{ 
                           width: thinkingSteps.length === 0 ? '20%' : 
                                  thinkingSteps.some(s => s.type === 'complete') ? '100%' : 
@@ -353,18 +353,18 @@ export default function AIChatModal({ isOpen, onClose }) {
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Ask me anything about mentorship..."
-                className="w-full px-4 py-3 pr-12 rounded-[16px] border-2 border-neutral-200 focus:border-baires-orange focus:outline-none resize-none bg-white text-neutral-black placeholder:text-neutral-gray-dark transition-colors"
+                className="w-full px-4 py-3 pr-12 rounded-[16px] border-2 border-neutral-200 focus:border-baires-indigo focus:outline-none resize-none bg-white text-neutral-black placeholder:text-neutral-gray-dark transition-colors"
                 rows="1"
                 style={{ minHeight: '48px', maxHeight: '120px' }}
               />
               <div className="absolute right-3 bottom-3 flex items-center gap-1 text-neutral-gray-dark">
-                <Sparkles className="w-4 h-4 text-baires-orange" />
+                <Sparkles className="w-4 h-4 text-baires-indigo" />
               </div>
             </div>
             <button
               onClick={handleSend}
               disabled={!inputValue.trim()}
-              className="w-12 h-12 bg-gradient-to-br from-baires-orange to-orange-600 text-white rounded-[16px] flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all duration-300"
+              className="w-12 h-12 bg-gradient-to-br from-baires-indigo to-indigo-600 text-white rounded-[16px] flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all duration-300"
             >
               <Send className="w-5 h-5" />
             </button>
