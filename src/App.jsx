@@ -15,6 +15,11 @@ import CreateMentorship from './pages/CreateMentorship'
 import FindMentors from './pages/FindMentors'
 import FindMentorsForMentorship from './pages/FindMentorsForMentorship'
 import Settings from './pages/Settings'
+import Teams from './pages/Teams'
+import TeamDetails from './pages/TeamDetails'
+import Projects from './pages/Projects'
+import ProjectDetails from './pages/ProjectDetails'
+import Analytics from './pages/Analytics'
 
 function App() {
   return (
@@ -76,6 +81,62 @@ function App() {
           {/* FindMentors is now only accessible through the CreateMentorship wizard */}
           {/* <Route path="/find-mentors" element={<ProtectedRoute><FindMentors /></ProtectedRoute>} /> */}
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+          
+          {/* Teams routes - only for PMs */}
+          <Route 
+            path="/teams" 
+            element={
+              <ProtectedRoute>
+                <PermissionRoute permission="canManageTeams">
+                  <Teams />
+                </PermissionRoute>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/teams/:id" 
+            element={
+              <ProtectedRoute>
+                <PermissionRoute permission="canManageTeams">
+                  <TeamDetails />
+                </PermissionRoute>
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* Projects routes - only for PMs */}
+          <Route 
+            path="/projects" 
+            element={
+              <ProtectedRoute>
+                <PermissionRoute permission="canManageProjects">
+                  <Projects />
+                </PermissionRoute>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/projects/:id" 
+            element={
+              <ProtectedRoute>
+                <PermissionRoute permission="canManageProjects">
+                  <ProjectDetails />
+                </PermissionRoute>
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* Analytics route - only for PMs */}
+          <Route 
+            path="/analytics" 
+            element={
+              <ProtectedRoute>
+                <PermissionRoute permission="canManageProjects">
+                  <Analytics />
+                </PermissionRoute>
+              </ProtectedRoute>
+            } 
+          />
         </Routes>
         
         {/* Global Floating Chat Button - Available for all authenticated users */}

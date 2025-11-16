@@ -28,6 +28,12 @@ export const usePermissions = () => {
     canViewMentorshipAsMentor: isMentor || isPM, // Both can view mentor perspective
     canViewMentorshipAsPM: isPM, // Only PMs can view PM perspective
 
+    // Teams and Projects management
+    canManageTeams: isPM, // Only PMs can manage teams
+    canManageProjects: isPM, // Only PMs can manage projects
+    canViewTeams: isPM, // Only PMs can view teams
+    canViewProjects: isPM, // Only PMs can view projects
+
     // Profile and settings
     canEditProfile: true, // Everyone can edit their profile
     canViewSettings: true, // Everyone can view settings

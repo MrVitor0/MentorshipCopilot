@@ -1,5 +1,7 @@
 import { Sparkles } from 'lucide-react'
 
+import Button from './Button'
+
 export default function EmptyState({ 
   icon: IconComponent = Sparkles, 
   title = "No results yet", 
@@ -13,7 +15,11 @@ export default function EmptyState({
       </div>
       <h3 className="text-lg font-bold text-neutral-black mb-2">{title}</h3>
       <p className="text-sm text-neutral-gray-dark mb-6 max-w-sm">{description}</p>
-      {action}
+      {action && action.label && action.onClick && (
+        <Button onClick={action.onClick}>
+          {action.label}
+        </Button>
+      )}
     </div>
   )
 }

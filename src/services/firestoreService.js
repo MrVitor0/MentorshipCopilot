@@ -29,7 +29,11 @@ const COLLECTIONS = {
   MENTORSHIPS: 'mentorships',
   SESSIONS: 'sessions',
   ACTIVITIES: 'activities',
-  GOALS: 'goals'
+  GOALS: 'goals',
+  TEAMS: 'teams',
+  PROJECTS: 'projects',
+  PROJECT_HISTORY: 'project_history',
+  NOTIFICATIONS: 'notifications'
 }
 
 /**
@@ -104,6 +108,24 @@ export const getUserProfile = async (uid) => {
   } catch (error) {
     console.error('Error getting user profile:', error)
     return null
+  }
+}
+
+/**
+ * Get all users from Firestore
+ */
+export const getAllUsers = async () => {
+  try {
+    const usersRef = collection(db, COLLECTIONS.USERS)
+    const querySnapshot = await getDocs(usersRef)
+    
+    return querySnapshot.docs.map(doc => ({
+      uid: doc.id,
+      ...doc.data()
+    }))
+  } catch (error) {
+    console.error('Error getting all users:', error)
+    return []
   }
 }
 
@@ -317,6 +339,16 @@ export const createMentorship = async (mentorshipData) => {
     })
     
     const docRef = await addDoc(collection(db, COLLECTIONS.MENTORSHIPS), data)
+    
+    // If mentorship is associated with a project, add mentor to project
+    if (data.projectId && data.mentorId) {
+      try {
+        await addProjectMentor(data.projectId, data.mentorId)
+      } catch (err) {
+        console.warn('Could not add mentor to project:', err)
+      }
+    }
+    
     return { id: docRef.id, ...data }
   } catch (error) {
     console.error('Error creating mentorship:', error)
@@ -1089,6 +1121,847 @@ export const deleteGoal = async (goalId) => {
   } catch (error) {
     console.error('Error deleting goal:', error)
     throw new Error('Error deleting goal')
+  }
+}
+
+/**
+ * TEAMS OPERATIONS
+ */
+
+/**
+ * Create a new team
+ * Teams can only be composed by PMs (admins)
+ */
+export const createTeam = async (teamData) => {
+  try {
+    const data = sanitizeForFirestore({
+      ...teamData,
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now()
+    })
+    
+    const docRef = await addDoc(collection(db, COLLECTIONS.TEAMS), data)
+    return { id: docRef.id, ...data }
+  } catch (error) {
+    console.error('Error creating team:', error)
+    throw new Error('Error creating team')
+  }
+}
+
+/**
+ * Get all teams
+ */
+export const getTeams = async () => {
+  try {
+    const teams = await safeGetCollection(COLLECTIONS.TEAMS)
+    return sortByTimestamp(teams, 'createdAt', true)
+  } catch (error) {
+    console.error('Error getting teams:', error)
+    return []
+  }
+}
+
+/**
+ * Get team by ID
+ */
+export const getTeamById = async (teamId) => {
+  try {
+    const teamRef = doc(db, COLLECTIONS.TEAMS, teamId)
+    const teamSnap = await getDoc(teamRef)
+    
+    if (teamSnap.exists()) {
+      return { id: teamSnap.id, ...teamSnap.data() }
+    }
+    return null
+  } catch (error) {
+    console.error('Error getting team by id:', error)
+    return null
+  }
+}
+
+/**
+ * Update team
+ */
+export const updateTeam = async (teamId, updates) => {
+  try {
+    const teamRef = doc(db, COLLECTIONS.TEAMS, teamId)
+    const data = {
+      ...updates,
+      updatedAt: Timestamp.now()
+    }
+    
+    await updateDoc(teamRef, data)
+    return data
+  } catch (error) {
+    console.error('Error updating team:', error)
+    throw new Error('Error updating team')
+  }
+}
+
+/**
+ * Delete team (soft delete)
+ */
+export const deleteTeam = async (teamId) => {
+  try {
+    const teamRef = doc(db, COLLECTIONS.TEAMS, teamId)
+    await updateDoc(teamRef, {
+      deleted: true,
+      deletedAt: Timestamp.now()
+    })
+  } catch (error) {
+    console.error('Error deleting team:', error)
+    throw new Error('Error deleting team')
+  }
+}
+
+/**
+ * Get teams where user is a member
+ */
+export const getTeamsByMember = async (userId) => {
+  try {
+    const teams = await safeGetCollection(COLLECTIONS.TEAMS)
+    const userTeams = teams.filter(team => 
+      team.members && team.members.includes(userId) && !team.deleted
+    )
+    return sortByTimestamp(userTeams, 'createdAt', true)
+  } catch (error) {
+    console.error('Error getting teams by member:', error)
+    return []
+  }
+}
+
+/**
+ * Add member to team
+ */
+export const addTeamMember = async (teamId, userId) => {
+  try {
+    const team = await getTeamById(teamId)
+    if (!team) throw new Error('Team not found')
+    
+    const members = team.members || []
+    if (members.includes(userId)) {
+      throw new Error('User is already a member of this team')
+    }
+    
+    members.push(userId)
+    await updateTeam(teamId, { members })
+    
+    return { success: true }
+  } catch (error) {
+    console.error('Error adding team member:', error)
+    throw error
+  }
+}
+
+/**
+ * Remove member from team
+ */
+export const removeTeamMember = async (teamId, userId) => {
+  try {
+    const team = await getTeamById(teamId)
+    if (!team) throw new Error('Team not found')
+    
+    const members = team.members || []
+    const updatedMembers = members.filter(id => id !== userId)
+    
+    await updateTeam(teamId, { members: updatedMembers })
+    
+    return { success: true }
+  } catch (error) {
+    console.error('Error removing team member:', error)
+    throw error
+  }
+}
+
+/**
+ * PROJECTS OPERATIONS
+ */
+
+/**
+ * Create a new project
+ * Projects can have mentees and mentors
+ * Projects can be associated with teams or individual PMs
+ */
+export const createProject = async (projectData) => {
+  try {
+    const data = sanitizeForFirestore({
+      ...projectData,
+      mentees: projectData.mentees || [],
+      mentors: projectData.mentors || [],
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now()
+    })
+    
+    const docRef = await addDoc(collection(db, COLLECTIONS.PROJECTS), data)
+    return { id: docRef.id, ...data }
+  } catch (error) {
+    console.error('Error creating project:', error)
+    throw new Error('Error creating project')
+  }
+}
+
+/**
+ * Get all projects
+ */
+export const getProjects = async () => {
+  try {
+    const projects = await safeGetCollection(COLLECTIONS.PROJECTS)
+    return sortByTimestamp(projects.filter(p => !p.deleted), 'createdAt', true)
+  } catch (error) {
+    console.error('Error getting projects:', error)
+    return []
+  }
+}
+
+/**
+ * Get project by ID
+ */
+export const getProjectById = async (projectId) => {
+  try {
+    const projectRef = doc(db, COLLECTIONS.PROJECTS, projectId)
+    const projectSnap = await getDoc(projectRef)
+    
+    if (projectSnap.exists()) {
+      return { id: projectSnap.id, ...projectSnap.data() }
+    }
+    return null
+  } catch (error) {
+    console.error('Error getting project by id:', error)
+    return null
+  }
+}
+
+/**
+ * Update project
+ */
+export const updateProject = async (projectId, updates) => {
+  try {
+    const projectRef = doc(db, COLLECTIONS.PROJECTS, projectId)
+    const data = {
+      ...updates,
+      updatedAt: Timestamp.now()
+    }
+    
+    await updateDoc(projectRef, data)
+    return data
+  } catch (error) {
+    console.error('Error updating project:', error)
+    throw new Error('Error updating project')
+  }
+}
+
+/**
+ * Delete project (soft delete)
+ */
+export const deleteProject = async (projectId) => {
+  try {
+    const projectRef = doc(db, COLLECTIONS.PROJECTS, projectId)
+    await updateDoc(projectRef, {
+      deleted: true,
+      deletedAt: Timestamp.now()
+    })
+  } catch (error) {
+    console.error('Error deleting project:', error)
+    throw new Error('Error deleting project')
+  }
+}
+
+/**
+ * Get projects by team
+ */
+export const getProjectsByTeam = async (teamId) => {
+  try {
+    const projectsQuery = query(
+      collection(db, COLLECTIONS.PROJECTS),
+      where('teamId', '==', teamId)
+    )
+    const snapshot = await getDocs(projectsQuery)
+    
+    const projects = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }))
+    
+    return sortByTimestamp(projects.filter(p => !p.deleted), 'createdAt', true)
+  } catch (error) {
+    console.error('Error getting projects by team:', error)
+    return []
+  }
+}
+
+/**
+ * Get projects by PM
+ */
+export const getProjectsByPM = async (pmId) => {
+  try {
+    const projects = await safeGetCollection(COLLECTIONS.PROJECTS)
+    const pmProjects = projects.filter(project => 
+      (project.pmIds && project.pmIds.includes(pmId)) && !project.deleted
+    )
+    return sortByTimestamp(pmProjects, 'createdAt', true)
+  } catch (error) {
+    console.error('Error getting projects by PM:', error)
+    return []
+  }
+}
+
+/**
+ * Add mentee to project
+ */
+export const addProjectMentee = async (projectId, menteeId) => {
+  try {
+    const project = await getProjectById(projectId)
+    if (!project) throw new Error('Project not found')
+    
+    const mentees = project.mentees || []
+    if (mentees.includes(menteeId)) {
+      throw new Error('Mentee is already in this project')
+    }
+    
+    mentees.push(menteeId)
+    await updateProject(projectId, { mentees })
+    
+    return { success: true }
+  } catch (error) {
+    console.error('Error adding mentee to project:', error)
+    throw error
+  }
+}
+
+/**
+ * Remove mentee from project
+ */
+export const removeProjectMentee = async (projectId, menteeId) => {
+  try {
+    const project = await getProjectById(projectId)
+    if (!project) throw new Error('Project not found')
+    
+    const mentees = project.mentees || []
+    const updatedMentees = mentees.filter(id => id !== menteeId)
+    
+    await updateProject(projectId, { mentees: updatedMentees })
+    
+    return { success: true }
+  } catch (error) {
+    console.error('Error removing mentee from project:', error)
+    throw error
+  }
+}
+
+/**
+ * Add mentor to project (temporary)
+ * Also creates history entry and notification
+ */
+export const addProjectMentor = async (projectId, mentorId) => {
+  try {
+    const project = await getProjectById(projectId)
+    if (!project) throw new Error('Project not found')
+    
+    const mentors = project.mentors || []
+    if (mentors.includes(mentorId)) {
+      throw new Error('Mentor is already in this project')
+    }
+    
+    mentors.push(mentorId)
+    await updateProject(projectId, { mentors })
+    
+    // Get mentor details for history and notification
+    const mentorProfile = await getUserProfile(mentorId)
+    
+    // Create history entry
+    await addDoc(collection(db, COLLECTIONS.PROJECT_HISTORY), {
+      projectId,
+      action: 'mentor_added',
+      mentorId,
+      mentorName: mentorProfile?.displayName || 'Unknown',
+      mentorEmail: mentorProfile?.email || '',
+      timestamp: Timestamp.now(),
+      projectName: project.name
+    })
+    
+    // Create notification for mentor
+    await createNotification({
+      userId: mentorId,
+      type: 'mentor_assigned',
+      title: 'Added to Project',
+      message: `You have been added as a mentor to the project "${project.name}"`,
+      projectId,
+      projectName: project.name,
+      read: false
+    })
+    
+    // Create notifications for project PMs
+    if (project.pmIds && project.pmIds.length > 0) {
+      for (const pmId of project.pmIds) {
+        await createNotification({
+          userId: pmId,
+          type: 'mentor_assigned',
+          title: 'Mentor Added to Project',
+          message: `${mentorProfile?.displayName || 'A mentor'} was added to "${project.name}"`,
+          projectId,
+          projectName: project.name,
+          mentorId,
+          mentorName: mentorProfile?.displayName,
+          read: false
+        })
+      }
+    }
+    
+    return { success: true }
+  } catch (error) {
+    console.error('Error adding mentor to project:', error)
+    throw error
+  }
+}
+
+/**
+ * Remove mentor from project
+ * Also creates history entry and notification
+ */
+export const removeProjectMentor = async (projectId, mentorId) => {
+  try {
+    const project = await getProjectById(projectId)
+    if (!project) throw new Error('Project not found')
+    
+    const mentors = project.mentors || []
+    const updatedMentors = mentors.filter(id => id !== mentorId)
+    
+    await updateProject(projectId, { mentors: updatedMentors })
+    
+    // Get mentor details for history and notification
+    const mentorProfile = await getUserProfile(mentorId)
+    
+    // Create history entry
+    await addDoc(collection(db, COLLECTIONS.PROJECT_HISTORY), {
+      projectId,
+      action: 'mentor_removed',
+      mentorId,
+      mentorName: mentorProfile?.displayName || 'Unknown',
+      mentorEmail: mentorProfile?.email || '',
+      timestamp: Timestamp.now(),
+      projectName: project.name
+    })
+    
+    // Create notification for mentor
+    await createNotification({
+      userId: mentorId,
+      type: 'mentor_removed',
+      title: 'Removed from Project',
+      message: `You have been removed from the project "${project.name}"`,
+      projectId,
+      projectName: project.name,
+      read: false
+    })
+    
+    // Create notifications for project PMs
+    if (project.pmIds && project.pmIds.length > 0) {
+      for (const pmId of project.pmIds) {
+        await createNotification({
+          userId: pmId,
+          type: 'mentor_removed',
+          title: 'Mentor Removed from Project',
+          message: `${mentorProfile?.displayName || 'A mentor'} was removed from "${project.name}"`,
+          projectId,
+          projectName: project.name,
+          mentorId,
+          mentorName: mentorProfile?.displayName,
+          read: false
+        })
+      }
+    }
+    
+    return { success: true }
+  } catch (error) {
+    console.error('Error removing mentor from project:', error)
+    throw error
+  }
+}
+
+/**
+ * Add project to team
+ */
+export const addProjectToTeam = async (projectId, teamId) => {
+  try {
+    await updateProject(projectId, { teamId })
+    return { success: true }
+  } catch (error) {
+    console.error('Error adding project to team:', error)
+    throw error
+  }
+}
+
+/**
+ * Remove project from team
+ */
+export const removeProjectFromTeam = async (projectId) => {
+  try {
+    await updateProject(projectId, { teamId: null })
+    return { success: true }
+  } catch (error) {
+    console.error('Error removing project from team:', error)
+    throw error
+  }
+}
+
+/**
+ * NOTIFICATIONS OPERATIONS
+ */
+
+/**
+ * Create a notification
+ */
+export const createNotification = async (notificationData) => {
+  try {
+    const data = sanitizeForFirestore({
+      ...notificationData,
+      createdAt: Timestamp.now(),
+      read: notificationData.read || false
+    })
+    
+    const docRef = await addDoc(collection(db, COLLECTIONS.NOTIFICATIONS), data)
+    return { id: docRef.id, ...data }
+  } catch (error) {
+    console.error('Error creating notification:', error)
+    throw new Error('Error creating notification')
+  }
+}
+
+/**
+ * Get notifications for a user
+ */
+export const getUserNotifications = async (userId, limitCount = 50) => {
+  try {
+    const notificationsQuery = query(
+      collection(db, COLLECTIONS.NOTIFICATIONS),
+      where('userId', '==', userId)
+    )
+    const snapshot = await getDocs(notificationsQuery)
+    
+    const notifications = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }))
+    
+    const sorted = sortByTimestamp(notifications, 'createdAt', true)
+    return sorted.slice(0, limitCount)
+  } catch (error) {
+    console.error('Error getting user notifications:', error)
+    return []
+  }
+}
+
+/**
+ * Get unread notifications count for a user
+ */
+export const getUnreadNotificationsCount = async (userId) => {
+  try {
+    const notificationsQuery = query(
+      collection(db, COLLECTIONS.NOTIFICATIONS),
+      where('userId', '==', userId),
+      where('read', '==', false)
+    )
+    const snapshot = await getDocs(notificationsQuery)
+    return snapshot.size
+  } catch (error) {
+    console.error('Error getting unread notifications count:', error)
+    return 0
+  }
+}
+
+/**
+ * Mark notification as read
+ */
+export const markNotificationAsRead = async (notificationId) => {
+  try {
+    const notificationRef = doc(db, COLLECTIONS.NOTIFICATIONS, notificationId)
+    await updateDoc(notificationRef, {
+      read: true,
+      readAt: Timestamp.now()
+    })
+  } catch (error) {
+    console.error('Error marking notification as read:', error)
+    throw new Error('Error marking notification as read')
+  }
+}
+
+/**
+ * Mark all notifications as read for a user
+ */
+export const markAllNotificationsAsRead = async (userId) => {
+  try {
+    const notificationsQuery = query(
+      collection(db, COLLECTIONS.NOTIFICATIONS),
+      where('userId', '==', userId),
+      where('read', '==', false)
+    )
+    const snapshot = await getDocs(notificationsQuery)
+    
+    const updatePromises = snapshot.docs.map(doc => 
+      updateDoc(doc.ref, {
+        read: true,
+        readAt: Timestamp.now()
+      })
+    )
+    
+    await Promise.all(updatePromises)
+  } catch (error) {
+    console.error('Error marking all notifications as read:', error)
+    throw new Error('Error marking all notifications as read')
+  }
+}
+
+/**
+ * Delete a notification
+ */
+export const deleteNotification = async (notificationId) => {
+  try {
+    const notificationRef = doc(db, COLLECTIONS.NOTIFICATIONS, notificationId)
+    await updateDoc(notificationRef, {
+      deleted: true,
+      deletedAt: Timestamp.now()
+    })
+  } catch (error) {
+    console.error('Error deleting notification:', error)
+    throw new Error('Error deleting notification')
+  }
+}
+
+/**
+ * PROJECT HISTORY OPERATIONS
+ */
+
+/**
+ * Get project history
+ */
+export const getProjectHistory = async (projectId) => {
+  try {
+    const historyQuery = query(
+      collection(db, COLLECTIONS.PROJECT_HISTORY),
+      where('projectId', '==', projectId)
+    )
+    const snapshot = await getDocs(historyQuery)
+    
+    const history = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }))
+    
+    return sortByTimestamp(history, 'timestamp', true)
+  } catch (error) {
+    console.error('Error getting project history:', error)
+    return []
+  }
+}
+
+/**
+ * Get all mentors that have been in a project (from history)
+ */
+export const getProjectMentorHistory = async (projectId) => {
+  try {
+    const historyQuery = query(
+      collection(db, COLLECTIONS.PROJECT_HISTORY),
+      where('projectId', '==', projectId)
+    )
+    const snapshot = await getDocs(historyQuery)
+    
+    const mentorActions = snapshot.docs
+      .map(doc => doc.data())
+      .filter(entry => entry.action === 'mentor_added' || entry.action === 'mentor_removed')
+    
+    // Group by mentor
+    const mentorMap = new Map()
+    
+    for (const action of mentorActions) {
+      if (!mentorMap.has(action.mentorId)) {
+        mentorMap.set(action.mentorId, {
+          mentorId: action.mentorId,
+          mentorName: action.mentorName,
+          mentorEmail: action.mentorEmail,
+          addedAt: null,
+          removedAt: null,
+          isActive: false
+        })
+      }
+      
+      const entry = mentorMap.get(action.mentorId)
+      if (action.action === 'mentor_added') {
+        entry.addedAt = action.timestamp
+      } else if (action.action === 'mentor_removed') {
+        entry.removedAt = action.timestamp
+      }
+    }
+    
+    // Convert to array and determine if still active
+    const history = Array.from(mentorMap.values()).map(entry => ({
+      ...entry,
+      isActive: entry.addedAt && !entry.removedAt
+    }))
+    
+    return history.sort((a, b) => {
+      const dateA = a.addedAt?.toMillis?.() || 0
+      const dateB = b.addedAt?.toMillis?.() || 0
+      return dateB - dateA
+    })
+  } catch (error) {
+    console.error('Error getting project mentor history:', error)
+    return []
+  }
+}
+
+/**
+ * ANALYTICS OPERATIONS
+ */
+
+/**
+ * Get analytics for teams
+ */
+export const getTeamsAnalytics = async () => {
+  try {
+    const teams = await getTeams()
+    const projects = await getProjects()
+    
+    const analytics = {
+      totalTeams: teams.length,
+      totalMembers: teams.reduce((sum, team) => sum + (team.members?.length || 0), 0),
+      averageMembersPerTeam: teams.length > 0 
+        ? (teams.reduce((sum, team) => sum + (team.members?.length || 0), 0) / teams.length).toFixed(1)
+        : 0,
+      teamsWithProjects: teams.filter(team => 
+        projects.some(project => project.teamId === team.id)
+      ).length,
+      teamsList: teams.map(team => ({
+        id: team.id,
+        name: team.name,
+        membersCount: team.members?.length || 0,
+        projectsCount: projects.filter(p => p.teamId === team.id).length
+      }))
+    }
+    
+    return analytics
+  } catch (error) {
+    console.error('Error getting teams analytics:', error)
+    return null
+  }
+}
+
+/**
+ * Get analytics for projects
+ */
+export const getProjectsAnalytics = async () => {
+  try {
+    const projects = await getProjects()
+    const allHistory = await Promise.all(
+      projects.map(project => getProjectHistory(project.id))
+    )
+    
+    const analytics = {
+      totalProjects: projects.length,
+      totalMentees: projects.reduce((sum, project) => sum + (project.mentees?.length || 0), 0),
+      totalActiveMentors: projects.reduce((sum, project) => sum + (project.mentors?.length || 0), 0),
+      averageMenteesPerProject: projects.length > 0
+        ? (projects.reduce((sum, project) => sum + (project.mentees?.length || 0), 0) / projects.length).toFixed(1)
+        : 0,
+      projectsWithTeams: projects.filter(p => p.teamId).length,
+      projectsWithoutTeams: projects.filter(p => !p.teamId).length,
+      projectsList: projects.map(project => ({
+        id: project.id,
+        name: project.name,
+        menteesCount: project.mentees?.length || 0,
+        mentorsCount: project.mentors?.length || 0,
+        hasTeam: !!project.teamId
+      }))
+    }
+    
+    return analytics
+  } catch (error) {
+    console.error('Error getting projects analytics:', error)
+    return null
+  }
+}
+
+/**
+ * Get combined dashboard analytics
+ */
+export const getDashboardAnalytics = async (userId) => {
+  try {
+    const [teamsAnalytics, projectsAnalytics, userTeams, userProjects] = await Promise.all([
+      getTeamsAnalytics(),
+      getProjectsAnalytics(),
+      getTeamsByMember(userId),
+      getProjectsByPM(userId)
+    ])
+    
+    return {
+      teams: teamsAnalytics,
+      projects: projectsAnalytics,
+      userStats: {
+        myTeams: userTeams.length,
+        myProjects: userProjects.length,
+        myMentees: userProjects.reduce((sum, project) => sum + (project.mentees?.length || 0), 0),
+        myActiveMentors: userProjects.reduce((sum, project) => sum + (project.mentors?.length || 0), 0)
+      }
+    }
+  } catch (error) {
+    console.error('Error getting dashboard analytics:', error)
+    return null
+  }
+}
+
+/**
+ * MENTORSHIP-PROJECT INTEGRATION
+ */
+
+/**
+ * Get mentorships for a project
+ */
+export const getMentorshipsByProject = async (projectId) => {
+  try {
+    const mentorshipsQuery = query(
+      collection(db, COLLECTIONS.MENTORSHIPS),
+      where('projectId', '==', projectId)
+    )
+    const snapshot = await getDocs(mentorshipsQuery)
+    
+    const mentorships = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }))
+    
+    return sortByTimestamp(mentorships, 'createdAt', true)
+  } catch (error) {
+    console.error('Error getting mentorships by project:', error)
+    return []
+  }
+}
+
+/**
+ * Associate a mentorship with a project
+ */
+export const linkMentorshipToProject = async (mentorshipId, projectId) => {
+  try {
+    const mentorshipRef = doc(db, COLLECTIONS.MENTORSHIPS, mentorshipId)
+    await updateDoc(mentorshipRef, {
+      projectId,
+      updatedAt: Timestamp.now()
+    })
+    
+    // Get mentorship data to add mentor to project
+    const mentorshipSnap = await getDoc(mentorshipRef)
+    if (mentorshipSnap.exists()) {
+      const mentorship = mentorshipSnap.data()
+      if (mentorship.mentorId) {
+        try {
+          await addProjectMentor(projectId, mentorship.mentorId)
+        } catch (err) {
+          console.warn('Mentor may already be in project:', err)
+        }
+      }
+    }
+    
+    return { success: true }
+  } catch (error) {
+    console.error('Error linking mentorship to project:', error)
+    throw error
   }
 }
 
