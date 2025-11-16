@@ -36,6 +36,7 @@ import { mockMentorshipData, mockMaterials } from '../data/mockMentorshipData'
 // View Components
 import PMView from './mentorship-views/PMView'
 import MentorView from './mentorship-views/MentorView'
+import MenteeView from './mentorship-views/MenteeView'
 import DefaultView from './mentorship-views/DefaultView'
 
 export default function MentorshipDetails() {
@@ -103,14 +104,27 @@ export default function MentorshipDetails() {
   }, [id])
 
   // Handlers
-  const handleJoinRequestResponse = async (requestId, action) => {
+  const handleJoinRequestResponse = async (requestId, action, mentorProfile = null) => {
     setProcessingRequest(requestId)
     try {
-      await updateJoinRequestStatus(requestId, action === 'accept' ? 'accepted' : 'declined')
+      console.log(`🔄 Processing join request ${requestId}, action: ${action}`)
+      
+      await updateJoinRequestStatus(
+        requestId, 
+        action === 'accept' ? 'accepted' : 'declined',
+        mentorProfile
+      )
+      
+      console.log(`✅ Join request ${action === 'accept' ? 'accepted' : 'declined'} successfully`)
+      
+      if (action === 'accept') {
+        alert('✅ Mentor assigned successfully! The mentorship is now active.')
+      }
+      
       window.location.reload()
     } catch (error) {
-      console.error('Error handling join request:', error)
-      alert('Error processing request. Please try again.')
+      console.error('❌ Error handling join request:', error)
+      alert(`Error processing request: ${error.message}\n\nPlease try again.`)
     } finally {
       setProcessingRequest(null)
     }
@@ -253,6 +267,8 @@ export default function MentorshipDetails() {
               <PMView {...viewProps} />
             ) : permissions.isMentor ? (
               <MentorView {...viewProps} />
+            ) : permissions.isMentee ? (
+              <MenteeView {...viewProps} />
             ) : (
               <DefaultView navigate={navigate} />
             )}

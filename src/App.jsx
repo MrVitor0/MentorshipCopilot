@@ -35,14 +35,12 @@ function App() {
           {/* Protected Routes - require authentication and completed onboarding */}
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           
-          {/* Mentorship routes - only for mentors and PMs, not mentees */}
+          {/* Mentorship routes - accessible to all authenticated users */}
           <Route 
             path="/mentorship" 
             element={
               <ProtectedRoute>
-                <PermissionRoute permission="canManageMentorships">
-                  <Mentorship />
-                </PermissionRoute>
+                <Mentorship />
               </ProtectedRoute>
             } 
           />
@@ -50,9 +48,7 @@ function App() {
             path="/mentorship/:id" 
             element={
               <ProtectedRoute>
-                <PermissionRoute permission="canManageMentorships">
-                  <MentorshipDetails />
-                </PermissionRoute>
+                <MentorshipDetails />
               </ProtectedRoute>
             } 
           />

@@ -1,4 +1,4 @@
-import { Users, MessageSquare, Target, Calendar, TrendingUp, Sparkles, FolderKanban, BarChart3, CheckCircle, Clock, AlertTriangle, Briefcase, ArrowRight } from 'lucide-react'
+import { Users, MessageSquare, Target, Calendar, TrendingUp, Sparkles, FolderKanban, BarChart3, CheckCircle, Clock, AlertTriangle, Briefcase, ArrowRight, Search, Plus } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import Card from '../Card'
 import Button from '../Button'
@@ -6,6 +6,9 @@ import Avatar from '../Avatar'
 import Badge from '../Badge'
 import StatCard from '../StatCard'
 import EmptyState from '../EmptyState'
+import WelcomeHero from './WelcomeHero'
+import CTACard from './CTACard'
+import FeaturesSection from './FeaturesSection'
 
 const opportunities = [
   { title: 'Team Performance', description: 'Review team progress this week.', status: 'Action', icon: 'trending-up' },
@@ -26,45 +29,62 @@ export default function PMDashboard({ user, upcomingSessions, mentorships, loadi
   const completedSessions = Math.floor(activeProjects * 0.7) // Mock data
   const pendingReviews = Math.floor(activeProjects * 0.3) // Mock data
   const teamGrowth = activeProjects > 0 ? '+12%' : '0%'
+  
+  const hasNoMentorships = mentorships.length === 0
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
       <div className="lg:col-span-2 space-y-6 md:space-y-8">
-        {/* PM Insights Card */}
-        <Card gradient padding="xl">
-          <div className="flex items-center gap-4 mb-8">
-            <div className="relative">
-              <Avatar 
-                src={user?.photoURL}
-                initials={user?.displayName?.substring(0, 2)?.toUpperCase() || 'PM'}
-                size="2xl" 
-                ring 
-              />
-              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full border-4 border-white shadow-lg flex items-center justify-center">
-                <Briefcase className="w-3 h-3 text-white" />
+        {/* Management Overview - Different for empty vs active state */}
+        {hasNoMentorships ? (
+          <>
+            {/* Welcome Hero for empty state */}
+            <WelcomeHero />
+            
+            {/* Features Section */}
+            <FeaturesSection />
+          </>
+        ) : (
+          <>
+            <Card gradient padding="xl">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="relative">
+                  <Avatar 
+                    src={user?.photoURL}
+                    initials={user?.displayName?.substring(0, 2)?.toUpperCase() || 'PM'}
+                    size="2xl" 
+                    ring 
+                  />
+                  <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full border-4 border-white shadow-lg flex items-center justify-center">
+                    <Briefcase className="w-3 h-3 text-white" />
+                  </div>
+                </div>
+                <div>
+                  <h2 className="text-3xl font-bold bg-gradient-to-r from-neutral-black to-baires-blue bg-clip-text text-transparent mb-1">
+                    Management Overview
+                  </h2>
+                  <p className="text-neutral-gray-dark flex items-center gap-1">
+                    <BarChart3 className="w-3 h-3 text-baires-blue" />
+                    Project insights & analytics
+                  </p>
+                </div>
               </div>
-            </div>
-            <div>
-              <h2 className="text-3xl font-bold bg-gradient-to-r from-neutral-black to-baires-blue bg-clip-text text-transparent mb-1">
-                Management Overview
-              </h2>
-              <p className="text-neutral-gray-dark flex items-center gap-1">
-                <BarChart3 className="w-3 h-3 text-baires-blue" />
-                Project insights & analytics
-              </p>
-            </div>
-          </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
-            <StatCard value={activeProjects.toString()} label="Active Projects" trend={teamGrowth} IconComponent={FolderKanban} color="blue" />
-            <StatCard value={completedSessions.toString()} label="Completed Sessions" IconComponent={CheckCircle} color="green" />
-            <StatCard value={pendingReviews.toString()} label="Pending Reviews" IconComponent={Clock} color="orange" />
-            <StatCard value={upcomingSessions.length.toString()} label="Upcoming Sessions" IconComponent={Calendar} color="purple" />
-          </div>
-        </Card>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
+                <StatCard value={activeProjects.toString()} label="Active Projects" trend={teamGrowth} IconComponent={FolderKanban} color="blue" />
+                <StatCard value={completedSessions.toString()} label="Completed Sessions" IconComponent={CheckCircle} color="green" />
+                <StatCard value={pendingReviews.toString()} label="Pending Reviews" IconComponent={Clock} color="orange" />
+                <StatCard value={upcomingSessions.length.toString()} label="Upcoming Sessions" IconComponent={Calendar} color="purple" />
+              </div>
+            </Card>
+          </>
+        )}
 
-        {/* Project Management CTA */}
-        <Card padding="none" className="overflow-hidden bg-gradient-to-br from-blue-50 via-white to-purple-50 border-2 border-blue-200/50">
+        {/* Active mentorships content */}
+        {!hasNoMentorships && (
+          <>
+            {/* Project Management CTA - Only show when has mentorships */}
+            <Card padding="none" className="overflow-hidden bg-gradient-to-br from-blue-50 via-white to-purple-50 border-2 border-blue-200/50">
           <div className="relative">
             <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-baires-blue/10 to-purple-400/10 rounded-full blur-3xl"></div>
             <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-br from-blue-300/20 to-purple-300/10 rounded-full blur-2xl"></div>
@@ -146,32 +166,32 @@ export default function PMDashboard({ user, upcomingSessions, mentorships, loadi
           </div>
         </Card>
 
-        {/* Project Progress Overview */}
-        <Card gradient hover padding="lg">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-[16px] flex items-center justify-center shadow-lg">
-                <BarChart3 className="w-6 h-6 text-white" />
+            {/* Project Progress Overview - Only show when has mentorships */}
+            <Card gradient hover padding="lg">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-[16px] flex items-center justify-center shadow-lg">
+                    <BarChart3 className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-neutral-black">Project Progress</h3>
+                    <p className="text-xs text-neutral-gray-dark">Your mentorship projects</p>
+                  </div>
+                </div>
+                {mentorships.length > 3 && (
+                  <button 
+                    onClick={() => navigate('/mentorship')}
+                    className="text-sm font-semibold text-baires-orange hover:text-orange-700 flex items-center gap-1"
+                  >
+                    View All
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                )}
               </div>
-              <div>
-                <h3 className="text-xl font-bold text-neutral-black">Project Progress</h3>
-                <p className="text-xs text-neutral-gray-dark">Your mentorship projects</p>
-              </div>
-            </div>
-            {mentorships.length > 3 && (
-              <button 
-                onClick={() => navigate('/mentorship')}
-                className="text-sm font-semibold text-baires-orange hover:text-orange-700 flex items-center gap-1"
-              >
-                View All
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            )}
-          </div>
 
-          {mentorships.length > 0 ? (
-            <div className="space-y-4">
-              {mentorships.slice(0, 3).map((mentorship) => {
+              {mentorships.length > 0 ? (
+                <div className="space-y-4">
+                  {mentorships.slice(0, 3).map((mentorship) => {
                 // Helper function to format status
                 const formatStatus = (status) => {
                   if (!status) return 'Unknown'
@@ -276,25 +296,55 @@ export default function PMDashboard({ user, upcomingSessions, mentorships, loadi
                   </div>
                 )
               })}
-            </div>
-          ) : (
-            <EmptyState 
-              icon={FolderKanban}
-              title="No projects yet"
-              description="Start managing mentorship projects"
-              action={
-                <Button variant="orange" size="sm" onClick={() => navigate('/create-mentorship')}>
-                  Create Project
-                </Button>
-              }
-            />
-          )}
-        </Card>
+                </div>
+              ) : (
+                <EmptyState 
+                  icon={FolderKanban}
+                  title="No projects yet"
+                  description="Start managing mentorship projects"
+                  action={
+                    <Button variant="orange" size="sm" onClick={() => navigate('/create-mentorship')}>
+                      Create Project
+                    </Button>
+                  }
+                />
+              )}
+            </Card>
+          </>
+        )}
       </div>
 
       <div className="space-y-6 md:space-y-8">
-        {/* Action Items */}
-        <Card hover padding="lg" className="bg-gradient-to-br from-purple-500 via-purple-600 to-purple-700 text-white border-none shadow-[0_20px_50px_rgb(168,85,247,0.3)]">
+        {/* Sidebar content - different for empty state */}
+        {hasNoMentorships ? (
+          <>
+            {/* CTA Cards for empty state */}
+            <CTACard
+              title="Create New Mentorship"
+              description="Start a new mentorship journey. Describe the challenge, and our AI will find the top 3 best mentors from your team."
+              icon={Plus}
+              tags={['AI-Powered', 'Smart Matching', 'Fast Setup']}
+              gradient="from-blue-500 via-blue-600 to-indigo-600"
+              shadowColor="rgb(59,130,246,0.3)"
+              shadowColorHover="rgb(59,130,246,0.4)"
+              onClick={() => navigate('/create-mentorship')}
+            />
+
+            <CTACard
+              title="Browse Mentors"
+              description="Explore available mentors across all technologies. Find experts in niche skills and hidden talents in your organization."
+              icon={Search}
+              tags={['All Technologies', 'Expert Pool', 'Live Search']}
+              gradient="from-indigo-500 via-indigo-600 to-purple-600"
+              shadowColor="rgb(99,102,241,0.3)"
+              shadowColorHover="rgb(99,102,241,0.4)"
+              onClick={() => navigate('/mentors')}
+            />
+          </>
+        ) : (
+          <>
+            {/* Action Required */}
+            <Card hover padding="lg" className="bg-gradient-to-br from-purple-500 via-purple-600 to-purple-700 text-white border-none shadow-[0_20px_50px_rgb(168,85,247,0.3)]">
           <div className="relative">
             <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
             <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
@@ -421,6 +471,8 @@ export default function PMDashboard({ user, upcomingSessions, mentorships, loadi
             />
           )}
         </Card>
+          </>
+        )}
       </div>
     </div>
   )

@@ -70,10 +70,10 @@ const supportMaterials = [
 ]
 
 export default function MenteeDashboard({ user, upcomingSessions, mentorships, loading }) {
-  const currentMentorship = mentorships[0] // Mentees are in one project
-  const progress = currentMentorship ? 68 : 0 // Mock progress
-  const completedSessions = upcomingSessions.length > 0 ? 12 : 0 // Mock data
-  const hoursSpent = completedSessions * 1.5 // Mock calculation
+  const currentMentorship = mentorships[0] // Mentees typically have one active mentorship
+  const progress = currentMentorship?.progress || 0
+  const completedSessions = currentMentorship?.sessionsCompleted || 0
+  const hoursSpent = completedSessions * 1.5 // Assuming 1.5 hours per session
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
@@ -126,10 +126,20 @@ export default function MenteeDashboard({ user, upcomingSessions, mentorships, l
                     </div>
                     <div>
                       <h2 className="text-2xl font-bold text-neutral-black flex items-center gap-2">
-                        {user?.project || 'Your Mentorship'}
+                        {currentMentorship ? (
+                          currentMentorship.menteeName || 'Your Mentorship'
+                        ) : (
+                          'No Active Mentorship'
+                        )}
                         <Sparkles className="w-5 h-5 text-purple-600 animate-pulse" />
                       </h2>
-                      <p className="text-sm text-neutral-gray-dark mt-1">Current learning path</p>
+                      <p className="text-sm text-neutral-gray-dark mt-1">
+                        {currentMentorship ? (
+                          `Mentor: ${currentMentorship.mentorName || 'Not assigned yet'}`
+                        ) : (
+                          'No mentorship assigned'
+                        )}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -153,7 +163,13 @@ export default function MenteeDashboard({ user, upcomingSessions, mentorships, l
 
               <div className="grid grid-cols-2 gap-4">
                 <button 
-                  onClick={() => window.location.href = '/mentorship'}
+                  onClick={() => {
+                    if (currentMentorship) {
+                      window.location.href = `/mentorship/${currentMentorship.id}`
+                    } else {
+                      window.location.href = '/mentorship'
+                    }
+                  }}
                   className="group relative overflow-hidden bg-gradient-to-br from-white to-purple-50 p-4 rounded-[16px] border-2 border-purple-200/50 hover:border-purple-400/70 hover:shadow-lg transition-all duration-300 text-left"
                 >
                   <div className="flex items-center gap-3">
@@ -168,7 +184,13 @@ export default function MenteeDashboard({ user, upcomingSessions, mentorships, l
                 </button>
 
                 <button 
-                  onClick={() => window.location.href = '/mentorship'}
+                  onClick={() => {
+                    if (currentMentorship) {
+                      window.location.href = `/mentorship/${currentMentorship.id}`
+                    } else {
+                      window.location.href = '/mentorship'
+                    }
+                  }}
                   className="group relative overflow-hidden bg-gradient-to-br from-white to-blue-50 p-4 rounded-[16px] border-2 border-blue-200/50 hover:border-blue-400/70 hover:shadow-lg transition-all duration-300 text-left"
                 >
                   <div className="flex items-center gap-3">

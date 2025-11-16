@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { Clock, Users, UserPlus, CheckCircle, X as XIcon, BarChart3, Calendar, TrendingUp, Target, Sparkles, Bot, FileText, MessageSquare, AlertCircle } from 'lucide-react'
 import Card from '../../components/Card'
 import Badge from '../../components/Badge'
 import Button from '../../components/Button'
 import Avatar from '../../components/Avatar'
+import MessageModal from '../../components/MessageModal'
 import { StatsCard, SessionHistory, ProgressChart, MaterialsList } from '../../components/mentorship-details'
 
 export default function PMView({ 
@@ -22,6 +24,8 @@ export default function PMView({
   id,
   sessions
 }) {
+  const [isMessageModalOpen, setIsMessageModalOpen] = useState(false)
+  const [messageRecipient, setMessageRecipient] = useState(null)
   const isPending = data?.status === 'pending' || data?.status === 'pending_mentor'
 
   return (
@@ -270,7 +274,7 @@ export default function PMView({
                 
                 <div className="flex gap-2">
                   <button
-                    onClick={() => handleJoinRequestResponse(request.id, 'accept')}
+                    onClick={() => handleJoinRequestResponse(request.id, 'accept', request.mentorProfile)}
                     disabled={processingRequest === request.id}
                     className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-3 rounded-[14px] font-bold hover:shadow-lg disabled:opacity-50 transition-all flex items-center justify-center gap-2"
                   >
@@ -284,7 +288,7 @@ export default function PMView({
                     )}
                   </button>
                   <button
-                    onClick={() => handleJoinRequestResponse(request.id, 'decline')}
+                    onClick={() => handleJoinRequestResponse(request.id, 'decline', request.mentorProfile)}
                     disabled={processingRequest === request.id}
                     className="flex-1 bg-neutral-200 text-neutral-black px-4 py-3 rounded-[14px] font-bold hover:bg-neutral-300 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
                   >
@@ -448,20 +452,46 @@ export default function PMView({
             <Card padding="lg">
               <h3 className="text-lg font-bold text-neutral-black mb-4">Quick Actions</h3>
               <div className="space-y-3">
-                <button className="w-full flex items-center gap-3 p-3 bg-gradient-to-r from-baires-blue to-blue-600 text-white rounded-[14px] font-semibold hover:shadow-lg transition-all">
+                <button 
+                  onClick={() => {
+                    setMessageRecipient({
+                      name: data?.mentorName || 'Mentor',
+                      avatar: data?.mentorAvatar,
+                      role: 'Mentor'
+                    })
+                    setIsMessageModalOpen(true)
+                  }}
+                  disabled={!data?.mentorId}
+                  className="w-full flex items-center gap-3 p-3 bg-gradient-to-r from-baires-blue to-blue-600 text-white rounded-[14px] font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
                   <MessageSquare className="w-5 h-5" />
                   <span>Message Mentor</span>
                 </button>
-                <button className="w-full flex items-center gap-3 p-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-[14px] font-semibold hover:shadow-lg transition-all">
+                <button 
+                  onClick={() => alert('Session scheduling feature coming soon!\n\nYou will be able to:\n- Schedule review meetings\n- Check progress together\n- Set team objectives\n- Track milestones')}
+                  className="w-full flex items-center gap-3 p-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-[14px] font-semibold hover:shadow-lg transition-all"
+                >
                   <Calendar className="w-5 h-5" />
                   <span>Schedule Review</span>
                 </button>
-                <button className="w-full flex items-center gap-3 p-3 bg-neutral-100 text-neutral-black rounded-[14px] font-semibold hover:bg-neutral-200 transition-all">
+                <button 
+                  onClick={() => alert('Report export feature coming soon!\n\nYou will be able to:\n- Export mentorship progress\n- Generate PDF reports\n- Share with stakeholders\n- Track metrics over time')}
+                  className="w-full flex items-center gap-3 p-3 bg-neutral-100 text-neutral-black rounded-[14px] font-semibold hover:bg-neutral-200 transition-all"
+                >
                   <FileText className="w-5 h-5" />
                   <span>Export Report</span>
                 </button>
               </div>
             </Card>
+            
+            <MessageModal 
+              isOpen={isMessageModalOpen}
+              onClose={() => {
+                setIsMessageModalOpen(false)
+                setMessageRecipient(null)
+              }}
+              recipient={messageRecipient}
+            />
           </div>
         </div>
       )}

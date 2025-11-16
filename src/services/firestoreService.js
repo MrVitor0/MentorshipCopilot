@@ -829,16 +829,90 @@ export const getJoinRequestsForMentorship = async (mentorshipId) => {
   }
 }
 
-export const updateJoinRequestStatus = async (requestId, status) => {
+export const updateJoinRequestStatus = async (requestId, status, mentorData = null) => {
   try {
     const requestRef = doc(db, 'mentorship_join_requests', requestId)
-    const data = {
+    
+    // First get the join request to know which mentorship it belongs to
+    const requestSnap = await getDoc(requestRef)
+    if (!requestSnap.exists()) {
+      throw new Error('Join request not found')
+    }
+    
+    const joinRequest = requestSnap.data()
+    
+    // Update join request status
+    const requestData = {
       status,
       updatedAt: Timestamp.now()
     }
+    await updateDoc(requestRef, requestData)
     
-    await updateDoc(requestRef, data)
-    return data
+    // If accepted, assign mentor to the mentorship and decline other requests
+    if (status === 'accepted' && joinRequest.mentorshipId && joinRequest.mentorId) {
+      const mentorshipRef = doc(db, COLLECTIONS.MENTORSHIPS, joinRequest.mentorshipId)
+      
+      // Get mentor profile if not provided
+      let mentorProfile = mentorData
+      if (!mentorProfile) {
+        mentorProfile = await getUserProfile(joinRequest.mentorId)
+      }
+      
+      const mentorshipData = {
+        mentorId: joinRequest.mentorId,
+        mentorName: mentorProfile?.displayName || joinRequest.mentorName,
+        mentorAvatar: mentorProfile?.photoURL || joinRequest.mentorAvatar,
+        status: 'active', // Change from 'pending' to 'active'
+        acceptedAt: Timestamp.now(),
+        updatedAt: Timestamp.now()
+      }
+      
+      await updateDoc(mentorshipRef, mentorshipData)
+      
+      console.log('✅ Mentor assigned to mentorship via join request:', joinRequest.mentorshipId)
+      
+      // Decline all other pending join requests for this mentorship
+      const otherRequestsQuery = query(
+        collection(db, 'mentorship_join_requests'),
+        where('mentorshipId', '==', joinRequest.mentorshipId),
+        where('status', '==', 'pending')
+      )
+      const otherRequestsSnapshot = await getDocs(otherRequestsQuery)
+      
+      const declinePromises = otherRequestsSnapshot.docs
+        .filter(doc => doc.id !== requestId) // Don't decline the one being accepted
+        .map(doc => updateDoc(doc.ref, {
+          status: 'auto_declined',
+          updatedAt: Timestamp.now(),
+          declinedReason: 'Another mentor was selected'
+        }))
+      
+      await Promise.all(declinePromises)
+      
+      console.log(`✅ Auto-declined ${declinePromises.length} other pending join requests`)
+      
+      // Also decline any pending invitations for this mentorship
+      const invitationsQuery = query(
+        collection(db, 'mentorship_invitations'),
+        where('mentorshipId', '==', joinRequest.mentorshipId),
+        where('status', '==', 'pending')
+      )
+      const invitationsSnapshot = await getDocs(invitationsQuery)
+      
+      const declineInvitationsPromises = invitationsSnapshot.docs.map(doc => 
+        updateDoc(doc.ref, {
+          status: 'auto_declined',
+          updatedAt: Timestamp.now(),
+          declinedReason: 'Mentorship filled by join request'
+        })
+      )
+      
+      await Promise.all(declineInvitationsPromises)
+      
+      console.log(`✅ Auto-declined ${declineInvitationsPromises.length} pending invitations`)
+    }
+    
+    return requestData
   } catch (error) {
     console.error('Error updating join request status:', error)
     throw new Error('Error updating join request')
