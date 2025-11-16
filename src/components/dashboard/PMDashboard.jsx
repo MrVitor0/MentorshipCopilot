@@ -1,4 +1,4 @@
-import { Users, MessageSquare, Target, Calendar, TrendingUp, Sparkles, FolderKanban, BarChart3, CheckCircle, Clock, AlertTriangle, Briefcase, ArrowRight, Search, Plus } from 'lucide-react'
+import { Users, MessageSquare, Target, Calendar, TrendingUp, Sparkles, FolderKanban, BarChart3, CheckCircle, Clock, AlertTriangle, Briefcase, ArrowRight, Search, Plus, Brain, Zap } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import Card from '../Card'
 import Button from '../Button'
@@ -6,9 +6,6 @@ import Avatar from '../Avatar'
 import Badge from '../Badge'
 import StatCard from '../StatCard'
 import EmptyState from '../EmptyState'
-import WelcomeHero from './WelcomeHero'
-import CTACard from './CTACard'
-import FeaturesSection from './FeaturesSection'
 
 const opportunities = [
   { title: 'Team Performance', description: 'Review team progress this week.', status: 'Action', icon: 'trending-up' },
@@ -33,20 +30,370 @@ export default function PMDashboard({ user, upcomingSessions, mentorships, loadi
   const hasNoMentorships = mentorships.length === 0
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-      <div className="lg:col-span-2 space-y-6 md:space-y-8">
-        {/* Management Overview - Different for empty vs active state */}
+    <div className="space-y-6 md:space-y-8">
         {hasNoMentorships ? (
           <>
-            {/* Welcome Hero for empty state */}
-            <WelcomeHero />
-            
-            {/* Features Section */}
-            <FeaturesSection />
+          {/* First Row - Hero + Quick Actions */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+            {/* Hero Section with Primary Action */}
+            <Card padding="none" className="lg:col-span-2 overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-indigo-700 border-none shadow-[0_20px_60px_rgb(59,130,246,0.3)] h-full">
+              <div className="relative">
+                <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-white/20 to-transparent rounded-full blur-3xl"></div>
+                <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-br from-blue-400/30 to-transparent rounded-full blur-2xl"></div>
+                
+                <div className="relative p-8 md:p-12">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-[18px] flex items-center justify-center shadow-lg">
+                      <Sparkles className="w-7 h-7 text-white" />
+                    </div>
+                    <span className="text-white/90 text-sm font-semibold uppercase tracking-wider">AI-Powered Platform</span>
+                  </div>
+                  
+                  <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 leading-tight">
+                    Welcome to Mentorship CoPilot
+                  </h1>
+                  <p className="text-xl text-white/90 mb-8 max-w-2xl leading-relaxed">
+                    Transform your team's growth with intelligent mentorship matching. Find the perfect mentor for any technology and track progress in real-time.
+                  </p>
+                  
+                  <div className="flex flex-wrap gap-4 mb-8">
+                    <button
+                      onClick={() => navigate('/create-mentorship')}
+                      className="group bg-white text-baires-blue px-8 py-4 rounded-[16px] font-bold text-lg hover:shadow-[0_20px_50px_rgba(255,255,255,0.3)] hover:scale-105 transition-all duration-300 flex items-center gap-3 cursor-pointer"
+                    >
+                      <Plus className="w-6 h-6" />
+                      <span>Create Your First Mentorship</span>
+                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    </button>
+                    
+                    <button
+                      onClick={() => navigate('/mentors')}
+                      className="group bg-white/10 backdrop-blur-sm text-white px-8 py-4 rounded-[16px] font-bold text-lg border-2 border-white/30 hover:bg-white/20 hover:border-white/50 transition-all duration-300 flex items-center gap-3 cursor-pointer"
+                    >
+                      <Search className="w-6 h-6" />
+                      <span>Browse Mentors</span>
+                    </button>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-6 border-t border-white/20">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-[14px] flex items-center justify-center">
+                        <Brain className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-white font-bold text-sm">AI Matching</p>
+                        <p className="text-xs text-white/80">Smart recommendations</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-[14px] flex items-center justify-center">
+                        <BarChart3 className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-white font-bold text-sm">Centralized Hub</p>
+                        <p className="text-xs text-white/80">All progress tracked</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-[14px] flex items-center justify-center">
+                        <Zap className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-white font-bold text-sm">Fast Setup</p>
+                        <p className="text-xs text-white/80">Ready in minutes</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* Quick Actions Card - Right Column, Same Height as Hero */}
+            <Card padding="xl" className="bg-gradient-to-br from-blue-600 via-indigo-600 to-indigo-700 border-none shadow-[0_20px_60px_rgb(59,130,246,0.3)] text-white h-full flex flex-col">
+              <div className="relative flex-1 flex flex-col">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white/20 to-transparent rounded-full blur-2xl"></div>
+                <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-br from-blue-400/30 to-transparent rounded-full blur-xl"></div>
+                
+                <div className="relative flex-1 flex flex-col">
+                  <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-[18px] flex items-center justify-center mb-4 shadow-lg">
+                    <Sparkles className="w-7 h-7 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-bold mb-2">Quick Actions</h3>
+                  <p className="text-sm mb-6 opacity-90 leading-relaxed">
+                    Everything you need to get started with your mentorship program
+                  </p>
+                  
+                  <div className="space-y-3 mt-auto">
+                    <button
+                      onClick={() => navigate('/create-mentorship')}
+                      className="group w-full bg-white/20 backdrop-blur-sm hover:bg-white/30 p-4 rounded-[16px] transition-all duration-300 border border-white/30 hover:scale-105 shadow-lg text-left cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-white/30 backdrop-blur-sm rounded-[12px] flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <Plus className="w-5 h-5 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-bold text-white text-sm">Create Mentorship</h4>
+                          <p className="text-xs text-white/80">Start with AI matching</p>
+                        </div>
+                        <ArrowRight className="w-5 h-5 text-white group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => navigate('/mentors')}
+                      className="group w-full bg-white/20 backdrop-blur-sm hover:bg-white/30 p-4 rounded-[16px] transition-all duration-300 border border-white/30 hover:scale-105 shadow-lg text-left cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-white/30 backdrop-blur-sm rounded-[12px] flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <Search className="w-5 h-5 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-bold text-white text-sm">Browse Mentors</h4>
+                          <p className="text-xs text-white/80">Explore expert pool</p>
+                        </div>
+                        <ArrowRight className="w-5 h-5 text-white group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => navigate('/mentorship')}
+                      className="group w-full bg-white/20 backdrop-blur-sm hover:bg-white/30 p-4 rounded-[16px] transition-all duration-300 border border-white/30 hover:scale-105 shadow-lg text-left cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-white/30 backdrop-blur-sm rounded-[12px] flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <FolderKanban className="w-5 h-5 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-bold text-white text-sm">My Projects</h4>
+                          <p className="text-xs text-white/80">View all mentorships</p>
+                        </div>
+                        <ArrowRight className="w-5 h-5 text-white group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          {/* Second Row - Getting Started + Features */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+            {/* Getting Started Guide */}
+            <Card gradient padding="xl" className="lg:col-span-2 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-100/50 to-transparent rounded-full blur-3xl"></div>
+              <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-br from-purple-100/50 to-transparent rounded-full blur-2xl"></div>
+              
+              <div className="relative">
+                <div className="text-center mb-8">
+                  <div className="inline-flex items-center gap-2 bg-blue-100 text-baires-blue px-4 py-2 rounded-full text-sm font-semibold mb-4">
+                    <Sparkles className="w-4 h-4" />
+                    Quick Start Guide
+                  </div>
+                  <h2 className="text-3xl font-bold text-neutral-black mb-3">Getting Started</h2>
+                  <p className="text-neutral-gray-dark text-lg">Follow these simple steps to launch your first mentorship</p>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="relative group">
+                    <div className="absolute -top-3 -left-3 w-14 h-14 bg-gradient-to-br from-baires-blue to-blue-600 rounded-full flex items-center justify-center shadow-[0_10px_30px_rgb(26,115,232,0.3)] z-10 group-hover:scale-110 transition-transform duration-300">
+                      <span className="text-white font-bold text-xl">1</span>
+                    </div>
+                    <div className="relative overflow-hidden bg-white p-6 pt-10 rounded-[24px] border-2 border-blue-100 hover:border-blue-300 hover:shadow-[0_20px_50px_rgb(26,115,232,0.15)] transition-all duration-300 h-full group-hover:-translate-y-1">
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-100/50 to-transparent rounded-full blur-2xl"></div>
+                      
+                      <div className="relative">
+                        <div className="w-16 h-16 bg-gradient-to-br from-baires-blue to-blue-600 rounded-[20px] flex items-center justify-center mb-5 shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                          <Plus className="w-8 h-8 text-white" />
+                        </div>
+                        <h3 className="font-bold text-neutral-black text-xl mb-3">Create Request</h3>
+                        <p className="text-sm text-neutral-gray-dark leading-relaxed mb-5">
+                          Select a mentee and describe the challenge or skill they need to develop.
+                        </p>
+                        <button
+                          onClick={() => navigate('/create-mentorship')}
+                          className="text-baires-blue font-bold text-sm flex items-center gap-2 hover:gap-3 transition-all group/btn cursor-pointer"
+                        >
+                          <span>Start Now</span>
+                          <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform" />
+                        </button>
+                        
+                        <div className="mt-4 pt-4 border-t border-blue-100">
+                          <div className="flex items-center gap-2 text-xs text-blue-600">
+                            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                            <span className="font-medium">Ready to use</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="relative group">
+                    <div className="absolute -top-3 -left-3 w-14 h-14 bg-gradient-to-br from-baires-orange to-orange-600 rounded-full flex items-center justify-center shadow-[0_10px_30px_rgb(249,115,22,0.3)] z-10 group-hover:scale-110 transition-transform duration-300">
+                      <span className="text-white font-bold text-xl">2</span>
+                    </div>
+                    <div className="relative overflow-hidden bg-white p-6 pt-10 rounded-[24px] border-2 border-orange-100 hover:border-orange-300 hover:shadow-[0_20px_50px_rgb(249,115,22,0.15)] transition-all duration-300 h-full group-hover:-translate-y-1">
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-100/50 to-transparent rounded-full blur-2xl"></div>
+                      
+                      <div className="relative">
+                        <div className="w-16 h-16 bg-gradient-to-br from-baires-orange to-orange-600 rounded-[20px] flex items-center justify-center mb-5 shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                          <Sparkles className="w-8 h-8 text-white" />
+                        </div>
+                        <h3 className="font-bold text-neutral-black text-xl mb-3">AI Recommends</h3>
+                        <p className="text-sm text-neutral-gray-dark leading-relaxed mb-5">
+                          Our AI analyzes your team and suggests the 3 best mentor matches with justifications.
+                        </p>
+                        <div className="inline-flex items-center gap-2 bg-orange-50 text-baires-orange px-3 py-1.5 rounded-full text-xs font-semibold">
+                          <div className="w-1.5 h-1.5 bg-baires-orange rounded-full"></div>
+                          Automated Process
+                        </div>
+                        
+                        <div className="mt-4 pt-4 border-t border-orange-100">
+                          <div className="flex items-center gap-2 text-xs text-orange-600">
+                            <Brain className="w-4 h-4" />
+                            <span className="font-medium">AI-powered</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="relative group">
+                    <div className="absolute -top-3 -left-3 w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-[0_10px_30px_rgb(34,197,94,0.3)] z-10 group-hover:scale-110 transition-transform duration-300">
+                      <span className="text-white font-bold text-xl">3</span>
+                    </div>
+                    <div className="relative overflow-hidden bg-white p-6 pt-10 rounded-[24px] border-2 border-green-100 hover:border-green-300 hover:shadow-[0_20px_50px_rgb(34,197,94,0.15)] transition-all duration-300 h-full group-hover:-translate-y-1">
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-100/50 to-transparent rounded-full blur-2xl"></div>
+                      
+                      <div className="relative">
+                        <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-[20px] flex items-center justify-center mb-5 shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                          <BarChart3 className="w-8 h-8 text-white" />
+                        </div>
+                        <h3 className="font-bold text-neutral-black text-xl mb-3">Track Progress</h3>
+                        <p className="text-sm text-neutral-gray-dark leading-relaxed mb-5">
+                          Monitor all mentorship activities from your centralized dashboard.
+                        </p>
+                        <div className="inline-flex items-center gap-2 bg-green-50 text-green-700 px-3 py-1.5 rounded-full text-xs font-semibold">
+                          <div className="w-1.5 h-1.5 bg-green-600 rounded-full"></div>
+                          Real-time Updates
+                        </div>
+                        
+                        <div className="mt-4 pt-4 border-t border-green-100">
+                          <div className="flex items-center gap-2 text-xs text-green-600">
+                            <TrendingUp className="w-4 h-4" />
+                            <span className="font-medium">Live tracking</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* System Structure Cards - Right Column, Same Height as Getting Started */}
+            <div className="space-y-4 flex flex-col">
+              <div className="group p-6 bg-gradient-to-br from-indigo-50 to-white rounded-[20px] border border-indigo-100 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex-1">
+                <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-[18px] flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform">
+                  <Users className="w-7 h-7 text-white" />
+                </div>
+                <h4 className="font-bold text-neutral-black mb-2 text-lg">Teams</h4>
+                <p className="text-sm text-neutral-gray-dark leading-relaxed mb-3">
+                  Organize your PMs into teams. Each team can manage multiple projects.
+                </p>
+                <div className="flex items-center gap-2 text-xs text-indigo-600 bg-indigo-50 px-2 py-1 rounded-lg">
+                  <Briefcase className="w-3 h-3" />
+                  <span className="font-medium">Admin managed</span>
+                </div>
+              </div>
+
+              <div className="group p-6 bg-gradient-to-br from-blue-50 to-white rounded-[20px] border border-blue-100 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex-1">
+                <div className="w-14 h-14 bg-gradient-to-br from-baires-blue to-blue-600 rounded-[18px] flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform">
+                  <FolderKanban className="w-7 h-7 text-white" />
+                </div>
+                <h4 className="font-bold text-neutral-black mb-2 text-lg">Projects</h4>
+                <p className="text-sm text-neutral-gray-dark leading-relaxed mb-3">
+                  Teams create projects with mentees who need guidance and development.
+                </p>
+                <div className="flex items-center gap-2 text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-lg">
+                  <Users className="w-3 h-3" />
+                  <span className="font-medium">Multiple mentees per project</span>
+                </div>
+              </div>
+
+              <div className="group p-6 bg-gradient-to-br from-green-50 to-white rounded-[20px] border border-green-100 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex-1">
+                <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-[18px] flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform">
+                  <Target className="w-7 h-7 text-white" />
+                </div>
+                <h4 className="font-bold text-neutral-black mb-2 text-lg">Mentors</h4>
+                <p className="text-sm text-neutral-gray-dark leading-relaxed mb-3">
+                  When a mentee needs help, the perfect mentor is temporarily added to the project.
+                </p>
+                <div className="flex items-center gap-2 text-xs text-green-600 bg-green-50 px-2 py-1 rounded-lg">
+                  <Sparkles className="w-3 h-3" />
+                  <span className="font-medium">AI-matched & dynamic</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Third Row - Why Use Section Full Width */}
+          <Card padding="xl" className="bg-gradient-to-br from-purple-50 via-white to-blue-50 border-2 border-purple-100/50">
+              <div className="flex items-start gap-4 mb-6">
+                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-[18px] flex items-center justify-center shadow-lg flex-shrink-0">
+                  <Target className="w-8 h-8 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-neutral-black mb-2">Solve Real PM Challenges</h3>
+                  <p className="text-neutral-gray-dark text-sm leading-relaxed">
+                    Built specifically to address the pain points Project Managers face daily
+                  </p>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <CheckCircle className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-neutral-black text-sm mb-1">Find Niche Experts</p>
+                    <p className="text-xs text-neutral-gray-dark leading-relaxed">
+                      Discover hidden talents across your organization, even for specialized technologies
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <CheckCircle className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-neutral-black text-sm mb-1">Centralized Tracking</p>
+                    <p className="text-xs text-neutral-gray-dark leading-relaxed">
+                      No more scattered spreadsheets or Slack threads - everything in one place
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <CheckCircle className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-neutral-black text-sm mb-1">Automated Workflows</p>
+                    <p className="text-xs text-neutral-gray-dark leading-relaxed">
+                      Reduce manual work and focus on what matters - team development
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </Card>
           </>
         ) : (
           <>
-            <Card gradient padding="xl">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+            <Card gradient padding="xl" className="lg:col-span-2">
               <div className="flex items-center gap-4 mb-8">
                 <div className="relative">
                   <Avatar 
@@ -77,12 +424,7 @@ export default function PMDashboard({ user, upcomingSessions, mentorships, loadi
                 <StatCard value={upcomingSessions.length.toString()} label="Upcoming Sessions" IconComponent={Calendar} color="purple" />
               </div>
             </Card>
-          </>
-        )}
 
-        {/* Active mentorships content */}
-        {!hasNoMentorships && (
-          <>
             {/* Project Management CTA - Only show when has mentorships */}
             <Card padding="none" className="overflow-hidden bg-gradient-to-br from-blue-50 via-white to-purple-50 border-2 border-blue-200/50">
           <div className="relative">
@@ -310,40 +652,8 @@ export default function PMDashboard({ user, upcomingSessions, mentorships, loadi
                 />
               )}
             </Card>
-          </>
-        )}
-      </div>
 
-      <div className="space-y-6 md:space-y-8">
-        {/* Sidebar content - different for empty state */}
-        {hasNoMentorships ? (
-          <>
-            {/* CTA Cards for empty state */}
-            <CTACard
-              title="Create New Mentorship"
-              description="Start a new mentorship journey. Describe the challenge, and our AI will find the top 3 best mentors from your team."
-              icon={Plus}
-              tags={['AI-Powered', 'Smart Matching', 'Fast Setup']}
-              gradient="from-blue-500 via-blue-600 to-indigo-600"
-              shadowColor="rgb(59,130,246,0.3)"
-              shadowColorHover="rgb(59,130,246,0.4)"
-              onClick={() => navigate('/create-mentorship')}
-            />
-
-            <CTACard
-              title="Browse Mentors"
-              description="Explore available mentors across all technologies. Find experts in niche skills and hidden talents in your organization."
-              icon={Search}
-              tags={['All Technologies', 'Expert Pool', 'Live Search']}
-              gradient="from-indigo-500 via-indigo-600 to-purple-600"
-              shadowColor="rgb(99,102,241,0.3)"
-              shadowColorHover="rgb(99,102,241,0.4)"
-              onClick={() => navigate('/mentors')}
-            />
-          </>
-        ) : (
-          <>
-            {/* Action Required */}
+            {/* Action Required - Right Column */}
             <Card hover padding="lg" className="bg-gradient-to-br from-purple-500 via-purple-600 to-purple-700 text-white border-none shadow-[0_20px_50px_rgb(168,85,247,0.3)]">
           <div className="relative">
             <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
@@ -366,7 +676,10 @@ export default function PMDashboard({ user, upcomingSessions, mentorships, loadi
             </div>
           </div>
         </Card>
+          </div>
 
+          {/* Second Row - Action Items + Upcoming Sessions */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
         {/* Action Opportunities */}
         <Card gradient hover padding="lg">
           <div className="flex items-center gap-2 mb-6">
@@ -471,9 +784,9 @@ export default function PMDashboard({ user, upcomingSessions, mentorships, loadi
             />
           )}
         </Card>
+          </div>
           </>
         )}
-      </div>
     </div>
   )
 }
