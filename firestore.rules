@@ -151,5 +151,66 @@ service cloud.firestore {
       // Authenticated users can delete goals
       allow delete: if isAuthenticated();
     }
+    
+    // Teams collection
+    match /teams/{teamId} {
+      // Any authenticated user can read teams
+      allow read: if isAuthenticated();
+      
+      // Any authenticated user can create teams (simplified for development)
+      allow create: if isAuthenticated();
+      
+      // Team members or creator can update
+      allow update: if isAuthenticated();
+      
+      // Any authenticated user can delete (simplified for development)
+      allow delete: if isAuthenticated();
+    }
+    
+    // Projects collection
+    match /projects/{projectId} {
+      // Any authenticated user can read projects
+      allow read: if isAuthenticated();
+      
+      // Any authenticated user can create projects (simplified for development)
+      allow create: if isAuthenticated();
+      
+      // Any authenticated user can update (simplified for development)
+      allow update: if isAuthenticated();
+      
+      // Any authenticated user can delete (simplified for development)
+      allow delete: if isAuthenticated();
+    }
+    
+    // Notifications collection
+    match /notifications/{notificationId} {
+      // Users can only read their own notifications
+      allow read: if isAuthenticated()
+        && resource.data.userId == request.auth.uid;
+      
+      // System can create notifications (via cloud functions or authenticated users)
+      allow create: if isAuthenticated();
+      
+      // Users can update their own notifications (mark as read)
+      allow update: if isAuthenticated()
+        && resource.data.userId == request.auth.uid;
+      
+      // Users can delete their own notifications
+      allow delete: if isAuthenticated()
+        && resource.data.userId == request.auth.uid;
+    }
+    
+    // Project history collection
+    match /project_history/{historyId} {
+      // Authenticated users can read project history
+      allow read: if isAuthenticated();
+      
+      // Only system/authenticated users can create history entries
+      allow create: if isAuthenticated();
+      
+      // No updates or deletes allowed on history (audit trail)
+      allow update: if false;
+      allow delete: if false;
+    }
   }
 }

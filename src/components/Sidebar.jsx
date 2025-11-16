@@ -3,7 +3,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import usePermissions from '../hooks/usePermissions'
 import Avatar from './Avatar'
-import { Lightbulb, Palette, Settings as SettingsIcon, BarChart3, LogOut, ChevronDown } from 'lucide-react'
+import { Users, FolderOpen, Settings as SettingsIcon, LogOut, ChevronDown, BarChart3 } from 'lucide-react'
+import NotificationBell from './NotificationBell'
 
 const menuItems = [
   { 
@@ -26,13 +27,17 @@ const menuItems = [
       </svg>
     )
   },
+  { 
+    name: 'Analytics', 
+    path: '/analytics',
+    permission: 'canManageProjects', // Only PMs
+    icon: <BarChart3 className="w-5 h-5" />
+  },
 ]
 
-const teamItems = [
-  { name: 'Ideas', color: 'bg-yellow-400', IconComponent: Lightbulb },
-  { name: 'Design', color: 'bg-baires-orange', IconComponent: Palette },
-  { name: 'Operations', color: 'bg-yellow-300', IconComponent: SettingsIcon },
-  { name: 'Management', color: 'bg-yellow-500', IconComponent: BarChart3 },
+const managementItems = [
+  { name: 'Teams', path: '/teams', color: 'bg-blue-500', IconComponent: Users, permission: 'canManageTeams' },
+  { name: 'Projects', path: '/projects', color: 'bg-purple-500', IconComponent: FolderOpen, permission: 'canManageProjects' },
 ]
 
 export default function Sidebar() {
@@ -54,9 +59,12 @@ export default function Sidebar() {
   return (
     <aside className="w-64 bg-gradient-to-b from-white to-neutral-50 h-screen flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.08)] border-r border-neutral-100">
       <div className="p-6 border-b border-neutral-100">
-        <div className="flex items-center gap-3">
-          <img src="/logo.svg" alt="Mentorship CoPilot Logo" className="w-10 h-10 rounded-[14px] shadow-lg" />
-          <span className="font-bold text-xl bg-gradient-to-r from-neutral-black to-baires-orange bg-clip-text text-transparent">CoPilot</span>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <img src="/logo.svg" alt="Mentorship CoPilot Logo" className="w-10 h-10 rounded-[14px] shadow-lg" />
+            <span className="font-bold text-xl bg-gradient-to-r from-neutral-black to-baires-orange bg-clip-text text-transparent">CoPilot</span>
+          </div>
+          <NotificationBell />
         </div>
       </div>
 
@@ -89,22 +97,34 @@ export default function Sidebar() {
 
         <div className="pt-6 pb-2">
           <h3 className="px-4 text-xs font-bold text-neutral-gray-dark uppercase tracking-wider">
-            Teams
+            Management
           </h3>
         </div>
 
-        {teamItems.map((team) => (
-          <Link
-            key={team.name}
-            to={`/teams/${team.name.toLowerCase()}`}
-            className="group flex items-center gap-3 px-4 py-3 rounded-[16px] text-neutral-gray-dark hover:bg-gradient-to-r hover:from-orange-50 hover:to-yellow-50 hover:text-neutral-black hover:shadow-md transition-all duration-300"
-          >
-            <div className={`w-7 h-7 ${team.color} rounded-[12px] flex items-center justify-center text-sm shadow-md group-hover:scale-110 transition-transform duration-300`}>
-              <team.IconComponent className="w-4 h-4 text-white" />
-            </div>
-            <span className="font-semibold">{team.name}</span>
-          </Link>
-        ))}
+        {managementItems.map((item) => {
+          if (item.permission && !permissions[item.permission]) {
+            return null
+          }
+
+          const isActive = location.pathname.startsWith(item.path)
+          
+          return (
+            <Link
+              key={item.name}
+              to={item.path}
+              className={`group flex items-center gap-3 px-4 py-3 rounded-[16px] transition-all duration-300 ${
+                isActive
+                  ? 'bg-gradient-to-r from-baires-orange to-orange-600 text-white shadow-[0_8px_20px_rgb(246,97,53,0.3)]'
+                  : 'text-neutral-gray-dark hover:bg-gradient-to-r hover:from-orange-50 hover:to-yellow-50 hover:text-neutral-black hover:shadow-md'
+              }`}
+            >
+              <div className={`w-7 h-7 ${isActive ? 'bg-white/20' : item.color} rounded-[12px] flex items-center justify-center text-sm shadow-md group-hover:scale-110 transition-transform duration-300`}>
+                <item.IconComponent className={`w-4 h-4 ${isActive ? 'text-white' : 'text-white'}`} />
+              </div>
+              <span className="font-semibold">{item.name}</span>
+            </Link>
+          )
+        })}
       </nav>
 
       <div className="p-4 border-t border-neutral-100 space-y-3">
