@@ -3,13 +3,18 @@
  * Backend endpoints for AI-powered recommendations and complex operations
  */
 
-// Load environment variables from .env file (for local development)
+// Load environment variables from .env file (for local development only)
 import dotenv from "dotenv";
 dotenv.config();
 
 import {onCall, HttpsError} from "firebase-functions/v2/https";
+import {defineSecret} from "firebase-functions/params";
 import * as admin from "firebase-admin";
 import * as logger from "firebase-functions/logger";
+
+// Define secret for Anthropic API Key (used in production)
+// In development, falls back to .env file via dotenv
+const anthropicApiKey = defineSecret("ANTHROPIC_API_KEY");
 
 // Initialize Firebase Admin
 admin.initializeApp();
@@ -208,6 +213,7 @@ export const getAIMentorRecommendations = onCall(
     region: "us-central1",
     timeoutSeconds: 60,
     memory: "512MiB",
+    secrets: [anthropicApiKey], // Declare secret usage
   },
   async (request) => {
     try {
@@ -280,6 +286,7 @@ export const mentorshipCopilotChat = onCall(
     region: "us-central1",
     timeoutSeconds: 60,
     memory: "512MiB",
+    secrets: [anthropicApiKey], // Declare secret usage
   },
   async (request) => {
     try {
