@@ -68,95 +68,58 @@ export default function PMView({
         </Card>
       )}
 
-      {/* Mentorship Overview - Simplified for PM */}
+      {/* Mentorship Goals - Always visible for PM */}
       <Card padding="lg" className="mb-8">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-baires-blue to-blue-600 rounded-[14px] flex items-center justify-center shadow-lg">
-              <Users className="w-5 h-5 text-white" />
+              <Target className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-neutral-black">Mentorship Overview</h2>
-              <p className="text-xs text-neutral-gray-dark">Quick mentorship summary</p>
+              <h2 className="text-2xl font-bold text-neutral-black">Mentorship Goals</h2>
+              <p className="text-sm text-neutral-gray-dark">Define and track custom progress metrics</p>
             </div>
           </div>
-          <Badge variant={statusInfo.color.includes('green') ? 'success' : statusInfo.color.includes('amber') ? 'warning' : 'blue'}>
-            {formatStatus(data?.status)}
-          </Badge>
+          <button
+            onClick={() => setIsGoalWizardOpen(true)}
+            className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-[12px] font-semibold hover:shadow-md hover:-translate-y-0.5 transition-all flex items-center gap-2 cursor-pointer"
+          >
+            <AlertCircle className="w-4 h-4" />
+            Manage Goals
+          </button>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-4">
-          {/* Mentee */}
-          <div className="flex items-center gap-3 p-3 bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-[12px] border border-blue-200">
-            <Avatar 
-              src={data.menteeAvatar || data.mentee?.avatar} 
-              initials={(data.menteeName || data.mentee?.name)?.substring(0, 2)?.toUpperCase()}
-              size="md" 
-            />
-            <div className="flex-1 min-w-0">
-              <div className="text-xs text-neutral-gray-dark font-semibold">MENTEE</div>
-              <div className="font-bold text-neutral-black text-sm truncate">{data.menteeName || data.mentee?.name}</div>
-            </div>
+        {customGoals && customGoals.length > 0 ? (
+          <div className={`grid grid-cols-2 ${customGoals.length > 4 ? 'md:grid-cols-4 lg:grid-cols-5' : 'md:grid-cols-4'} gap-4`}>
+            {customGoals.map((goal) => {
+              const variants = {
+                blue: { icon: BarChart3, color: 'blue' },
+                green: { icon: Target, color: 'green' },
+                purple: { icon: Clock, color: 'purple' },
+                orange: { icon: TrendingUp, color: 'orange' },
+                pink: { icon: Sparkles, color: 'pink' },
+                yellow: { icon: Calendar, color: 'yellow' }
+              }
+              const variantConfig = variants[goal.variant] || variants.blue
+              
+              return (
+                <Card key={goal.id} padding="md" className={`bg-gradient-to-br from-${variantConfig.color}-50 to-${variantConfig.color}-100/50 border-2 border-${variantConfig.color}-200`}>
+                  <variantConfig.icon className={`w-8 h-8 text-${variantConfig.color}-600 mb-2`} />
+                  <div className="text-xs font-bold uppercase text-neutral-gray-dark mb-1">{goal.name}</div>
+                  <div className="text-xl font-bold text-neutral-black">
+                    {goal.current}{goal.unit || ''} / {goal.target}{goal.unit || ''}
+                  </div>
+                </Card>
+              )
+            })}
           </div>
-
-          {/* Mentor */}
-          <div className="flex items-center gap-3 p-3 bg-gradient-to-br from-orange-50 to-blue-100/50 rounded-[12px] border border-orange-200">
-            {data.mentorId || data.mentor ? (
-              <>
-                <Avatar 
-                  src={data.mentorAvatar || data.mentor?.avatar} 
-                  initials={(data.mentorName || data.mentor?.name)?.substring(0, 2)?.toUpperCase()}
-                  size="md" 
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs text-neutral-gray-dark font-semibold">MENTOR</div>
-                  <div className="font-bold text-neutral-black text-sm truncate">{data.mentorName || data.mentor?.name}</div>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
-                  <AlertCircle className="w-5 h-5 text-amber-600" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs text-neutral-gray-dark font-semibold">MENTOR</div>
-                  <div className="font-bold text-amber-700 text-sm">Pending Invites</div>
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* Duration */}
-          <div className="flex items-center gap-3 p-3 bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-[12px] border border-purple-200">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center">
-              <Clock className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <div className="text-xs text-neutral-gray-dark font-semibold">DURATION</div>
-              <div className="font-bold text-neutral-black text-sm">{weeksDuration || 0} weeks</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Technologies */}
-        {data.technologies && data.technologies.length > 0 && (
-          <div className="mt-4 p-3 bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-[12px] border border-blue-200">
-            <div className="flex items-center gap-2 mb-2">
-              <Target className="w-4 h-4 text-baires-blue" />
-              <span className="text-xs font-bold text-neutral-black">Technologies</span>
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              {data.technologies.slice(0, 6).map((tech, idx) => (
-                <span key={idx} className="text-xs bg-white border border-blue-300 text-blue-700 px-2 py-1 rounded-full font-medium">
-                  {typeof tech === 'string' ? tech : tech.name || tech}
-                </span>
-              ))}
-              {data.technologies.length > 6 && (
-                <span className="text-xs text-blue-600 px-2 py-1 font-semibold">
-                  +{data.technologies.length - 6} more
-                </span>
-              )}
-            </div>
+        ) : (
+          <div className="p-6 bg-blue-50 rounded-[16px] border-2 border-blue-200 text-center">
+            <Target className="w-12 h-12 text-baires-blue mx-auto mb-3" />
+            <h3 className="text-lg font-bold text-blue-900 mb-2">No Goals Defined Yet</h3>
+            <p className="text-sm text-blue-800 mb-4">
+              Click <strong>"Manage Goals"</strong> to define custom progress metrics for this mentorship.
+            </p>
           </div>
         )}
       </Card>
@@ -303,84 +266,115 @@ export default function PMView({
         </Card>
       )}
 
-      {/* Grid Layout - Only show if not pending */}
+      {/* Mentorship Overview - Simplified for PM */}
+      <Card padding="lg" className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-baires-blue to-blue-600 rounded-[14px] flex items-center justify-center shadow-lg">
+              <Users className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-neutral-black">Mentorship Overview</h2>
+              <p className="text-xs text-neutral-gray-dark">Quick mentorship summary</p>
+            </div>
+          </div>
+          <Badge variant={statusInfo.color.includes('green') ? 'success' : statusInfo.color.includes('amber') ? 'warning' : 'blue'}>
+            {formatStatus(data?.status)}
+          </Badge>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-4">
+          {/* Mentee */}
+          <div className="flex items-center gap-3 p-3 bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-[12px] border border-blue-200">
+            <Avatar 
+              src={data.menteeAvatar || data.mentee?.avatar} 
+              initials={(data.menteeName || data.mentee?.name)?.substring(0, 2)?.toUpperCase()}
+              size="md" 
+            />
+            <div className="flex-1 min-w-0">
+              <div className="text-xs text-neutral-gray-dark font-semibold">MENTEE</div>
+              <div className="font-bold text-neutral-black text-sm truncate">{data.menteeName || data.mentee?.name}</div>
+            </div>
+          </div>
+
+          {/* Mentor */}
+          <div className="flex items-center gap-3 p-3 bg-gradient-to-br from-orange-50 to-blue-100/50 rounded-[12px] border border-orange-200">
+            {data.mentorId || data.mentor ? (
+              <>
+                <Avatar 
+                  src={data.mentorAvatar || data.mentor?.avatar} 
+                  initials={(data.mentorName || data.mentor?.name)?.substring(0, 2)?.toUpperCase()}
+                  size="md" 
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs text-neutral-gray-dark font-semibold">MENTOR</div>
+                  <div className="font-bold text-neutral-black text-sm truncate">{data.mentorName || data.mentor?.name}</div>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
+                  <AlertCircle className="w-5 h-5 text-amber-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs text-neutral-gray-dark font-semibold">MENTOR</div>
+                  <div className="font-bold text-amber-700 text-sm">Pending Invites</div>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Duration */}
+          <div className="flex items-center gap-3 p-3 bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-[12px] border border-purple-200">
+            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center">
+              <Clock className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <div className="text-xs text-neutral-gray-dark font-semibold">DURATION</div>
+              <div className="font-bold text-neutral-black text-sm">{weeksDuration || 0} weeks</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Technologies */}
+        {data.technologies && data.technologies.length > 0 && (
+          <div className="mt-4 p-3 bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-[12px] border border-blue-200">
+            <div className="flex items-center gap-2 mb-2">
+              <Target className="w-4 h-4 text-baires-blue" />
+              <span className="text-xs font-bold text-neutral-black">Technologies</span>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {data.technologies.slice(0, 6).map((tech, idx) => (
+                <span key={idx} className="text-xs bg-white border border-blue-300 text-blue-700 px-2 py-1 rounded-full font-medium">
+                  {typeof tech === 'string' ? tech : tech.name || tech}
+                </span>
+              ))}
+              {data.technologies.length > 6 && (
+                <span className="text-xs text-blue-600 px-2 py-1 font-semibold">
+                  +{data.technologies.length - 6} more
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+      </Card>
+
+      {/* Quick Actions - Only show if not pending */}
       {!isPending && (
         <>
-          {/* Grid with Mentorship Goals and Quick Actions */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 mb-6 md:mb-8">
-            {/* Mentorship Goals - Customizable by PM */}
-            <div className="lg:col-span-2">
-              <Card padding="lg" className="h-full">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-baires-blue to-blue-600 rounded-[14px] flex items-center justify-center shadow-lg">
-                      <Target className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <h2 className="text-2xl font-bold text-neutral-black">Mentorship Goals</h2>
-                      <p className="text-sm text-neutral-gray-dark">Define and track custom progress metrics</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setIsGoalWizardOpen(true)}
-                    className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-[12px] font-semibold hover:shadow-md transition-all flex items-center gap-2"
-                  >
-                    <AlertCircle className="w-4 h-4" />
-                    Manage Goals
-                  </button>
-                </div>
-
-                {customGoals && customGoals.length > 0 ? (
-                  <div className={`grid grid-cols-2 ${customGoals.length > 4 ? 'md:grid-cols-4 lg:grid-cols-5' : 'md:grid-cols-4'} gap-4`}>
-                    {customGoals.map((goal) => {
-                      const variants = {
-                        blue: { icon: BarChart3, color: 'blue' },
-                        green: { icon: Target, color: 'green' },
-                        purple: { icon: Clock, color: 'purple' },
-                        orange: { icon: TrendingUp, color: 'orange' },
-                        pink: { icon: Sparkles, color: 'pink' },
-                        yellow: { icon: Calendar, color: 'yellow' }
-                      }
-                      const variantConfig = variants[goal.variant] || variants.blue
-                      
-                      return (
-                        <Card key={goal.id} padding="md" className={`bg-gradient-to-br from-${variantConfig.color}-50 to-${variantConfig.color}-100/50 border-2 border-${variantConfig.color}-200`}>
-                          <variantConfig.icon className={`w-8 h-8 text-${variantConfig.color}-600 mb-2`} />
-                          <div className="text-xs font-bold uppercase text-neutral-gray-dark mb-1">{goal.name}</div>
-                          <div className="text-xl font-bold text-neutral-black">
-                            {goal.current}{goal.unit || ''} / {goal.target}{goal.unit || ''}
-                          </div>
-                        </Card>
-                      )
-                    })}
-                  </div>
-                ) : (
-                  <div className="p-6 bg-blue-50 rounded-[16px] border-2 border-blue-200 text-center">
-                    <Target className="w-12 h-12 text-baires-blue mx-auto mb-3" />
-                    <h3 className="text-lg font-bold text-blue-900 mb-2">No Goals Defined Yet</h3>
-                    <p className="text-sm text-blue-800 mb-4">
-                      Click <strong>"Manage Goals"</strong> to define custom progress metrics for this mentorship.
-                    </p>
-                  </div>
-                )}
-              </Card>
-            </div>
-
-            {/* Quick Actions */}
-            <div>
-              <QuickActions
-                onMessageClick={() => {
-                  setMessageRecipient({
-                    name: data?.mentorName || 'Mentor',
-                    avatar: data?.mentorAvatar,
-                    role: 'Mentor'
-                  })
-                  setIsMessageModalOpen(true)
-                }}
-                onScheduleClick={() => setIsScheduleModalOpen(true)}
-                recipientName={data?.mentorName || 'Mentor'}
-              />
-            </div>
+          <div className="mb-6 md:mb-8">
+            <QuickActions
+              onMessageClick={() => {
+                setMessageRecipient({
+                  name: data?.mentorName || 'Mentor',
+                  avatar: data?.mentorAvatar,
+                  role: 'Mentor'
+                })
+                setIsMessageModalOpen(true)
+              }}
+              onScheduleClick={() => setIsScheduleModalOpen(true)}
+              recipientName={data?.mentorName || 'Mentor'}
+            />
           </div>
 
           {/* AI Summary + AI Tips */}

@@ -80,8 +80,15 @@ function App() {
             } 
           />
           
-          {/* FindMentors is now only accessible through the CreateMentorship wizard */}
-          {/* <Route path="/find-mentors" element={<ProtectedRoute><FindMentors /></ProtectedRoute>} /> */}
+          {/* Find Mentors - Browse mentors page */}
+          <Route 
+            path="/find-mentors" 
+            element={
+              <ProtectedRoute>
+                <FindMentors />
+              </ProtectedRoute>
+            } 
+          />
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
           
           {/* Teams routes - for PMs and Mentors */}

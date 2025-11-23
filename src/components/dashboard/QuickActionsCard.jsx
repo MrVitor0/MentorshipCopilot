@@ -21,7 +21,7 @@ const actions = [
     title: 'Find Mentor',
     description: 'Browse available mentors',
     icon: Search,
-    path: '/mentors',
+    path: '/find-mentors',
     gradient: 'from-white to-blue-50',
     border: 'border-blue-200 hover:border-blue-400',
     shadow: 'hover:shadow-[0_10px_30px_rgba(26,115,232,0.2)]',

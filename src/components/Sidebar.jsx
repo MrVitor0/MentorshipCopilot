@@ -28,6 +28,12 @@ const menuItems = [
     )
   },
   { 
+    name: 'Find Mentors', 
+    path: '/find-mentors',
+    permission: null, // Everyone can browse mentors
+    icon: <Users className="w-5 h-5" />
+  },
+  { 
     name: 'Analytics', 
     path: '/analytics',
     permission: 'canManageProjects', // Only PMs
