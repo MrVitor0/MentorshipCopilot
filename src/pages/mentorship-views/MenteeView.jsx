@@ -15,13 +15,13 @@ const DEFAULT_GOALS = [
   { id: 'rating', name: 'Your Performance', description: 'Average session rating', current: 0, target: 5, variant: 'orange', unit: '/5' }
 ]
 
-export default function MenteeView({ 
-  data, 
-  statusInfo, 
-  formatStatus, 
-  averageProgress, 
+export default function MenteeView({
+  data,
+  statusInfo,
+  formatStatus,
+  averageProgress,
   weeksDuration,
-  mockMaterials,
+  materials,
   customGoals,
   sessions,
   navigate
@@ -135,7 +135,7 @@ export default function MenteeView({
           <SessionHistory sessions={sessions} title="Your Session History" showEdit={false} />
 
           {/* Learning Materials */}
-          <MaterialsList materials={mockMaterials} />
+          <MaterialsList materials={materials} />
         </div>
 
         {/* Sidebar */}

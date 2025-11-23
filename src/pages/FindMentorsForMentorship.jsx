@@ -531,7 +531,7 @@ export default function FindMentorsForMentorship() {
 // Mentor Row Component
 function MentorRow({ mentor, index, isExpanded, onToggleExpand, onInvite }) {
   const matchColor = mentor.matchScore >= 80 ? 'from-green-500 to-green-600' : 
-                     mentor.matchScore >= 60 ? 'from-orange-500 to-blue-600' : 
+                     mentor.matchScore >= 60 ? 'from-blue-500 to-blue-600' : 
                      'from-neutral-400 to-neutral-500'
 
   return (

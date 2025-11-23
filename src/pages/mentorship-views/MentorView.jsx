@@ -14,13 +14,13 @@ const DEFAULT_GOALS = [
   { id: 'rating', name: 'Avg Rating', description: 'Average session rating', current: 0, target: 5, variant: 'orange', unit: '/5' }
 ]
 
-export default function MentorView({ 
-  data, 
-  statusInfo, 
-  formatStatus, 
-  averageProgress, 
+export default function MentorView({
+  data,
+  statusInfo,
+  formatStatus,
+  averageProgress,
   weeksDuration,
-  mockMaterials,
+  materials,
   setIsSessionWizardOpen,
   setIsMaterialWizardOpen,
   customGoals,
@@ -166,7 +166,7 @@ export default function MentorView({
             ]}
           />
 
-          <MaterialsList materials={mockMaterials} />
+          <MaterialsList materials={materials} />
           
           <SessionHistory sessions={sessions} title="Your Session Logs" showEdit={true} />
         </div>

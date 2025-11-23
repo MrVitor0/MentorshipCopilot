@@ -75,7 +75,11 @@ export default function Sidebar() {
             return null // Don't render if no permission
           }
 
-          const isActive = location.pathname === item.path
+          // For mentorship, consider it active if path starts with /mentorship
+          const isActive = item.path === '/mentorship' 
+            ? location.pathname.startsWith('/mentorship')
+            : location.pathname === item.path
+          
           return (
             <Link
               key={item.name}

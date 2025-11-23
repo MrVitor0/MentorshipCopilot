@@ -32,7 +32,7 @@ const VARIANTS = [
   { id: 'blue', label: 'Blue', color: 'from-blue-500 to-blue-600' },
   { id: 'green', label: 'Green', color: 'from-green-500 to-green-600' },
   { id: 'purple', label: 'Purple', color: 'from-purple-500 to-purple-600' },
-  { id: 'orange', label: 'Orange', color: 'from-orange-500 to-blue-600' },
+  { id: 'orange', label: 'Orange', color: 'from-blue-500 to-blue-600' },
   { id: 'pink', label: 'Pink', color: 'from-pink-500 to-pink-600' },
   { id: 'yellow', label: 'Yellow', color: 'from-yellow-500 to-yellow-600' }
 ]
@@ -161,7 +161,7 @@ export default function GoalWizard({ isOpen, onClose, onSubmit, initialGoals }) 
       
       <Card padding="none" className="relative max-w-4xl w-full animate-scaleIn overflow-hidden max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="bg-gradient-to-r from-orange-500 via-blue-600 to-blue-700 p-6 text-white">
+        <div className="bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 p-6 text-white">
           <div className="flex items-center justify-between mb-2">
             <div>
               <h2 className="text-2xl font-bold mb-1">{getStepTitle()}</h2>
@@ -191,7 +191,7 @@ export default function GoalWizard({ isOpen, onClose, onSubmit, initialGoals }) 
                 </p>
                 <button
                   onClick={handleAddNew}
-                  className="px-4 py-2 bg-gradient-to-r from-orange-500 to-blue-600 text-white rounded-[12px] font-semibold hover:shadow-md transition-all flex items-center gap-2"
+                  className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-[12px] font-semibold hover:shadow-md transition-all flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
                   Add New Goal
@@ -252,7 +252,7 @@ export default function GoalWizard({ isOpen, onClose, onSubmit, initialGoals }) 
                   </p>
                   <button
                     onClick={handleAddNew}
-                    className="px-6 py-3 bg-gradient-to-r from-orange-500 to-blue-600 text-white rounded-[14px] font-semibold hover:shadow-md transition-all flex items-center gap-2 mx-auto"
+                    className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-[14px] font-semibold hover:shadow-md transition-all flex items-center gap-2 mx-auto"
                   >
                     <Plus className="w-5 h-5" />
                     Add Your First Goal
@@ -441,7 +441,7 @@ export default function GoalWizard({ isOpen, onClose, onSubmit, initialGoals }) 
           {currentStep === STEPS.LIST ? (
             <button
               onClick={() => setCurrentStep(STEPS.REVIEW)}
-              className="px-8 py-3 bg-gradient-to-r from-orange-500 to-blue-600 text-white rounded-[14px] font-bold hover:shadow-lg transition-all flex items-center gap-2"
+              className="px-8 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-[14px] font-bold hover:shadow-lg transition-all flex items-center gap-2"
             >
               {goals && goals.length > 0 ? 'Review & Save' : 'Save (Use Defaults)'}
               <ArrowRight className="w-4 h-4" />
@@ -450,7 +450,7 @@ export default function GoalWizard({ isOpen, onClose, onSubmit, initialGoals }) 
             <button
               onClick={handleFormSubmit}
               disabled={!isFormValid()}
-              className="px-8 py-3 bg-gradient-to-r from-orange-500 to-blue-600 text-white rounded-[14px] font-bold hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+              className="px-8 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-[14px] font-bold hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
             >
               {editingGoal ? 'Update' : 'Add'} Goal
               <ArrowRight className="w-4 h-4" />

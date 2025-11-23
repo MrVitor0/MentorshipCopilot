@@ -84,7 +84,8 @@ export default function MaterialWizard({ isOpen, onClose, onSubmit }) {
     description: '',
     url: '',
     file: null,
-    tags: []
+    tags: [],
+    sourceType: 'link' // 'link' or 'upload'
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -105,7 +106,21 @@ export default function MaterialWizard({ isOpen, onClose, onSubmit }) {
   const handleSubmit = async () => {
     setIsSubmitting(true)
     try {
-      await onSubmit(formData)
+      // Prepare material data
+      const materialData = {
+        type: formData.type,
+        title: formData.title,
+        description: formData.description,
+        url: formData.url,
+        hasFile: !!formData.file
+      }
+      
+      // Pass file separately if exists
+      if (formData.file) {
+        materialData.file = formData.file
+      }
+      
+      await onSubmit(materialData)
       handleClose()
     } catch (error) {
       console.error('Error submitting material:', error)
@@ -126,7 +141,8 @@ export default function MaterialWizard({ isOpen, onClose, onSubmit }) {
       description: '',
       url: '',
       file: null,
-      tags: []
+      tags: [],
+      sourceType: 'link'
     })
     onClose()
   }
@@ -141,7 +157,12 @@ export default function MaterialWizard({ isOpen, onClose, onSubmit }) {
         if (formData.type === 'link') {
           return formData.title.trim() && formData.url.trim()
         }
-        return formData.title.trim() && (formData.file || formData.url.trim())
+        // For other types, check based on sourceType
+        if (formData.sourceType === 'link') {
+          return formData.title.trim() && formData.url.trim()
+        } else {
+          return formData.title.trim() && formData.file !== null
+        }
       default:
         return true
     }
@@ -292,7 +313,49 @@ export default function MaterialWizard({ isOpen, onClose, onSubmit }) {
                 ></textarea>
               </div>
 
-              {/* URL or File Upload */}
+              {/* Source Type Selection - Only for non-link types */}
+              {formData.type !== 'link' && (
+                <div>
+                  <label className="flex items-center gap-2 text-sm font-bold text-neutral-black mb-3">
+                    <FileText className="w-4 h-4 text-blue-600" />
+                    Source Type *
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, sourceType: 'link', file: null })}
+                      className={`p-4 rounded-[14px] border-2 transition-all ${
+                        formData.sourceType === 'link'
+                          ? 'bg-gradient-to-br from-blue-50 to-blue-100/50 border-blue-500 shadow-md'
+                          : 'bg-white border-neutral-200 hover:border-blue-300'
+                      }`}
+                    >
+                      <LinkIcon className={`w-6 h-6 mx-auto mb-2 ${
+                        formData.sourceType === 'link' ? 'text-blue-600' : 'text-neutral-gray-dark'
+                      }`} />
+                      <div className="font-bold text-sm text-neutral-black">External Link</div>
+                      <div className="text-xs text-neutral-gray-dark mt-1">URL or Google Drive</div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, sourceType: 'upload', url: '' })}
+                      className={`p-4 rounded-[14px] border-2 transition-all ${
+                        formData.sourceType === 'upload'
+                          ? 'bg-gradient-to-br from-blue-50 to-blue-100/50 border-blue-500 shadow-md'
+                          : 'bg-white border-neutral-200 hover:border-blue-300'
+                      }`}
+                    >
+                      <Upload className={`w-6 h-6 mx-auto mb-2 ${
+                        formData.sourceType === 'upload' ? 'text-blue-600' : 'text-neutral-gray-dark'
+                      }`} />
+                      <div className="font-bold text-sm text-neutral-black">Upload File</div>
+                      <div className="text-xs text-neutral-gray-dark mt-1">From your device</div>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* URL or File Upload based on type and sourceType */}
               {formData.type === 'link' ? (
                 <div>
                   <label className="flex items-center gap-2 text-sm font-bold text-neutral-black mb-3">
@@ -307,68 +370,54 @@ export default function MaterialWizard({ isOpen, onClose, onSubmit }) {
                     className="w-full px-4 py-4 rounded-[14px] border-2 border-neutral-200 focus:border-blue-500 focus:outline-none text-lg"
                   />
                 </div>
+              ) : formData.sourceType === 'link' ? (
+                <div>
+                  <label className="flex items-center gap-2 text-sm font-bold text-neutral-black mb-3">
+                    <LinkIcon className="w-4 h-4 text-blue-600" />
+                    External URL *
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://... (e.g., Google Drive link)"
+                    value={formData.url}
+                    onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+                    className="w-full px-4 py-4 rounded-[14px] border-2 border-neutral-200 focus:border-blue-500 focus:outline-none"
+                  />
+                </div>
               ) : (
-                <div className="space-y-4">
-                  <div>
-                    <label className="flex items-center gap-2 text-sm font-bold text-neutral-black mb-3">
-                      <LinkIcon className="w-4 h-4 text-blue-600" />
-                      External URL (Optional)
-                    </label>
+                <div>
+                  <label className="flex items-center gap-2 text-sm font-bold text-neutral-black mb-3">
+                    <Upload className="w-4 h-4 text-blue-600" />
+                    Upload File *
+                  </label>
+                  <div className="border-2 border-dashed border-neutral-300 rounded-[14px] p-8 text-center hover:border-blue-500 hover:bg-blue-50/30 transition-all cursor-pointer">
                     <input
-                      type="url"
-                      placeholder="https://... (e.g., Google Drive link)"
-                      value={formData.url}
-                      onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-                      className="w-full px-4 py-4 rounded-[14px] border-2 border-neutral-200 focus:border-blue-500 focus:outline-none"
+                      type="file"
+                      id="file-upload"
+                      className="hidden"
+                      onChange={(e) => setFormData({ ...formData, file: e.target.files[0] })}
                     />
-                  </div>
-
-                  <div className="text-center text-neutral-gray-dark font-semibold text-sm">OR</div>
-
-                  <div>
-                    <label className="flex items-center gap-2 text-sm font-bold text-neutral-black mb-3">
-                      <Upload className="w-4 h-4 text-blue-600" />
-                      Upload File
+                    <label htmlFor="file-upload" className="cursor-pointer">
+                      <Upload className="w-12 h-12 text-neutral-gray-dark mx-auto mb-3" />
+                      {formData.file ? (
+                        <div>
+                          <p className="font-bold text-neutral-black mb-1">{formData.file.name}</p>
+                          <p className="text-xs text-neutral-gray-dark">
+                            {(formData.file.size / 1024 / 1024).toFixed(2)} MB
+                          </p>
+                        </div>
+                      ) : (
+                        <>
+                          <p className="font-bold text-neutral-black mb-1">Click to upload</p>
+                          <p className="text-xs text-neutral-gray-dark">or drag and drop</p>
+                        </>
+                      )}
                     </label>
-                    <div className="border-2 border-dashed border-neutral-300 rounded-[14px] p-8 text-center hover:border-blue-500 hover:bg-blue-50/30 transition-all cursor-pointer">
-                      <input
-                        type="file"
-                        id="file-upload"
-                        className="hidden"
-                        onChange={(e) => setFormData({ ...formData, file: e.target.files[0] })}
-                      />
-                      <label htmlFor="file-upload" className="cursor-pointer">
-                        <Upload className="w-12 h-12 text-neutral-gray-dark mx-auto mb-3" />
-                        {formData.file ? (
-                          <div>
-                            <p className="font-bold text-neutral-black mb-1">{formData.file.name}</p>
-                            <p className="text-xs text-neutral-gray-dark">
-                              {(formData.file.size / 1024 / 1024).toFixed(2)} MB
-                            </p>
-                          </div>
-                        ) : (
-                          <>
-                            <p className="font-bold text-neutral-black mb-1">Click to upload</p>
-                            <p className="text-xs text-neutral-gray-dark">or drag and drop</p>
-                          </>
-                        )}
-                      </label>
-                    </div>
                   </div>
                 </div>
               )}
 
-              <div className="p-4 bg-gradient-to-br from-green-50 to-green-100/50 rounded-[14px] border border-green-200">
-                <div className="flex items-start gap-3">
-                  <Sparkles className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <div className="font-bold text-green-900 text-sm mb-1">Pro Tip</div>
-                    <p className="text-xs text-green-800 leading-relaxed">
-                      Add clear titles and descriptions to help your mentee understand what each material is for and when to use it.
-                    </p>
-                  </div>
-                </div>
-              </div>
+          
             </div>
           )}
 

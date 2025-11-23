@@ -12,7 +12,10 @@ import {
   updateGoal,
   deleteGoal,
   createSession,
-  getSessionsByMentorship
+  getSessionsByMentorship,
+  createMaterial,
+  getMaterialsByMentorship,
+  uploadMaterialFile
 } from '../services/firestoreService'
 
 // Components
@@ -32,7 +35,7 @@ import {
 } from 'lucide-react'
 
 // Data
-import { mockMentorshipData, mockMaterials } from '../data/mockMentorshipData'
+import { mockMentorshipData } from '../data/mockMentorshipData'
 
 // View Components
 import PMView from './mentorship-views/PMView'
@@ -53,8 +56,10 @@ export default function MentorshipDetails() {
   const [isGoalWizardOpen, setIsGoalWizardOpen] = useState(false)
   const [processingRequest, setProcessingRequest] = useState(null)
   const [customGoals, setCustomGoals] = useState(null)
-  const [setLoadingGoals] = useState(true)
+  const [_loadingGoals, setLoadingGoals] = useState(true)
   const [sessions, setSessions] = useState([])
+  const [materials, setMaterials] = useState([])
+  const [loadingMaterials, setLoadingMaterials] = useState(true)
   const [toast, setToast] = useState({ show: false, variant: 'info', title: '', description: '' })
   
   // Custom hooks
@@ -87,7 +92,7 @@ export default function MentorshipDetails() {
     }
 
     fetchGoals()
-  }, [id])
+  }, [id, setLoadingGoals])
 
   // Fetch sessions from Firestore
   useEffect(() => {
@@ -103,6 +108,38 @@ export default function MentorshipDetails() {
     }
 
     fetchSessions()
+  }, [id])
+
+  // Fetch materials from Firestore
+  useEffect(() => {
+    const fetchMaterials = async () => {
+      if (!id) return
+      
+      setLoadingMaterials(true)
+      try {
+        const materialsData = await getMaterialsByMentorship(id)
+        
+        // Transform to match the expected format for MaterialsList
+        const formattedMaterials = materialsData.map(material => ({
+          id: material.id,
+          type: material.type,
+          title: material.title,
+          description: material.description,
+          url: material.url,
+          addedBy: material.addedByName || 'Unknown',
+          addedAt: material.createdAt?.toDate() || new Date(),
+          downloads: material.downloads || 0
+        }))
+        
+        setMaterials(formattedMaterials)
+      } catch (error) {
+        console.error('Error fetching materials:', error)
+      } finally {
+        setLoadingMaterials(false)
+      }
+    }
+
+    fetchMaterials()
   }, [id])
 
   // Handlers
@@ -141,7 +178,7 @@ export default function MentorshipDetails() {
   const handleSessionLogSubmit = async (sessionData) => {
     try {
       // Create session with mentorshipId
-      const newSession = await createSession({
+      const _newSession = await createSession({
         ...sessionData,
         mentorshipId: id,
         mentorId: data?.mentorId,
@@ -175,11 +212,70 @@ export default function MentorshipDetails() {
   }
 
   const handleMaterialSubmit = async (materialData) => {
-    console.log('Material submitted:', materialData)
-    await confirm.success(
-      'Note: Backend integration pending',
-      'Material Added Successfully'
-    )
+    try {
+      let fileUrl = materialData.url || ''
+      let filePath = null
+      let fileSize = null
+      let fileMimeType = null
+
+      // Upload file to Firebase Storage if provided
+      if (materialData.file) {
+        const uploadResult = await uploadMaterialFile(materialData.file, id)
+        fileUrl = uploadResult.url
+        filePath = uploadResult.path
+        fileSize = uploadResult.size
+        fileMimeType = uploadResult.mimeType
+      }
+
+      // Create material document in Firestore
+      await createMaterial({
+        mentorshipId: id,
+        type: materialData.type,
+        title: materialData.title,
+        description: materialData.description || '',
+        url: fileUrl,
+        filePath: filePath,
+        fileSize: fileSize,
+        fileMimeType: fileMimeType,
+        addedBy: _user?.uid,
+        addedByName: _user?.displayName || 'Unknown',
+        addedByEmail: _user?.email || ''
+      })
+
+      // Refresh materials list
+      const updatedMaterials = await getMaterialsByMentorship(id)
+      const formattedMaterials = updatedMaterials.map(material => ({
+        id: material.id,
+        type: material.type,
+        title: material.title,
+        description: material.description,
+        url: material.url,
+        addedBy: material.addedByName || 'Unknown',
+        addedAt: material.createdAt?.toDate() || new Date(),
+        downloads: material.downloads || 0
+      }))
+      setMaterials(formattedMaterials)
+
+      // Show success toast
+      setToast({
+        show: true,
+        variant: 'success',
+        title: 'Material Added Successfully!',
+        description: 'The material is now available for this mentorship.'
+      })
+
+      setIsMaterialWizardOpen(false)
+    } catch (error) {
+      console.error('Error adding material:', error)
+      
+      // Show error toast
+      setToast({
+        show: true,
+        variant: 'error',
+        title: 'Error Adding Material',
+        description: 'There was a problem adding the material. Please try again.'
+      })
+    }
   }
 
   const handleGoalSubmit = async (goalsData) => {
@@ -197,14 +293,14 @@ export default function MentorshipDetails() {
         
         if (isNewGoal) {
           // Create new goal in Firestore
-          const { id: tempId, ...goalDataWithoutId } = goal
+          const { id: _tempId, ...goalDataWithoutId } = goal
           await createGoal({
             ...goalDataWithoutId,
             mentorshipId: id
           })
         } else {
           // Update existing goal
-          const { id: goalId, createdAt, updatedAt, ...updates } = goal
+          const { id: goalId, createdAt: _createdAt, updatedAt: _updatedAt, ...updates } = goal
           await updateGoal(goalId, updates)
         }
       }
@@ -234,7 +330,8 @@ export default function MentorshipDetails() {
     formatStatus,
     averageProgress,
     weeksDuration,
-    mockMaterials,
+    materials,
+    loadingMaterials,
     joinRequestsWithProfiles,
     invitationsWithProfiles,
     processingRequest,

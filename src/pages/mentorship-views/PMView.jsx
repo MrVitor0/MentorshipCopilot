@@ -8,13 +8,14 @@ import Avatar from '../../components/Avatar'
 import MessageModal from '../../components/MessageModal'
 import { StatsCard, SessionHistory, ProgressChart, MaterialsList } from '../../components/mentorship-details'
 
-export default function PMView({ 
-  data, 
-  statusInfo, 
-  formatStatus, 
-  averageProgress, 
+export default function PMView({
+  data,
+  statusInfo,
+  formatStatus,
+  averageProgress,
   weeksDuration,
-  mockMaterials,
+  materials,
+  loadingMaterials,
   joinRequestsWithProfiles,
   invitationsWithProfiles,
   processingRequest,
@@ -366,7 +367,7 @@ export default function PMView({
                 </div>
                 <button
                   onClick={() => setIsGoalWizardOpen(true)}
-                  className="px-4 py-2 bg-gradient-to-r from-orange-500 to-blue-600 text-white rounded-[12px] font-semibold hover:shadow-md transition-all flex items-center gap-2"
+                  className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-[12px] font-semibold hover:shadow-md transition-all flex items-center gap-2"
                 >
                   <AlertCircle className="w-4 h-4" />
                   Manage Goals
@@ -423,7 +424,10 @@ export default function PMView({
             <SessionHistory sessions={sessions} />
 
             {/* Learning Materials */}
-            <MaterialsList materials={mockMaterials} description={`${mockMaterials.length} resources shared`} />
+            <MaterialsList 
+              materials={materials} 
+              description={loadingMaterials ? 'Loading materials...' : `${materials.length} resource${materials.length !== 1 ? 's' : ''} shared`} 
+            />
           </div>
 
           {/* Sidebar */}
@@ -474,7 +478,7 @@ export default function PMView({
                     'Session scheduling feature coming soon!\n\nYou will be able to:\n- Schedule review meetings\n- Check progress together\n- Set team objectives\n- Track milestones',
                     'Coming Soon'
                   )}
-                  className="w-full flex items-center gap-3 p-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-[14px] font-semibold hover:shadow-lg transition-all"
+                  className="w-full flex items-center gap-3 p-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-[14px] font-semibold hover:shadow-lg transition-all"
                 >
                   <Calendar className="w-5 h-5" />
                   <span>Schedule Review</span>
