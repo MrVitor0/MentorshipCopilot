@@ -2167,6 +2167,34 @@ export const getMaterialsByMentorship = async (mentorshipId) => {
   }
 };
 
+// Get all materials from all mentorships of a user (for mentee dashboard)
+export const getMaterialsForMentee = async (userId) => {
+  try {
+    // First, get all mentorships where user is mentee
+    const mentorships = await getUserMentorships(userId);
+    
+    if (mentorships.length === 0) {
+      return [];
+    }
+
+    // Get mentorship IDs
+    const mentorshipIds = mentorships.map(m => m.id);
+
+    // Fetch materials for all mentorships
+    const materialsPromises = mentorshipIds.map(id => getMaterialsByMentorship(id));
+    const materialsArrays = await Promise.all(materialsPromises);
+
+    // Flatten and combine all materials
+    const allMaterials = materialsArrays.flat();
+
+    // Sort by creation date (newest first)
+    return sortByTimestamp(allMaterials, "createdAt", true);
+  } catch (error) {
+    console.error("Error getting materials for mentee:", error);
+    return [];
+  }
+};
+
 /**
  * Delete a material (soft delete)
  * @param {string} materialId - The material ID

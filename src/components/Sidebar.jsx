@@ -37,7 +37,7 @@ const menuItems = [
 
 const managementItems = [
   { name: 'Teams', path: '/teams', color: 'bg-blue-500', IconComponent: Users, permission: 'canViewTeams' },
-  { name: 'Projects', path: '/projects', color: 'bg-blue-500', IconComponent: FolderOpen, permission: 'canViewProjects' },
+  { name: 'Projects', path: '/projects', color: 'bg-blue-500', IconComponent: FolderOpen, permission: null }, // Everyone can access
 ]
 
 export default function Sidebar() {
@@ -101,7 +101,7 @@ export default function Sidebar() {
 
         <div className="pt-6 pb-2">
           <h3 className="px-4 text-xs font-bold text-neutral-gray-dark uppercase tracking-wider">
-            {permissions.isMentor ? 'Assigned to you' : 'Management'}
+            {permissions.isMentor ? 'Assigned to you' : permissions.isMentee ? 'Overview' : 'Management'}
           </h3>
         </div>
 

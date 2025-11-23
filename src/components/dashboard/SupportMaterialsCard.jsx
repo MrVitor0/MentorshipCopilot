@@ -33,8 +33,14 @@ export default function SupportMaterialsCard({
               key={index}
               className="group flex items-center gap-4 p-4 bg-gradient-to-br from-white to-green-50/50 rounded-[16px] border border-green-100/50 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 text-left"
               onClick={() => {
-                // Add download logic here
-                console.log('Download:', material.title)
+                // Open material URL in new tab or download
+                if (material.url) {
+                  window.open(material.url, '_blank')
+                } else if (material.link) {
+                  window.open(material.link, '_blank')
+                } else {
+                  console.log('No URL available for:', material.title)
+                }
               }}
             >
               <div className={`w-12 h-12 bg-gradient-to-br ${colorClasses[material.color]} rounded-[12px] flex items-center justify-center shadow-md group-hover:scale-110 transition-transform duration-300`}>

@@ -7,7 +7,8 @@ import {
   getUserMentorships, 
   getPMMentorships,
   getInvitationsForMentor,
-  getMeetingsByUser
+  getMeetingsByUser,
+  getMaterialsForMentee
 } from '../services/firestoreService'
 import Sidebar from '../components/Sidebar'
 import MentorDashboard from '../components/dashboard/MentorDashboard'
@@ -21,6 +22,7 @@ export default function Dashboard() {
   const [upcomingSessions, setUpcomingSessions] = useState([])
   const [mentorships, setMentorships] = useState([])
   const [invitations, setInvitations] = useState([])
+  const [materials, setMaterials] = useState([])
   const [loading, setLoading] = useState(true)
   const { user } = useAuth()
   const permissions = usePermissions()
@@ -47,6 +49,11 @@ export default function Dashboard() {
         if (permissions.isMentor) {
           fetchPromises.push(getInvitationsForMentor(user.uid))
         }
+
+        // Fetch mentee-specific data (materials from all mentorships)
+        if (permissions.isMentee) {
+          fetchPromises.push(getMaterialsForMentee(user.uid))
+        }
         
         const results = await Promise.all(fetchPromises)
         
@@ -57,6 +64,10 @@ export default function Dashboard() {
         if (permissions.isMentor && results[3]) {
           setInvitations(results[3])
         }
+
+        if (permissions.isMentee && results[3]) {
+          setMaterials(results[3])
+        }
       } catch (error) {
         console.error('Error fetching dashboard data:', error)
       } finally {
@@ -65,7 +76,7 @@ export default function Dashboard() {
     }
 
     fetchData()
-  }, [user, permissions.isPM, permissions.isMentor])
+  }, [user, permissions.isPM, permissions.isMentor, permissions.isMentee])
 
   // Render appropriate dashboard based on user type
   const renderDashboard = () => {
@@ -95,7 +106,8 @@ export default function Dashboard() {
           user={user} 
           upcomingSessions={upcomingSessions} 
           mentorships={mentorships} 
-          loading={loading} 
+          loading={loading}
+          materials={materials}
         />
       )
     }
