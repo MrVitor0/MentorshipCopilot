@@ -28,11 +28,7 @@ const iconMap = {
 }
 
 export default function PMDashboard({ user, upcomingSessions, mentorships, loading }) {
-  // Calculate PM-specific metrics
-  const activeProjects = mentorships.length
-  const completedSessions = Math.floor(activeProjects * 0.7) // Mock data
-  const pendingReviews = Math.floor(activeProjects * 0.3) // Mock data
-  const teamGrowth = activeProjects > 0 ? '+12%' : '0%'
+
   
   const hasNoMentorships = mentorships.length === 0
 
@@ -57,8 +53,8 @@ export default function PMDashboard({ user, upcomingSessions, mentorships, loadi
               }}
               secondaryAction={{
                 icon: Search,
-                label: "Browse Mentors",
-                path: "/mentors"
+                label: "View Mentorships",
+                path: "/mentorship"
               }}
             />
             
@@ -189,13 +185,19 @@ export default function PMDashboard({ user, upcomingSessions, mentorships, loadi
           <>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
             {/* Management Overview - Left Side (2 columns) */}
-            <ManagementOverviewCard 
-              user={user}
-              activeProjects={activeProjects}
-              completedSessions={completedSessions}
-              pendingReviews={pendingReviews}
-              upcomingSessions={upcomingSessions.length}
-              teamGrowth={teamGrowth}
+            <WelcomeHeroSection 
+              title={`Welcome ${user?.displayName || ''}!`}
+              primaryAction={{
+                icon: Plus,
+                label: "Create New Mentorship",
+                path: "/create-mentorship",
+                endIcon: ArrowRight
+              }}
+              secondaryAction={{
+                icon: Search,
+                label: "View Mentorships",
+                path: "/mentorship"
+              }}
             />
 
             {/* Quick Actions - Right Side (1 column) */}

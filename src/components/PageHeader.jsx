@@ -52,14 +52,6 @@ export default function PageHeader({
               {permissions.isPM && (
                 <>
                   <Button 
-                    variant="outline" 
-                    size="md" 
-                    icon={<Search className="w-4 h-4" />}
-                    onClick={() => window.location.href = '/find-mentors'}
-                  >
-                    Find Mentor
-                  </Button>
-                  <Button 
                     variant="orange" 
                     size="md" 
                     icon={<Plus className="w-4 h-4" />}
