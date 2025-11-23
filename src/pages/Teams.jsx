@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import usePermissions from '../hooks/usePermissions'
-import { getTeams, getTeamsByMember, createTeam, deleteTeam } from '../services/firestoreService'
+import { getTeamsByMember, createTeam, deleteTeam } from '../services/firestoreService'
 import Sidebar from '../components/Sidebar'
 import PageHeader from '../components/PageHeader'
 import Card from '../components/Card'
@@ -14,7 +14,7 @@ import { Users, Plus, Trash2, Eye, Calendar, Search, SlidersHorizontal, Loader2,
 export default function Teams() {
   const navigate = useNavigate()
   const { user } = useAuth()
-  const { canManageTeams } = usePermissions()
+  const { canManageTeams, canViewTeams, isMentor } = usePermissions()
   const [teams, setTeams] = useState([])
   const [loading, setLoading] = useState(true)
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -48,12 +48,12 @@ export default function Teams() {
     })
 
   useEffect(() => {
-    if (!canManageTeams) {
+    if (!canViewTeams) {
       navigate('/dashboard')
       return
     }
     loadTeams()
-  }, [canManageTeams, navigate])
+  }, [canViewTeams, navigate])
 
   const loadTeams = async () => {
     try {
@@ -114,7 +114,7 @@ export default function Teams() {
         title="Teams"
         description="Manage your project teams and members. Create teams, organize projects, and collaborate effectively."
       />
-      <div className="flex h-screen bg-gradient-to-br from-neutral-50 via-white to-orange-50/15">
+      <div className="flex h-screen bg-gradient-to-br from-neutral-50 via-white to-blue-50/15">
         <Sidebar />
         
         <main className="flex-1 overflow-y-auto">
@@ -125,6 +125,24 @@ export default function Teams() {
               description="Manage your project teams and members"
               showActions={false}
             />
+
+            {/* Mentor Info Alert */}
+            {isMentor && (
+              <Card className="mb-6 bg-gradient-to-br from-blue-50 to-indigo-100/50 border-2 border-blue-300/70" padding="md">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-baires-blue to-blue-600 rounded-[14px] flex items-center justify-center shadow-md flex-shrink-0">
+                    <Users className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-blue-800 font-bold mb-1">You're a Mentor</h3>
+                    <p className="text-blue-700 text-sm leading-relaxed">
+                      You're viewing teams in read-only mode. Project Managers (PMs) are responsible for creating and managing teams. 
+                      When a PM adds you to a team, it will appear here and you'll be able to collaborate with team members.
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            )}
 
             {/* Error Alert */}
             {error && (
@@ -142,7 +160,7 @@ export default function Teams() {
             {loading ? (
               <div className="flex justify-center items-center py-20">
                 <div className="text-center">
-                  <Loader2 className="w-12 h-12 text-baires-orange mx-auto mb-4 animate-spin" />
+                  <Loader2 className="w-12 h-12 text-baires-blue mx-auto mb-4 animate-spin" />
                   <p className="text-neutral-gray-dark">Loading teams...</p>
                 </div>
               </div>
@@ -165,14 +183,16 @@ export default function Teams() {
                       </div>
                     </div>
 
-                    <Button
-                      variant="orange"
-                      size="md"
-                      icon={<Plus className="w-5 h-5" />}
-                      onClick={() => setShowCreateModal(true)}
-                    >
-                      Create Team
-                    </Button>
+                    {canManageTeams && (
+                      <Button
+                        variant="orange"
+                        size="md"
+                        icon={<Plus className="w-5 h-5" />}
+                        onClick={() => setShowCreateModal(true)}
+                      >
+                        Create Team
+                      </Button>
+                    )}
                   </div>
                 </Card>
 
@@ -186,15 +206,15 @@ export default function Teams() {
                         placeholder="Search teams..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-12 pr-4 py-3 rounded-[14px] border-2 border-neutral-200 focus:border-baires-orange focus:outline-none text-neutral-black placeholder-neutral-gray-dark transition-colors"
+                        className="w-full pl-12 pr-4 py-3 rounded-[14px] border-2 border-neutral-200 focus:border-baires-blue focus:outline-none text-neutral-black placeholder-neutral-gray-dark transition-colors"
                       />
                     </div>
                     <button
                       onClick={() => setShowFilters(!showFilters)}
                       className={`px-5 py-3 rounded-[14px] border-2 transition-all font-semibold ${
                         showFilters
-                          ? 'bg-gradient-to-r from-baires-orange to-orange-600 border-baires-orange text-white shadow-lg'
-                          : 'bg-white border-neutral-200 text-neutral-gray-dark hover:border-baires-orange hover:text-baires-orange'
+                          ? 'bg-gradient-to-r from-baires-blue to-blue-600 border-baires-blue text-white shadow-lg'
+                          : 'bg-white border-neutral-200 text-neutral-gray-dark hover:border-baires-blue hover:text-baires-blue'
                       }`}
                     >
                       <SlidersHorizontal className="w-5 h-5" />
@@ -213,7 +233,7 @@ export default function Teams() {
                           <select
                             value={sortBy}
                             onChange={(e) => setSortBy(e.target.value)}
-                            className="w-full px-4 py-2 rounded-[12px] border-2 border-neutral-200 focus:border-baires-orange focus:outline-none text-neutral-black transition-colors"
+                            className="w-full px-4 py-2 rounded-[12px] border-2 border-neutral-200 focus:border-baires-blue focus:outline-none text-neutral-black transition-colors"
                           >
                             <option value="newest">Newest first</option>
                             <option value="oldest">Oldest first</option>
@@ -233,17 +253,24 @@ export default function Teams() {
                       <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center mx-auto mb-4">
                         <Users className="w-10 h-10 text-baires-blue" />
                       </div>
-                      <h3 className="text-xl font-bold text-neutral-black mb-2">No teams yet</h3>
+                      <h3 className="text-xl font-bold text-neutral-black mb-2">
+                        {isMentor ? 'Not assigned to any teams yet' : 'No teams yet'}
+                      </h3>
                       <p className="text-neutral-gray-dark mb-6">
-                        Create your first team to organize your projects and members
+                        {isMentor 
+                          ? 'When a Project Manager adds you to a team, it will appear here'
+                          : 'Create your first team to organize your projects and members'
+                        }
                       </p>
-                      <Button 
-                        variant="orange" 
-                        icon={<Plus className="w-4 h-4" />}
-                        onClick={() => setShowCreateModal(true)}
-                      >
-                        Create Team
-                      </Button>
+                      {canManageTeams && (
+                        <Button 
+                          variant="orange" 
+                          icon={<Plus className="w-4 h-4" />}
+                          onClick={() => setShowCreateModal(true)}
+                        >
+                          Create Team
+                        </Button>
+                      )}
                     </div>
                   </Card>
                 ) : filteredAndSortedTeams.length === 0 ? (
@@ -306,12 +333,14 @@ export default function Teams() {
                               <Eye className="w-4 h-4" />
                               View
                             </button>
-                            <button
-                              onClick={() => handleDeleteTeam(team.id)}
-                              className="px-4 py-2.5 bg-gradient-to-r from-red-100 to-red-200 text-red-700 rounded-[12px] font-semibold hover:from-red-500 hover:to-red-600 hover:text-white hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                            {canManageTeams && (
+                              <button
+                                onClick={() => handleDeleteTeam(team.id)}
+                                className="px-4 py-2.5 bg-gradient-to-r from-red-100 to-red-200 text-red-700 rounded-[12px] font-semibold hover:from-red-500 hover:to-red-600 hover:text-white hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            )}
                           </div>
                         </div>
                       </Card>
@@ -330,7 +359,7 @@ export default function Teams() {
           <Card className="max-w-md w-full animate-scaleIn" padding="lg">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-baires-orange to-orange-600 rounded-[16px] flex items-center justify-center shadow-lg">
+                <div className="w-12 h-12 bg-gradient-to-br from-baires-blue to-blue-600 rounded-[16px] flex items-center justify-center shadow-lg">
                   <Plus className="w-6 h-6 text-white" />
                 </div>
                 <h2 className="text-2xl font-bold text-neutral-black">Create New Team</h2>
@@ -356,7 +385,7 @@ export default function Teams() {
                   type="text"
                   value={newTeamData.name}
                   onChange={(e) => setNewTeamData({ ...newTeamData, name: e.target.value })}
-                  className="w-full px-4 py-3 rounded-[14px] border-2 border-neutral-200 focus:border-baires-orange focus:outline-none text-neutral-black placeholder-neutral-gray-dark transition-colors"
+                  className="w-full px-4 py-3 rounded-[14px] border-2 border-neutral-200 focus:border-baires-blue focus:outline-none text-neutral-black placeholder-neutral-gray-dark transition-colors"
                   placeholder="Engineering Team Alpha"
                   required
                 />
@@ -369,7 +398,7 @@ export default function Teams() {
                 <textarea
                   value={newTeamData.description}
                   onChange={(e) => setNewTeamData({ ...newTeamData, description: e.target.value })}
-                  className="w-full px-4 py-3 rounded-[14px] border-2 border-neutral-200 focus:border-baires-orange focus:outline-none text-neutral-black placeholder-neutral-gray-dark transition-colors resize-none"
+                  className="w-full px-4 py-3 rounded-[14px] border-2 border-neutral-200 focus:border-baires-blue focus:outline-none text-neutral-black placeholder-neutral-gray-dark transition-colors resize-none"
                   placeholder="Description of the team's purpose and responsibilities"
                   rows={3}
                 />

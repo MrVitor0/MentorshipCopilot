@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { X as XIcon, Calendar, Clock, Star, FileText, Lightbulb, Sparkles, CheckCircle, ArrowRight, ArrowLeft } from 'lucide-react'
+import { useConfirm } from '../hooks/useConfirm'
 import Card from './Card'
 import Button from './Button'
 
@@ -12,6 +13,7 @@ const STEPS = {
 }
 
 export default function SessionLogWizard({ isOpen, onClose, onSubmit, mentee }) {
+  const confirm = useConfirm()
   const [currentStep, setCurrentStep] = useState(STEPS.DATE_TIME)
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -44,7 +46,10 @@ export default function SessionLogWizard({ isOpen, onClose, onSubmit, mentee }) 
       handleClose()
     } catch (error) {
       console.error('Error submitting session:', error)
-      alert('Error saving session. Please try again.')
+      await confirm.error(
+        'Error saving session. Please try again.',
+        'Error'
+      )
     } finally {
       setIsSubmitting(false)
     }
@@ -118,7 +123,7 @@ export default function SessionLogWizard({ isOpen, onClose, onSubmit, mentee }) 
       
       <Card padding="none" className="relative max-w-3xl w-full animate-scaleIn overflow-hidden">
         {/* Header with Progress */}
-        <div className="bg-gradient-to-r from-baires-orange via-orange-600 to-orange-700 p-6 text-white">
+        <div className="bg-gradient-to-r from-baires-blue via-blue-600 to-blue-700 p-6 text-white">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-2xl font-bold mb-1">{getStepTitle()}</h2>
@@ -138,9 +143,9 @@ export default function SessionLogWizard({ isOpen, onClose, onSubmit, mentee }) 
               <div key={step} className="flex items-center flex-1">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all ${
                   step < currentStep 
-                    ? 'bg-white text-baires-orange' 
+                    ? 'bg-white text-baires-blue' 
                     : step === currentStep 
-                    ? 'bg-white text-baires-orange scale-110' 
+                    ? 'bg-white text-baires-blue scale-110' 
                     : 'bg-white/30 text-white'
                 }`}>
                   {step < currentStep ? <CheckCircle className="w-5 h-5" /> : step + 1}
@@ -162,7 +167,7 @@ export default function SessionLogWizard({ isOpen, onClose, onSubmit, mentee }) 
             <div className="space-y-6 animate-fadeIn">
               <div>
                 <label className="flex items-center gap-2 text-sm font-bold text-neutral-black mb-3">
-                  <Calendar className="w-4 h-4 text-baires-orange" />
+                  <Calendar className="w-4 h-4 text-baires-blue" />
                   Session Date
                 </label>
                 <input
@@ -170,13 +175,13 @@ export default function SessionLogWizard({ isOpen, onClose, onSubmit, mentee }) 
                   max={new Date().toISOString().split('T')[0]}
                   value={formData.date}
                   onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  className="w-full px-4 py-4 rounded-[14px] border-2 border-neutral-200 focus:border-baires-orange focus:outline-none text-lg font-semibold"
+                  className="w-full px-4 py-4 rounded-[14px] border-2 border-neutral-200 focus:border-baires-blue focus:outline-none text-lg font-semibold"
                 />
               </div>
 
               <div>
                 <label className="flex items-center gap-2 text-sm font-bold text-neutral-black mb-3">
-                  <Clock className="w-4 h-4 text-baires-orange" />
+                  <Clock className="w-4 h-4 text-baires-blue" />
                   Duration (minutes)
                 </label>
                 <div className="grid grid-cols-4 gap-3">
@@ -186,7 +191,7 @@ export default function SessionLogWizard({ isOpen, onClose, onSubmit, mentee }) 
                       onClick={() => setFormData({ ...formData, duration: duration.toString() })}
                       className={`py-4 rounded-[14px] font-bold text-lg transition-all ${
                         formData.duration === duration.toString()
-                          ? 'bg-gradient-to-r from-baires-orange to-orange-600 text-white shadow-lg scale-105'
+                          ? 'bg-gradient-to-r from-baires-blue to-blue-600 text-white shadow-lg scale-105'
                           : 'bg-neutral-100 text-neutral-black hover:bg-neutral-200'
                       }`}
                     >
@@ -199,13 +204,13 @@ export default function SessionLogWizard({ isOpen, onClose, onSubmit, mentee }) 
                   placeholder="Custom duration"
                   value={formData.duration}
                   onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
-                  className="w-full mt-3 px-4 py-4 rounded-[14px] border-2 border-neutral-200 focus:border-baires-orange focus:outline-none text-lg"
+                  className="w-full mt-3 px-4 py-4 rounded-[14px] border-2 border-neutral-200 focus:border-baires-blue focus:outline-none text-lg"
                 />
               </div>
 
               <div>
                 <label className="flex items-center gap-2 text-sm font-bold text-neutral-black mb-3">
-                  <FileText className="w-4 h-4 text-baires-orange" />
+                  <FileText className="w-4 h-4 text-baires-blue" />
                   Recording URL (Optional)
                 </label>
                 <input
@@ -213,7 +218,7 @@ export default function SessionLogWizard({ isOpen, onClose, onSubmit, mentee }) 
                   placeholder="https://..."
                   value={formData.recordingUrl}
                   onChange={(e) => setFormData({ ...formData, recordingUrl: e.target.value })}
-                  className="w-full px-4 py-4 rounded-[14px] border-2 border-neutral-200 focus:border-baires-orange focus:outline-none text-lg"
+                  className="w-full px-4 py-4 rounded-[14px] border-2 border-neutral-200 focus:border-baires-blue focus:outline-none text-lg"
                 />
               </div>
             </div>
@@ -223,7 +228,7 @@ export default function SessionLogWizard({ isOpen, onClose, onSubmit, mentee }) 
           {currentStep === STEPS.RATING && (
             <div className="space-y-6 animate-fadeIn">
               <div className="text-center mb-8">
-                <div className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-100 to-orange-200 text-baires-orange px-4 py-2 rounded-full mb-4">
+                <div className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-100 to-blue-200 text-baires-blue px-4 py-2 rounded-full mb-4">
                   <Star className="w-4 h-4" />
                   <span className="font-bold text-sm">Rate the session progress</span>
                 </div>
@@ -236,7 +241,7 @@ export default function SessionLogWizard({ isOpen, onClose, onSubmit, mentee }) 
                     onClick={() => setFormData({ ...formData, progressRating: rating })}
                     className={`aspect-square rounded-[20px] flex flex-col items-center justify-center gap-3 font-bold transition-all ${
                       formData.progressRating === rating
-                        ? 'bg-gradient-to-br from-baires-orange to-orange-600 text-white shadow-2xl scale-110'
+                        ? 'bg-gradient-to-br from-baires-blue to-blue-600 text-white shadow-2xl scale-110'
                         : 'bg-gradient-to-br from-neutral-100 to-neutral-200 text-neutral-black hover:scale-105 hover:shadow-lg'
                     }`}
                   >
@@ -261,10 +266,10 @@ export default function SessionLogWizard({ isOpen, onClose, onSubmit, mentee }) 
             <div className="space-y-6 animate-fadeIn">
               <div className="flex items-center justify-between mb-4">
                 <label className="flex items-center gap-2 text-sm font-bold text-neutral-black">
-                  <FileText className="w-4 h-4 text-baires-orange" />
+                  <FileText className="w-4 h-4 text-baires-blue" />
                   What happened in this session?
                 </label>
-                <button className="flex items-center gap-1 text-xs font-bold text-baires-orange hover:text-orange-700 transition-colors px-3 py-1.5 bg-orange-50 rounded-full">
+                <button className="flex items-center gap-1 text-xs font-bold text-baires-blue hover:text-orange-700 transition-colors px-3 py-1.5 bg-orange-50 rounded-full">
                   <Sparkles className="w-3 h-3" />
                   AI Assist
                 </button>
@@ -275,7 +280,7 @@ export default function SessionLogWizard({ isOpen, onClose, onSubmit, mentee }) 
                 placeholder="Describe what topics were covered, skills practiced, challenges faced, and progress made during this session..."
                 value={formData.summary}
                 onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
-                className="w-full px-4 py-4 rounded-[14px] border-2 border-neutral-200 focus:border-baires-orange focus:outline-none resize-none text-base leading-relaxed"
+                className="w-full px-4 py-4 rounded-[14px] border-2 border-neutral-200 focus:border-baires-blue focus:outline-none resize-none text-base leading-relaxed"
               ></textarea>
 
               <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-[14px] border border-blue-200">
@@ -297,10 +302,10 @@ export default function SessionLogWizard({ isOpen, onClose, onSubmit, mentee }) 
             <div className="space-y-6 animate-fadeIn">
               <div className="flex items-center justify-between mb-4">
                 <label className="flex items-center gap-2 text-sm font-bold text-neutral-black">
-                  <ArrowRight className="w-4 h-4 text-baires-orange" />
+                  <ArrowRight className="w-4 h-4 text-baires-blue" />
                   What should happen next?
                 </label>
-                <button className="flex items-center gap-1 text-xs font-bold text-baires-orange hover:text-orange-700 transition-colors px-3 py-1.5 bg-orange-50 rounded-full">
+                <button className="flex items-center gap-1 text-xs font-bold text-baires-blue hover:text-orange-700 transition-colors px-3 py-1.5 bg-orange-50 rounded-full">
                   <Sparkles className="w-3 h-3" />
                   AI Suggest
                 </button>
@@ -311,12 +316,12 @@ export default function SessionLogWizard({ isOpen, onClose, onSubmit, mentee }) 
                 placeholder="Define clear action items, homework, resources to review, or skills to practice before the next session..."
                 value={formData.nextSteps}
                 onChange={(e) => setFormData({ ...formData, nextSteps: e.target.value })}
-                className="w-full px-4 py-4 rounded-[14px] border-2 border-neutral-200 focus:border-baires-orange focus:outline-none resize-none text-base leading-relaxed"
+                className="w-full px-4 py-4 rounded-[14px] border-2 border-neutral-200 focus:border-baires-blue focus:outline-none resize-none text-base leading-relaxed"
               ></textarea>
 
-              <div className="p-4 bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-[14px] border border-orange-200">
+              <div className="p-4 bg-gradient-to-br from-orange-50 to-blue-100/50 rounded-[14px] border border-orange-200">
                 <div className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-baires-orange flex-shrink-0 mt-0.5" />
+                  <CheckCircle className="w-5 h-5 text-baires-blue flex-shrink-0 mt-0.5" />
                   <div>
                     <div className="font-bold text-orange-900 text-sm mb-1">Best Practice</div>
                     <p className="text-xs text-orange-800 leading-relaxed">
@@ -361,15 +366,15 @@ export default function SessionLogWizard({ isOpen, onClose, onSubmit, mentee }) 
                 </div>
 
                 {/* Rating */}
-                <div className="p-4 bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-[14px] border border-orange-200">
+                <div className="p-4 bg-gradient-to-br from-orange-50 to-blue-100/50 rounded-[14px] border border-orange-200">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <Star className="w-4 h-4 text-baires-orange" />
+                      <Star className="w-4 h-4 text-baires-blue" />
                       <span className="font-bold text-neutral-black text-sm">Progress Rating</span>
                     </div>
                     <button
                       onClick={() => setCurrentStep(STEPS.RATING)}
-                      className="text-xs text-baires-orange hover:text-orange-700 font-semibold"
+                      className="text-xs text-baires-blue hover:text-orange-700 font-semibold"
                     >
                       Edit
                     </button>
@@ -380,7 +385,7 @@ export default function SessionLogWizard({ isOpen, onClose, onSubmit, mentee }) 
                         <Star
                           key={i}
                           className={`w-5 h-5 ${
-                            i < formData.progressRating ? 'fill-baires-orange text-baires-orange' : 'text-neutral-300'
+                            i < formData.progressRating ? 'fill-baires-blue text-baires-blue' : 'text-neutral-300'
                           }`}
                         />
                       ))}
@@ -442,7 +447,7 @@ export default function SessionLogWizard({ isOpen, onClose, onSubmit, mentee }) 
             <button
               onClick={handleNext}
               disabled={!isStepValid()}
-              className="px-8 py-3 bg-gradient-to-r from-baires-orange to-orange-600 text-white rounded-[14px] font-bold hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+              className="px-8 py-3 bg-gradient-to-r from-baires-blue to-blue-600 text-white rounded-[14px] font-bold hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
             >
               Continue
               <ArrowRight className="w-4 h-4" />

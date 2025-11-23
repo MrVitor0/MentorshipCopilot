@@ -1,18 +1,18 @@
-import { useAuth } from './useAuth'
+import { useAuth } from "./useAuth";
 
 /**
  * Custom hook for managing user permissions based on user type
  * Follows SOLID principles - Single Responsibility
  */
 export const usePermissions = () => {
-  const { user } = useAuth()
+  const { user } = useAuth();
 
-  const userType = user?.userType
+  const userType = user?.userType;
 
   // Permission checks
-  const isMentor = userType === 'mentor'
-  const isPM = userType === 'pm'
-  const isMentee = userType === 'mentee'
+  const isMentor = userType === "mentor";
+  const isPM = userType === "pm";
+  const isMentee = userType === "mentee";
 
   // Feature permissions
   const permissions = {
@@ -31,8 +31,8 @@ export const usePermissions = () => {
     // Teams and Projects management
     canManageTeams: isPM, // Only PMs can manage teams
     canManageProjects: isPM, // Only PMs can manage projects
-    canViewTeams: isPM, // Only PMs can view teams
-    canViewProjects: isPM, // Only PMs can view projects
+    canViewTeams: isPM || isMentor, // PMs and Mentors can view teams
+    canViewProjects: isPM || isMentor, // PMs and Mentors can view projects
 
     // Profile and settings
     canEditProfile: true, // Everyone can edit their profile
@@ -51,11 +51,10 @@ export const usePermissions = () => {
     // User type flags
     isMentor,
     isPM,
-    isMentee
-  }
+    isMentee,
+  };
 
-  return permissions
-}
+  return permissions;
+};
 
-export default usePermissions
-
+export default usePermissions;

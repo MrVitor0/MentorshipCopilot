@@ -3,7 +3,6 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import usePermissions from '../hooks/usePermissions'
 import {
-  getProjects,
   getProjectsByPM,
   createProject,
   deleteProject,
@@ -21,7 +20,7 @@ export default function Projects() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { user } = useAuth()
-  const { canManageProjects } = usePermissions()
+  const { canManageProjects, canViewProjects, isMentor } = usePermissions()
   const [projects, setProjects] = useState([])
   const [teams, setTeams] = useState([])
   const [loading, setLoading] = useState(true)
@@ -67,12 +66,12 @@ export default function Projects() {
     })
 
   useEffect(() => {
-    if (!canManageProjects) {
+    if (!canViewProjects) {
       navigate('/dashboard')
       return
     }
     loadData()
-  }, [canManageProjects, navigate])
+  }, [canViewProjects, navigate])
 
   const loadData = async () => {
     try {
@@ -145,7 +144,7 @@ export default function Projects() {
         title="Projects"
         description="Manage your projects and assign mentees. Organize teams, track progress, and achieve goals."
       />
-      <div className="flex h-screen bg-gradient-to-br from-neutral-50 via-white to-orange-50/15">
+      <div className="flex h-screen bg-gradient-to-br from-neutral-50 via-white to-blue-50/15">
         <Sidebar />
         
         <main className="flex-1 overflow-y-auto">
@@ -156,6 +155,24 @@ export default function Projects() {
               description="Manage your projects and assign mentees"
               showActions={false}
             />
+
+            {/* Mentor Info Alert */}
+            {isMentor && (
+              <Card className="mb-6 bg-gradient-to-br from-blue-50 to-indigo-100/50 border-2 border-blue-300/70" padding="md">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-baires-blue to-blue-600 rounded-[14px] flex items-center justify-center shadow-md flex-shrink-0">
+                    <FolderOpen className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-blue-800 font-bold mb-1">You're a Mentor</h3>
+                    <p className="text-blue-700 text-sm leading-relaxed">
+                      You're viewing projects in read-only mode. Project Managers (PMs) are responsible for creating and managing projects. 
+                      When a PM adds you to a project as a mentor, it will appear here and in your dashboard.
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            )}
 
             {/* Error Alert */}
             {error && (
@@ -173,7 +190,7 @@ export default function Projects() {
             {loading ? (
               <div className="flex justify-center items-center py-20">
                 <div className="text-center">
-                  <Loader2 className="w-12 h-12 text-baires-orange mx-auto mb-4 animate-spin" />
+                  <Loader2 className="w-12 h-12 text-baires-blue mx-auto mb-4 animate-spin" />
                   <p className="text-neutral-gray-dark">Loading projects...</p>
                 </div>
               </div>
@@ -196,14 +213,16 @@ export default function Projects() {
                       </div>
                     </div>
 
-                    <Button
-                      variant="orange"
-                      size="md"
-                      icon={<Plus className="w-5 h-5" />}
-                      onClick={() => setShowCreateModal(true)}
-                    >
-                      Create Project
-                    </Button>
+                    {canManageProjects && (
+                      <Button
+                        variant="orange"
+                        size="md"
+                        icon={<Plus className="w-5 h-5" />}
+                        onClick={() => setShowCreateModal(true)}
+                      >
+                        Create Project
+                      </Button>
+                    )}
                   </div>
                 </Card>
 
@@ -217,15 +236,15 @@ export default function Projects() {
                         placeholder="Search projects..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-12 pr-4 py-3 rounded-[14px] border-2 border-neutral-200 focus:border-baires-orange focus:outline-none text-neutral-black placeholder-neutral-gray-dark transition-colors"
+                        className="w-full pl-12 pr-4 py-3 rounded-[14px] border-2 border-neutral-200 focus:border-baires-blue focus:outline-none text-neutral-black placeholder-neutral-gray-dark transition-colors"
                       />
                     </div>
                     <button
                       onClick={() => setShowFilters(!showFilters)}
                       className={`px-5 py-3 rounded-[14px] border-2 transition-all font-semibold ${
                         showFilters
-                          ? 'bg-gradient-to-r from-baires-orange to-orange-600 border-baires-orange text-white shadow-lg'
-                          : 'bg-white border-neutral-200 text-neutral-gray-dark hover:border-baires-orange hover:text-baires-orange'
+                          ? 'bg-gradient-to-r from-baires-blue to-blue-600 border-baires-blue text-white shadow-lg'
+                          : 'bg-white border-neutral-200 text-neutral-gray-dark hover:border-baires-blue hover:text-baires-blue'
                       }`}
                     >
                       <SlidersHorizontal className="w-5 h-5" />
@@ -244,7 +263,7 @@ export default function Projects() {
                           <select
                             value={sortBy}
                             onChange={(e) => setSortBy(e.target.value)}
-                            className="w-full px-4 py-2 rounded-[12px] border-2 border-neutral-200 focus:border-baires-orange focus:outline-none text-neutral-black transition-colors"
+                            className="w-full px-4 py-2 rounded-[12px] border-2 border-neutral-200 focus:border-baires-blue focus:outline-none text-neutral-black transition-colors"
                           >
                             <option value="newest">Newest first</option>
                             <option value="oldest">Oldest first</option>
@@ -259,7 +278,7 @@ export default function Projects() {
                           <select
                             value={filterByTeam}
                             onChange={(e) => setFilterByTeam(e.target.value)}
-                            className="w-full px-4 py-2 rounded-[12px] border-2 border-neutral-200 focus:border-baires-orange focus:outline-none text-neutral-black transition-colors"
+                            className="w-full px-4 py-2 rounded-[12px] border-2 border-neutral-200 focus:border-baires-blue focus:outline-none text-neutral-black transition-colors"
                           >
                             <option value="all">All projects</option>
                             <option value="with-team">With team</option>
@@ -283,17 +302,24 @@ export default function Projects() {
                       <div className="w-20 h-20 bg-gradient-to-br from-purple-100 to-purple-200 rounded-full flex items-center justify-center mx-auto mb-4">
                         <FolderOpen className="w-10 h-10 text-purple-600" />
                       </div>
-                      <h3 className="text-xl font-bold text-neutral-black mb-2">No projects yet</h3>
+                      <h3 className="text-xl font-bold text-neutral-black mb-2">
+                        {isMentor ? 'Not assigned to any projects yet' : 'No projects yet'}
+                      </h3>
                       <p className="text-neutral-gray-dark mb-6">
-                        Create your first project to organize mentees and mentors
+                        {isMentor 
+                          ? 'When a Project Manager adds you to a project, it will appear here'
+                          : 'Create your first project to organize mentees and mentors'
+                        }
                       </p>
-                      <Button 
-                        variant="orange" 
-                        icon={<Plus className="w-4 h-4" />}
-                        onClick={() => setShowCreateModal(true)}
-                      >
-                        Create Project
-                      </Button>
+                      {canManageProjects && (
+                        <Button 
+                          variant="orange" 
+                          icon={<Plus className="w-4 h-4" />}
+                          onClick={() => setShowCreateModal(true)}
+                        >
+                          Create Project
+                        </Button>
+                      )}
                     </div>
                   </Card>
                 ) : filteredAndSortedProjects.length === 0 ? (
@@ -333,7 +359,7 @@ export default function Projects() {
                           {/* Team Badge */}
                           {project.teamId && (
                             <div className="mb-3">
-                              <span className="text-xs font-bold text-baires-orange bg-orange-100 px-3 py-1.5 rounded-full border border-orange-200">
+                              <span className="text-xs font-bold text-baires-blue bg-orange-100 px-3 py-1.5 rounded-full border border-orange-200">
                                 {getTeamName(project.teamId)}
                               </span>
                             </div>
@@ -365,12 +391,14 @@ export default function Projects() {
                               <Eye className="w-4 h-4" />
                               View
                             </button>
-                            <button
-                              onClick={() => handleDeleteProject(project.id)}
-                              className="px-4 py-2.5 bg-gradient-to-r from-red-100 to-red-200 text-red-700 rounded-[12px] font-semibold hover:from-red-500 hover:to-red-600 hover:text-white hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                            {canManageProjects && (
+                              <button
+                                onClick={() => handleDeleteProject(project.id)}
+                                className="px-4 py-2.5 bg-gradient-to-r from-red-100 to-red-200 text-red-700 rounded-[12px] font-semibold hover:from-red-500 hover:to-red-600 hover:text-white hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            )}
                           </div>
                         </div>
                       </Card>
@@ -389,7 +417,7 @@ export default function Projects() {
           <Card className="max-w-md w-full animate-scaleIn" padding="lg">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-baires-orange to-orange-600 rounded-[16px] flex items-center justify-center shadow-lg">
+                <div className="w-12 h-12 bg-gradient-to-br from-baires-blue to-blue-600 rounded-[16px] flex items-center justify-center shadow-lg">
                   <Plus className="w-6 h-6 text-white" />
                 </div>
                 <h2 className="text-2xl font-bold text-neutral-black">Create New Project</h2>
@@ -415,7 +443,7 @@ export default function Projects() {
                   type="text"
                   value={newProjectData.name}
                   onChange={(e) => setNewProjectData({ ...newProjectData, name: e.target.value })}
-                  className="w-full px-4 py-3 rounded-[14px] border-2 border-neutral-200 focus:border-baires-orange focus:outline-none text-neutral-black placeholder-neutral-gray-dark transition-colors"
+                  className="w-full px-4 py-3 rounded-[14px] border-2 border-neutral-200 focus:border-baires-blue focus:outline-none text-neutral-black placeholder-neutral-gray-dark transition-colors"
                   placeholder="E-commerce Platform"
                   required
                 />
@@ -428,7 +456,7 @@ export default function Projects() {
                 <textarea
                   value={newProjectData.description}
                   onChange={(e) => setNewProjectData({ ...newProjectData, description: e.target.value })}
-                  className="w-full px-4 py-3 rounded-[14px] border-2 border-neutral-200 focus:border-baires-orange focus:outline-none text-neutral-black placeholder-neutral-gray-dark transition-colors resize-none"
+                  className="w-full px-4 py-3 rounded-[14px] border-2 border-neutral-200 focus:border-baires-blue focus:outline-none text-neutral-black placeholder-neutral-gray-dark transition-colors resize-none"
                   placeholder="Project description and goals"
                   rows={3}
                 />
@@ -441,7 +469,7 @@ export default function Projects() {
                 <select
                   value={newProjectData.teamId}
                   onChange={(e) => setNewProjectData({ ...newProjectData, teamId: e.target.value })}
-                  className="w-full px-4 py-3 rounded-[14px] border-2 border-neutral-200 focus:border-baires-orange focus:outline-none text-neutral-black transition-colors"
+                  className="w-full px-4 py-3 rounded-[14px] border-2 border-neutral-200 focus:border-baires-blue focus:outline-none text-neutral-black transition-colors"
                 >
                   <option value="">No team (individual project)</option>
                   {teams.map((team) => (

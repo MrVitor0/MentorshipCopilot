@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { getAllMentors } from '../services/firestoreService'
 import Card from './Card'
 import Avatar from './Avatar'
 import Badge from './Badge'
@@ -16,12 +17,13 @@ import {
   Calendar,
   Filter,
   X,
-  Send
+  Send,
+  Loader2
 } from 'lucide-react'
 
 /**
  * MentorSelectionStep - Step 5 of mentorship creation wizard
- * Displays AI-recommended top mentors and paginated table of other available mentors
+ * Displays ALL available mentors first, then AI recommendations as secondary option
  */
 export default function MentorSelectionStep({
   selectedMentee,
@@ -29,18 +31,39 @@ export default function MentorSelectionStep({
   selectedMentors = [],
   onMentorSelect = () => {}
 }) {
-  // State for other mentors pagination and filtering
+  // State for all mentors
+  const [allMentors, setAllMentors] = useState([])
+  const [loading, setLoading] = useState(true)
+  
+  // State for pagination and filtering
   const [currentPage, setCurrentPage] = useState(1)
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState('displayName')
   const [sortOrder, setSortOrder] = useState('asc')
 
-  const pageSize = 10
+  const pageSize = 15
 
-  // Process other mentors from AI recommendations with local filtering and pagination
-  const processOtherMentors = () => {
-    let mentors = [...(recommendedMentors.otherMentors || [])]
-    console.log('🔍 Processing other mentors:', mentors.length, mentors)
+  // Load all mentors on mount
+  useEffect(() => {
+    const loadAllMentors = async () => {
+      setLoading(true)
+      try {
+        const mentors = await getAllMentors()
+        console.log('📋 Loaded all mentors:', mentors.length)
+        setAllMentors(mentors)
+      } catch (error) {
+        console.error('❌ Error loading mentors:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadAllMentors()
+  }, [])
+
+  // Process all mentors with filtering and pagination
+  const processAllMentors = () => {
+    let mentors = [...allMentors]
+    console.log('🔍 Processing all mentors:', mentors.length, mentors)
     
     // Apply search filter
     if (searchQuery.trim()) {
@@ -48,7 +71,10 @@ export default function MentorSelectionStep({
       mentors = mentors.filter(mentor => 
         mentor.displayName?.toLowerCase().includes(lowerQuery) ||
         mentor.bio?.toLowerCase().includes(lowerQuery) ||
-        mentor.role?.toLowerCase().includes(lowerQuery)
+        mentor.role?.toLowerCase().includes(lowerQuery) ||
+        mentor.technologies?.some(tech => 
+          (typeof tech === 'string' ? tech : tech.name)?.toLowerCase().includes(lowerQuery)
+        )
       )
     }
     
@@ -81,7 +107,7 @@ export default function MentorSelectionStep({
     return mentors
   }
 
-  const filteredMentors = processOtherMentors()
+  const filteredMentors = processAllMentors()
   const totalCount = filteredMentors.length
   const totalPages = Math.ceil(totalCount / pageSize)
   const startIndex = (currentPage - 1) * pageSize
@@ -113,13 +139,24 @@ export default function MentorSelectionStep({
     setCurrentPage(1) // Reset to first page on sort change
   }
 
+  if (loading) {
+    return (
+      <div className="p-8 md:p-12 bg-gradient-to-br from-white to-indigo-50/20 min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-baires-indigo mx-auto mb-4 animate-spin" />
+          <p className="text-neutral-gray-dark font-medium">Loading mentors...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="p-8 md:p-12 bg-gradient-to-br from-white to-indigo-50/20">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 bg-gradient-to-r from-baires-indigo to-indigo-600 text-white px-4 py-2 rounded-full mb-4">
-            <Sparkles className="w-4 h-4" />
+            <Sparkles className="w-4 h-4 animate-pulse" />
             <span className="font-semibold text-sm">AI-Powered Recommendations</span>
           </div>
           <h2 className="text-3xl font-bold text-neutral-black mb-3">
@@ -130,7 +167,7 @@ export default function MentorSelectionStep({
           </p>
         </div>
 
-        {/* AI Top 3 Recommendations */}
+        {/* AI Top Recommendations - PRIMARY FOCUS */}
         <div className="mb-12">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 bg-gradient-to-br from-baires-indigo to-indigo-600 rounded-[14px] flex items-center justify-center shadow-lg">
@@ -144,11 +181,10 @@ export default function MentorSelectionStep({
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {recommendedMentors.topMentors.map((mentor, index) => {
-              console.log(`🎯 Mentor ${index + 1} data:`, {
+              console.log(`🎯 AI Mentor ${index + 1}:`, {
                 name: mentor.displayName,
                 matchPercentage: mentor.matchPercentage,
-                aiScore: mentor.aiScore,
-                fullMentor: mentor
+                aiScore: mentor.aiScore
               })
               
               const isSelected = isMentorSelected(mentor.uid || mentor.id)
@@ -186,8 +222,8 @@ export default function MentorSelectionStep({
                     padding="none"
                     className="bg-white overflow-hidden rounded-[24px] h-full flex flex-col"
                   >
-                    {/* Banner Background - Blurred Photo or Gradient */}
-                    <div className="relative h-32 overflow-hidden rounded-t-[24px]">
+                    {/* Compact Banner with Badge */}
+                    <div className="relative h-20 overflow-hidden rounded-t-[24px]">
                       {mentor.photoURL ? (
                         <>
                           <img 
@@ -201,126 +237,114 @@ export default function MentorSelectionStep({
                         <div className={`w-full h-full bg-gradient-to-br ${bannerColor} opacity-80`}></div>
                       )}
                       
-                      {/* AI Score Badge - Dynamic Color */}
-                      <div className={`absolute top-4 right-4 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1 border-2 ${matchColor}`}>
+                      {/* AI Score Badge - Smaller */}
+                      <div className={`absolute top-2 right-2 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-bold shadow-md flex items-center gap-1 border ${matchColor}`}>
                         <Sparkles className="w-3 h-3 animate-pulse" />
-                        {matchPercentage}% Match
+                        {matchPercentage}%
                       </div>
 
-                      {/* Rank Badge */}
-                      <div className="absolute top-4 left-4 w-10 h-10 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center text-white font-bold shadow-xl text-lg border-2 border-white">
+                      {/* Rank Badge - Smaller */}
+                      <div className="absolute top-2 left-2 w-8 h-8 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center text-white font-bold shadow-lg text-sm border-2 border-white">
                         {index + 1}
                       </div>
                     </div>
 
-                    {/* Profile Photo - Overlapping Banner */}
-                    <div className="flex justify-center -mt-16 mb-4">
+                    {/* Profile Photo - Smaller */}
+                    <div className="flex justify-center -mt-10 mb-3">
                       <div className="relative inline-block">
                         {mentor.photoURL ? (
                           <img
                             src={mentor.photoURL}
                             alt={mentor.displayName}
-                            className="w-40 h-40 rounded-full object-cover shadow-2xl"
+                            className="w-20 h-20 rounded-full object-cover shadow-xl border-4 border-white"
                           />
                         ) : (
-                          <div className="w-40 h-40 rounded-full bg-gradient-to-br from-baires-indigo to-baires-blue flex items-center justify-center font-bold text-neutral-white text-6xl shadow-2xl">
+                          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-baires-indigo to-baires-blue flex items-center justify-center font-bold text-neutral-white text-2xl shadow-xl border-4 border-white">
                             {mentor.displayName?.substring(0, 2)?.toUpperCase()}
                           </div>
                         )}
-                        {/* Selected Check - Floating */}
                         {isSelected && (
-                          <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-gradient-to-br from-baires-indigo to-indigo-600 rounded-full flex items-center justify-center shadow-xl animate-scaleIn border-4 border-white z-10">
-                            <CheckCircle className="w-6 h-6 text-white" />
+                          <div className="absolute -bottom-1 -right-1 w-7 h-7 bg-gradient-to-br from-baires-indigo to-indigo-600 rounded-full flex items-center justify-center shadow-lg animate-scaleIn border-2 border-white">
+                            <CheckCircle className="w-4 h-4 text-white" />
                           </div>
                         )}
                       </div>
                     </div>
 
-                    {/* Content */}
-                    <div className="px-6 pb-6 flex-1 flex flex-col">
-                      {/* Name and Role */}
-                      <div className="text-center mb-4">
-                        <h4 className={`font-bold text-xl mb-1 transition-colors ${isSelected ? 'text-baires-indigo' : 'text-neutral-black'}`}>
+                    {/* Content - More Compact */}
+                    <div className="px-4 pb-4 flex-1 flex flex-col">
+                      <div className="text-center mb-3">
+                        <h4 className={`font-bold text-lg mb-0.5 transition-colors ${isSelected ? 'text-baires-indigo' : 'text-neutral-black'}`}>
                           {mentor.displayName}
                         </h4>
-                        <p className="text-sm text-neutral-gray-dark font-medium mb-2">{mentor.role || 'Senior Engineer'}</p>
+                        <p className="text-xs text-neutral-gray-dark font-medium mb-2">{mentor.role || 'Senior Engineer'}</p>
                         
-                        {/* Technologies Pills - Fixed Height */}
-                        <div className="flex flex-wrap gap-1.5 justify-center mb-4 min-h-[32px] max-h-[64px] overflow-hidden">
-                          {(mentor.technologies || []).slice(0, 4).map((tech, idx) => (
-                            <span key={idx} className="text-xs bg-gradient-to-r from-indigo-100 to-indigo-200 text-baires-indigo px-3 py-1 rounded-full font-semibold border border-indigo-300 whitespace-nowrap">
+                        <div className="flex flex-wrap gap-1 justify-center mb-3 max-h-[40px] overflow-hidden">
+                          {(mentor.technologies || []).slice(0, 3).map((tech, idx) => (
+                            <span key={idx} className="text-xs bg-gradient-to-r from-indigo-100 to-indigo-200 text-baires-indigo px-2 py-0.5 rounded-full font-semibold border border-indigo-300 whitespace-nowrap">
                               {typeof tech === 'string' ? tech : tech.name}
                             </span>
                           ))}
                         </div>
                       </div>
 
-                      {/* AI Insight Description - Auto Height */}
-                        <div className="mb-4 p-4 bg-gradient-to-br from-indigo-50 via-blue-50 to-indigo-100 rounded-[16px] border-2 border-indigo-200 relative overflow-hidden min-h-[120px] max-h-[300px] overflow-y-auto">
-                          <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-indigo-400/20 to-blue-400/20 rounded-full blur-2xl pointer-events-none"></div>
-                          <div className="relative">
-                            <div className="flex items-center gap-2 mb-2">
-                              <div className="w-6 h-6 bg-gradient-to-br from-baires-indigo to-indigo-600 rounded-lg flex items-center justify-center">
-                                <Sparkles className="w-4 h-4 text-white" />
-                              </div>
-                              <span className="text-xs font-bold text-indigo-900 uppercase tracking-wide">AI Insight</span>
-                            </div>
-                            <p className="text-sm text-neutral-black leading-relaxed font-medium">
-                              {mentor.aiInsight || mentor.aiMagicReason || "Perfect match for your requirements. Strong expertise and proven track record."}
-                            </p>
+                      {/* AI Insight - More Compact */}
+                      <div className="mb-3 p-3 bg-gradient-to-br from-indigo-50 via-blue-50 to-indigo-100 rounded-[12px] border border-indigo-200 relative overflow-hidden">
+                        <div className="relative">
+                          <div className="flex items-center gap-1 mb-1">
+                            <Sparkles className="w-3 h-3 text-baires-indigo" />
+                            <span className="text-xs font-bold text-indigo-900 uppercase">AI Insight</span>
                           </div>
-                        </div>
-
-                      {/* Stats Grid - Compact */}
-                      <div className="grid grid-cols-3 gap-2 mb-4">
-                        <div className="text-center p-3 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-[12px] border border-indigo-200">
-                          <Star className="w-5 h-5 text-baires-indigo mx-auto mb-1" />
-                          <div className="text-lg font-bold text-neutral-black">{mentor.rating || 4.8}</div>
-                          <div className="text-xs text-neutral-gray-dark font-medium">Rating</div>
-                        </div>
-                        <div className="text-center p-3 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-[12px] border border-indigo-200">
-                          <Users className="w-5 h-5 text-baires-indigo mx-auto mb-1" />
-                          <div className="text-lg font-bold text-neutral-black">{mentor.totalMentees || 0}</div>
-                          <div className="text-xs text-neutral-gray-dark font-medium">Mentees</div>
-                        </div>
-                        <div className="text-center p-3 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-[12px] border border-indigo-200">
-                          <TrendingUp className="w-5 h-5 text-baires-indigo mx-auto mb-1" />
-                          <div className="text-lg font-bold text-neutral-black">{mentor.successRate || 95}%</div>
-                          <div className="text-xs text-neutral-gray-dark font-medium">Success</div>
+                          <p className="text-xs text-neutral-black leading-snug line-clamp-3">
+                            {mentor.aiInsight || mentor.aiMagicReason || "Perfect match for your requirements. Strong expertise and proven track record."}
+                          </p>
                         </div>
                       </div>
 
-                      {/* Key Reasons - List - Fixed Height */}
-                      <div className="mb-4 flex-1">
-                        {mentor.aiReasons && mentor.aiReasons.length > 0 && (
-                          <div className="space-y-2 h-full max-h-[180px] overflow-hidden">
-                            {mentor.aiReasons.slice(0, 3).map((reason, idx) => (
-                              <div key={idx} className="flex items-start gap-2 p-2 bg-indigo-50 rounded-lg border border-indigo-200">
-                                <CheckCircle className="w-4 h-4 text-baires-indigo mt-0.5 flex-shrink-0" />
-                                <span className="text-xs text-neutral-black font-medium leading-relaxed line-clamp-2">{reason}</span>
-                              </div>
-                            ))}
+                      {/* Stats - Inline & Compact */}
+                      <div className="flex items-center justify-around mb-3 py-2 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-[10px] border border-indigo-200">
+                        <div className="text-center">
+                          <div className="flex items-center gap-1 justify-center">
+                            <Star className="w-3 h-3 text-yellow-500" />
+                            <span className="text-sm font-bold text-neutral-black">{mentor.rating || 4.8}</span>
                           </div>
-                        )}
+                          <div className="text-xs text-neutral-gray-dark">Rating</div>
+                        </div>
+                        <div className="w-px h-8 bg-indigo-200"></div>
+                        <div className="text-center">
+                          <div className="flex items-center gap-1 justify-center">
+                            <Users className="w-3 h-3 text-baires-indigo" />
+                            <span className="text-sm font-bold text-neutral-black">{mentor.totalMentees || 0}</span>
+                          </div>
+                          <div className="text-xs text-neutral-gray-dark">Mentees</div>
+                        </div>
+                        <div className="w-px h-8 bg-indigo-200"></div>
+                        <div className="text-center">
+                          <div className="flex items-center gap-1 justify-center">
+                            <TrendingUp className="w-3 h-3 text-green-600" />
+                            <span className="text-sm font-bold text-neutral-black">{mentor.successRate || 95}%</span>
+                          </div>
+                          <div className="text-xs text-neutral-gray-dark">Success</div>
+                        </div>
                       </div>
 
-                      {/* Invite Button - Always at bottom */}
+                      {/* Invite Button - Compact */}
                       <div className="mt-auto">
                         <button
-                          className={`w-full py-3 rounded-[14px] font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2 ${
+                          className={`w-full py-2 rounded-[10px] font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2 ${
                             isSelected
-                              ? 'bg-gradient-to-r from-baires-indigo to-indigo-600 text-white shadow-lg ring-2 ring-baires-indigo ring-offset-2'
-                              : 'bg-gradient-to-r from-baires-indigo to-indigo-600 text-white shadow-lg hover:shadow-xl hover:scale-105'
+                              ? 'bg-gradient-to-r from-baires-indigo to-indigo-600 text-white shadow-md ring-2 ring-baires-indigo ring-offset-2'
+                              : 'bg-gradient-to-r from-baires-indigo to-indigo-600 text-white shadow-md hover:shadow-lg hover:scale-105'
                           }`}
                         >
                           {isSelected ? (
                             <>
-                              <CheckCircle className="w-5 h-5" />
+                              <CheckCircle className="w-4 h-4" />
                               <span>Invited</span>
                             </>
                           ) : (
                             <>
-                              <Send className="w-5 h-5" />
+                              <Send className="w-4 h-4" />
                               <span>Invite</span>
                             </>
                           )}
@@ -336,21 +360,21 @@ export default function MentorSelectionStep({
           {recommendedMentors.topMentors.length === 0 && (
             <Card padding="xl" className="text-center">
               <Sparkles className="w-12 h-12 text-neutral-gray-dark mx-auto mb-4 opacity-50" />
-              <p className="text-neutral-gray-dark">No AI recommendations available</p>
+              <p className="text-neutral-gray-dark">Loading AI recommendations...</p>
             </Card>
           )}
         </div>
 
-        {/* Other Available Mentors - Table View */}
-        <div>
+        {/* All Available Mentors - PLAN B (Secondary Option) */}
+        <div className="border-t-2 border-neutral-200 pt-12">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-baires-indigo to-indigo-600 rounded-[14px] flex items-center justify-center shadow-lg">
+              <div className="w-10 h-10 bg-gradient-to-br from-neutral-400 to-neutral-600 rounded-[14px] flex items-center justify-center shadow-lg">
                 <Users className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-neutral-black">Other Available Mentors</h3>
-                <p className="text-sm text-neutral-gray-dark">{totalCount} mentors match your criteria</p>
+                <h3 className="text-2xl font-bold text-neutral-black">Browse All Mentors</h3>
+                <p className="text-sm text-neutral-gray-dark">Alternative options if you want to explore other mentors ({totalCount} available)</p>
               </div>
             </div>
 

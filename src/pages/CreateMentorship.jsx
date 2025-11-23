@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { useConfirm } from '../hooks/useConfirm'
 import { getMentees, createMentorshipWithDetails, createMentorshipInvitation } from '../services/firestoreService'
 import { httpsCallable } from 'firebase/functions'
 import { functions } from '../config/firebase'
@@ -50,6 +51,7 @@ const technologies = [
 export default function CreateMentorship() {
   const navigate = useNavigate()
   const { user } = useAuth()
+  const confirm = useConfirm()
   const [currentStep, setCurrentStep] = useState(1)
   const [selectedTechs, setSelectedTechs] = useState([])
   const [customSkill, setCustomSkill] = useState('')
@@ -176,7 +178,10 @@ export default function CreateMentorship() {
         
         // Show more detailed error message
         const errorMessage = error.message || 'Unknown error occurred'
-        alert(`Error getting mentor recommendations: ${errorMessage}\n\nPlease try again or contact support.`)
+        await confirm.error(
+          `Error getting mentor recommendations: ${errorMessage}\n\nPlease try again or contact support.`,
+          'Error'
+        )
       }
     } else if (currentStep === 5) {
       // Create mentorship and send invitations to selected mentors
@@ -239,7 +244,10 @@ export default function CreateMentorship() {
       })
     } catch (error) {
       console.error('Error creating mentorship with invitations:', error)
-      alert('Error creating mentorship. Please try again.')
+      await confirm.error(
+        'Error creating mentorship. Please try again.',
+        'Error'
+      )
     }
   }
 
@@ -247,7 +255,7 @@ export default function CreateMentorship() {
     if (currentStep === 1) return true
     if (currentStep === 2) return selectedTechs.length > 0 || customSkills.length > 0
     if (currentStep === 3) return selectedMentee !== null
-    if (currentStep === 4) return problemDescription.trim().length > 20
+    if (currentStep === 4) return true // Problem description is optional
     if (currentStep === 5) return selectedMentors.length > 0 // Must select at least one mentor
     return false
   }
@@ -734,7 +742,7 @@ export default function CreateMentorship() {
                 <div className="mb-6">
                   <label className="flex items-center gap-2 text-sm font-bold text-neutral-black mb-3">
                     <Target className="w-4 h-4 text-baires-indigo" />
-                    What's the main challenge or goal?
+                    What's the main challenge or goal? (Optional)
                   </label>
                   <textarea
                     value={problemDescription}
@@ -745,19 +753,19 @@ export default function CreateMentorship() {
                   ></textarea>
                   <div className="flex items-center justify-between mt-2">
                     <p className="text-xs text-neutral-gray-dark">
-                      {problemDescription.length} characters (minimum 20)
+                      {problemDescription.length} characters
                     </p>
-                    {problemDescription.length >= 20 && (
+                    {problemDescription.length > 0 && (
                       <div className="flex items-center gap-1 text-xs text-green-600 font-semibold">
                         <CheckCircle className="w-4 h-4" />
-                        Ready for AI analysis
+                        Will help AI find better matches
                       </div>
                     )}
                   </div>
                 </div>
 
                 {/* AI Preview */}
-                {problemDescription.length >= 20 && (
+                {problemDescription.length > 0 && (
                   <div className="p-5 bg-gradient-to-br from-indigo-50 to-indigo-100/50 rounded-[20px] border border-indigo-200 animate-slideInUp">
                     <div className="flex items-start gap-3">
                       <div className="w-10 h-10 bg-gradient-to-br from-baires-indigo to-indigo-600 rounded-[12px] flex items-center justify-center shadow-md flex-shrink-0">

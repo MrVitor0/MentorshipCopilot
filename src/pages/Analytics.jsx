@@ -109,16 +109,16 @@ export default function Analytics() {
         </div>
         
         <p className="text-sm text-neutral-gray-dark font-bold mb-2 group-hover:text-neutral-black transition-colors">{title}</p>
-        <h3 className="text-5xl font-black text-neutral-black mb-3 group-hover:text-baires-orange transition-colors duration-300">{value}</h3>
+        <h3 className="text-5xl font-black text-neutral-black mb-3 group-hover:text-baires-blue transition-colors duration-300">{value}</h3>
         
         {changeLabel && (
           <p className="text-xs font-semibold text-neutral-gray-light mb-3">{changeLabel}</p>
         )}
         
         {insight && (
-          <div className="mt-4 pt-4 border-t-2 border-neutral-200 group-hover:border-baires-orange/30 transition-colors duration-300">
+          <div className="mt-4 pt-4 border-t-2 border-neutral-200 group-hover:border-baires-blue/30 transition-colors duration-300">
             <div className="flex items-start gap-2">
-              <Sparkles className="w-4 h-4 text-baires-orange flex-shrink-0 mt-0.5 group-hover:scale-125 group-hover:rotate-12 transition-all duration-300" />
+              <Sparkles className="w-4 h-4 text-baires-blue flex-shrink-0 mt-0.5 group-hover:scale-125 group-hover:rotate-12 transition-all duration-300" />
               <p className="text-sm text-neutral-gray-dark leading-relaxed group-hover:text-neutral-black transition-colors">{insight}</p>
             </div>
           </div>
@@ -222,7 +222,7 @@ export default function Analytics() {
                 </div>
               </div>
             </div>
-            <div className="w-10 h-10 rounded-full bg-neutral-100 flex items-center justify-center group-hover:bg-baires-orange transition-all duration-300">
+            <div className="w-10 h-10 rounded-full bg-neutral-100 flex items-center justify-center group-hover:bg-baires-blue transition-all duration-300">
               <ChevronRight className="w-5 h-5 text-neutral-gray-dark group-hover:text-white group-hover:translate-x-1 transition-all duration-300" />
             </div>
           </div>
@@ -237,7 +237,7 @@ export default function Analytics() {
         title="Analytics Dashboard"
         description="Visual insights into your teams and projects. Track performance and make data-driven decisions."
       />
-      <div className="flex h-screen bg-gradient-to-br from-neutral-50 via-white to-orange-50/15">
+      <div className="flex h-screen bg-gradient-to-br from-neutral-50 via-white to-blue-50/15">
         <Sidebar />
         
         <main className="flex-1 overflow-y-auto">
@@ -245,7 +245,7 @@ export default function Analytics() {
             {/* Page Header - Simplified and modern */}
             <div className="mb-8">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-baires-orange to-orange-600 rounded-[16px] flex items-center justify-center shadow-lg">
+                <div className="w-12 h-12 bg-gradient-to-br from-baires-blue to-blue-600 rounded-[16px] flex items-center justify-center shadow-lg">
                   <Activity className="w-6 h-6 text-white" />
                 </div>
                 <div>
@@ -259,7 +259,7 @@ export default function Analytics() {
             {loading ? (
               <div className="flex justify-center items-center py-20">
                 <div className="text-center">
-                  <Loader2 className="w-12 h-12 text-baires-orange mx-auto mb-4 animate-spin" />
+                  <Loader2 className="w-12 h-12 text-baires-blue mx-auto mb-4 animate-spin" />
                   <p className="text-neutral-gray-dark">Loading analytics...</p>
                 </div>
               </div>
@@ -287,8 +287,8 @@ export default function Analytics() {
                       onClick={() => setActiveTab(tab.id)}
                       className={`group flex items-center gap-2 px-6 py-3 rounded-[16px] font-bold transition-all duration-300 whitespace-nowrap flex-shrink-0 cursor-pointer ${
                         activeTab === tab.id
-                          ? 'bg-gradient-to-r from-baires-orange to-orange-600 text-white shadow-[0_8px_20px_rgba(246,97,53,0.35)] hover:shadow-[0_12px_30px_rgba(246,97,53,0.45)]'
-                          : 'bg-white text-neutral-gray-dark hover:text-baires-orange hover:bg-orange-50/50 border-2 border-neutral-200 hover:border-baires-orange hover:shadow-md active:shadow-sm'
+                          ? 'bg-gradient-to-r from-baires-blue to-blue-600 text-white shadow-[0_8px_20px_rgba(246,97,53,0.35)] hover:shadow-[0_12px_30px_rgba(246,97,53,0.45)]'
+                          : 'bg-white text-neutral-gray-dark hover:text-baires-blue hover:bg-orange-50/50 border-2 border-neutral-200 hover:border-baires-blue hover:shadow-md active:shadow-sm'
                       }`}
                     >
                       <tab.icon className={`w-5 h-5 transition-all duration-300 ${
@@ -352,11 +352,11 @@ export default function Analytics() {
 
                       <Card padding="lg" hover gradient className="text-center group cursor-pointer">
                         <div className="mb-4">
-                          <div className="w-16 h-16 bg-gradient-to-br from-baires-orange to-orange-600 rounded-full flex items-center justify-center mx-auto shadow-[0_8px_20px_rgba(246,97,53,0.25)] group-hover:shadow-[0_12px_30px_rgba(246,97,53,0.4)] group-hover:scale-110 transition-all duration-500">
+                          <div className="w-16 h-16 bg-gradient-to-br from-baires-blue to-blue-600 rounded-full flex items-center justify-center mx-auto shadow-[0_8px_20px_rgba(246,97,53,0.25)] group-hover:shadow-[0_12px_30px_rgba(246,97,53,0.4)] group-hover:scale-110 transition-all duration-500">
                             <Award className="w-8 h-8 text-white group-hover:scale-110 group-hover:rotate-12 transition-all duration-300" />
                           </div>
                         </div>
-                        <h3 className="text-4xl font-black text-neutral-black mb-2 group-hover:text-baires-orange transition-colors duration-300">
+                        <h3 className="text-4xl font-black text-neutral-black mb-2 group-hover:text-baires-blue transition-colors duration-300">
                           {analytics.projects.totalActiveMentors}
                         </h3>
                         <p className="text-sm text-neutral-gray-dark font-bold group-hover:text-neutral-black transition-colors">Active Mentors</p>
@@ -410,7 +410,7 @@ export default function Analytics() {
                           />
                           <h4 className="text-xl font-bold text-neutral-black mt-6 mb-2">Individual Projects</h4>
                           <p className="text-neutral-gray-dark">
-                            <span className="font-bold text-baires-orange">{analytics.projects.projectsWithoutTeams}</span> out of {analytics.projects.totalProjects} projects
+                            <span className="font-bold text-baires-blue">{analytics.projects.projectsWithoutTeams}</span> out of {analytics.projects.totalProjects} projects
                           </p>
                           <div className="mt-4 pt-4 border-t border-neutral-200">
                             <p className="text-sm text-neutral-gray-dark">Independent mentorship tracks</p>
@@ -435,7 +435,7 @@ export default function Analytics() {
                       </Card>
                       <Card padding="md" className="text-center border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-white">
                         <p className="text-xs text-neutral-gray-dark font-semibold mb-1">My Projects</p>
-                        <p className="text-3xl font-bold text-baires-orange">{analytics.userStats.myProjects}</p>
+                        <p className="text-3xl font-bold text-baires-blue">{analytics.userStats.myProjects}</p>
                       </Card>
                     </div>
                   </div>
@@ -484,7 +484,7 @@ export default function Analytics() {
                     {analytics.teams.teamsList.length > 0 && (
                       <div>
                         <h3 className="text-xl font-bold text-neutral-black mb-4 flex items-center gap-2">
-                          <Zap className="w-5 h-5 text-baires-orange" />
+                          <Zap className="w-5 h-5 text-baires-blue" />
                           All Teams
                         </h3>
                         <div className="space-y-3">
@@ -525,7 +525,7 @@ export default function Analytics() {
                       </Card>
 
                       <Card padding="lg" hover gradient className="text-center">
-                        <div className="w-16 h-16 bg-gradient-to-br from-baires-orange to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                        <div className="w-16 h-16 bg-gradient-to-br from-baires-blue to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
                           <Award className="w-8 h-8 text-white" />
                         </div>
                         <h3 className="text-5xl font-bold text-neutral-black mb-2">{analytics.projects.totalActiveMentors}</h3>

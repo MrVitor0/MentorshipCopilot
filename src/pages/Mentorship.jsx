@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { useConfirm } from '../hooks/useConfirm'
 import usePermissions from '../hooks/usePermissions'
 import { getUserMentorships, getPMMentorships, getInvitationsForMentor, updateInvitationStatus } from '../services/firestoreService'
 import Sidebar from '../components/Sidebar'
@@ -64,6 +65,7 @@ const statusConfig = {
 export default function Mentorship() {
   const navigate = useNavigate()
   const { user } = useAuth()
+  const confirm = useConfirm()
   const permissions = usePermissions()
   const [filter, setFilter] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
@@ -153,14 +155,20 @@ export default function Mentorship() {
       console.log(`✅ Invitation ${action === 'accept' ? 'accepted' : 'declined'} successfully`)
       
       if (action === 'accept') {
-        alert('🎉 Mentorship accepted! You are now the mentor for this mentorship.')
+        await confirm.success(
+          'You are now the mentor for this mentorship.',
+          'Mentorship Accepted'
+        )
       }
       
       // Refresh data
       window.location.reload()
     } catch (error) {
       console.error('❌ Error handling invitation:', error)
-      alert(`Error processing invitation: ${error.message}\n\nPlease try again.`)
+      await confirm.error(
+        `${error.message}\n\nPlease try again.`,
+        'Error Processing Invitation'
+      )
     } finally {
       setProcessingInvitation(null)
     }
@@ -199,7 +207,7 @@ export default function Mentorship() {
         title="My Mentorships"
         description="Manage and track all your mentorship journeys. View active sessions, upcoming meetings, and monitor progress with AI insights."
       />
-      <div className="flex h-screen bg-gradient-to-br from-neutral-50 via-white to-orange-50/15">
+      <div className="flex h-screen bg-gradient-to-br from-neutral-50 via-white to-blue-50/15">
       <Sidebar />
       
       <main className="flex-1 overflow-y-auto">
@@ -215,7 +223,7 @@ export default function Mentorship() {
             {loading ? (
               <div className="flex justify-center items-center py-20">
                 <div className="text-center">
-                  <Loader2 className="w-12 h-12 text-baires-orange mx-auto mb-4 animate-spin" />
+                  <Loader2 className="w-12 h-12 text-baires-blue mx-auto mb-4 animate-spin" />
                   <p className="text-neutral-gray-dark">Loading your mentorships...</p>
                 </div>
               </div>
@@ -239,7 +247,7 @@ export default function Mentorship() {
                         </div>
                         <div className={`w-10 h-10 rounded-[12px] flex items-center justify-center shadow-md group-hover:scale-110 transition-transform duration-300 ${
                           stat.color === 'blue' ? 'bg-gradient-to-br from-baires-blue to-blue-600' :
-                          stat.color === 'orange' ? 'bg-gradient-to-br from-baires-orange to-orange-600' :
+                          stat.color === 'orange' ? 'bg-gradient-to-br from-baires-blue to-blue-600' :
                           stat.color === 'green' ? 'bg-gradient-to-br from-green-500 to-green-600' :
                           'bg-gradient-to-br from-amber-500 to-amber-600'
                         }`}>
@@ -252,9 +260,9 @@ export default function Mentorship() {
 
                 {/* Mentorship Invitations - Only for Mentors */}
                 {permissions.isMentor && invitations.length > 0 && (
-                  <Card padding="lg" className="mb-6 bg-gradient-to-br from-orange-50 via-white to-orange-100/50 border-2 border-orange-300/70">
+                  <Card padding="lg" className="mb-6 bg-gradient-to-br from-orange-50 via-white to-blue-100/50 border-2 border-orange-300/70">
                     <div className="flex items-center gap-3 mb-6">
-                      <div className="w-12 h-12 bg-gradient-to-br from-baires-orange to-orange-600 rounded-[16px] flex items-center justify-center shadow-lg">
+                      <div className="w-12 h-12 bg-gradient-to-br from-baires-blue to-blue-600 rounded-[16px] flex items-center justify-center shadow-lg">
                         <Sparkles className="w-6 h-6 text-white animate-pulse" />
                       </div>
                       <div className="flex-1">
@@ -268,9 +276,9 @@ export default function Mentorship() {
 
                     <div className="space-y-4">
                       {invitations.map((invitation) => (
-                        <div key={invitation.id} className="p-5 bg-gradient-to-br from-white to-orange-50/50 rounded-[20px] border-2 border-orange-200/70 shadow-lg hover:shadow-xl transition-all">
+                        <div key={invitation.id} className="p-5 bg-gradient-to-br from-white to-blue-50/50 rounded-[20px] border-2 border-orange-200/70 shadow-lg hover:shadow-xl transition-all">
                           <div className="flex items-start gap-4 mb-4">
-                            <div className="w-12 h-12 bg-gradient-to-br from-baires-orange to-orange-600 rounded-[14px] flex items-center justify-center shadow-md flex-shrink-0">
+                            <div className="w-12 h-12 bg-gradient-to-br from-baires-blue to-blue-600 rounded-[14px] flex items-center justify-center shadow-md flex-shrink-0">
                               <Users className="w-6 h-6 text-white" />
                             </div>
                             <div className="flex-1">
@@ -364,7 +372,7 @@ export default function Mentorship() {
                           onClick={() => setFilter(status)}
                           className={`px-4 py-2 rounded-[12px] font-semibold text-sm transition-all duration-300 ${
                             filter === status
-                              ? 'bg-gradient-to-r from-baires-orange to-orange-600 text-white shadow-lg'
+                              ? 'bg-gradient-to-r from-baires-blue to-blue-600 text-white shadow-lg'
                               : 'bg-neutral-100 text-neutral-gray-dark hover:bg-neutral-200'
                           }`}
                         >
@@ -385,7 +393,7 @@ export default function Mentorship() {
                         placeholder="Search mentorships..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-10 pr-4 py-2 rounded-[12px] border-2 border-neutral-200 focus:border-baires-orange focus:outline-none w-full md:w-64 transition-colors"
+                        className="pl-10 pr-4 py-2 rounded-[12px] border-2 border-neutral-200 focus:border-baires-blue focus:outline-none w-full md:w-64 transition-colors"
                       />
                     </div>
                   </div>
@@ -430,7 +438,7 @@ export default function Mentorship() {
                           </p>
                           {mentorship.technologies && mentorship.technologies.length > 0 && (
                             <div className="flex flex-wrap items-center gap-2">
-                              <BookOpen className="w-4 h-4 text-baires-orange" />
+                              <BookOpen className="w-4 h-4 text-baires-blue" />
                               {mentorship.technologies.slice(0, 3).map((tech, idx) => (
                                 <span key={idx} className="text-xs bg-white border border-orange-200 text-neutral-black px-2 py-1 rounded-full font-medium">
                                   {typeof tech === 'string' ? tech : tech.name || tech}
@@ -452,11 +460,11 @@ export default function Mentorship() {
                       <div className="mb-4">
                         <div className="flex justify-between items-center mb-2">
                           <span className="text-sm font-semibold text-neutral-black">Progress</span>
-                          <span className="text-sm font-bold text-baires-orange">{mentorship.progress || 0}%</span>
+                          <span className="text-sm font-bold text-baires-blue">{mentorship.progress || 0}%</span>
                         </div>
                         <div className="h-2 bg-neutral-100 rounded-full overflow-hidden">
                           <div 
-                            className="h-full bg-gradient-to-r from-baires-orange to-orange-600 rounded-full transition-all duration-500"
+                            className="h-full bg-gradient-to-r from-baires-blue to-blue-600 rounded-full transition-all duration-500"
                             style={{ width: `${mentorship.progress || 0}%` }}
                           ></div>
                         </div>
@@ -474,8 +482,8 @@ export default function Mentorship() {
                           <div className="text-lg font-bold text-neutral-black">{mentorship.technologies?.length || 0}</div>
                           <div className="text-xs text-neutral-gray-dark">Skills</div>
                         </div>
-                        <div className="text-center p-3 bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-[12px]">
-                          <Clock className="w-4 h-4 text-baires-orange mx-auto mb-1" />
+                        <div className="text-center p-3 bg-gradient-to-br from-orange-50 to-blue-100/50 rounded-[12px]">
+                          <Clock className="w-4 h-4 text-baires-blue mx-auto mb-1" />
                           <div className="text-lg font-bold text-neutral-black">
                             {mentorship.progress || 0}%
                           </div>
@@ -487,7 +495,7 @@ export default function Mentorship() {
                       {mentorship.challengeDescription && (
                         <div className="mb-4">
                           <div className="flex items-center gap-2 mb-2">
-                            <Target className="w-4 h-4 text-baires-orange" />
+                            <Target className="w-4 h-4 text-baires-blue" />
                             <span className="text-sm font-semibold text-neutral-black">Challenge</span>
                           </div>
                           <div className="p-3 bg-orange-50/50 rounded-[12px] border border-orange-100/50">
@@ -501,7 +509,7 @@ export default function Mentorship() {
                       {/* Actions */}
                       <div className="flex gap-2">
                         <button 
-                          className="flex-1 bg-gradient-to-r from-baires-orange to-orange-600 text-white px-4 py-3 rounded-[14px] font-semibold hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2"
+                          className="flex-1 bg-gradient-to-r from-baires-blue to-blue-600 text-white px-4 py-3 rounded-[14px] font-semibold hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2"
                         >
                           <span>View Details</span>
                           <ArrowRight className="w-4 h-4" />

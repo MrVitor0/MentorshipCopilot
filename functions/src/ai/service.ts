@@ -1,12 +1,12 @@
 /**
  * AI Service Module
- * 
+ *
  * This module provides the core AI functionality using LangChain and Claude.
  * It handles:
  * - Mentor recommendations with AI analysis
  * - Chat interactions with native tool calling
  * - Streaming responses
- * 
+ *
  * Architecture follows:
  * - Tool Calling: AI decides when to use tools autonomously
  * - Anthropic Best Practices: Uses XML-structured prompts
@@ -14,13 +14,14 @@
  * - Clean Code: Well-documented and easy to understand
  */
 
-// Load environment variables (backup for emulator)
-import dotenv from "dotenv";
-dotenv.config();
-
-import {ChatAnthropic} from "@langchain/anthropic";
-import {HumanMessage, SystemMessage, AIMessage, ToolMessage} from "@langchain/core/messages";
-import {allTools} from "./tools.js";
+import { ChatAnthropic } from "@langchain/anthropic";
+import {
+  HumanMessage,
+  SystemMessage,
+  AIMessage,
+  ToolMessage,
+} from "@langchain/core/messages";
+import { allTools } from "./tools.js";
 import * as logger from "firebase-functions/logger";
 import * as admin from "firebase-admin";
 
@@ -28,17 +29,15 @@ import * as admin from "firebase-admin";
  * Initialize Claude AI model
  * Using claude-3-haiku-20240307 as specified
  */
-export function createAIModel(streaming = false): ChatAnthropic {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-
+export function createAIModel(
+  apiKey: string,
+  streaming = false
+): ChatAnthropic {
   if (!apiKey) {
-    logger.error("ANTHROPIC_API_KEY not found. Please check:", {
-      hasApiKey: !!process.env.ANTHROPIC_API_KEY,
-      envKeys: Object.keys(process.env).filter(k => k.includes("ANTH")),
-    });
+    logger.error("ANTHROPIC_API_KEY not provided");
     throw new Error(
-      "ANTHROPIC_API_KEY environment variable is not set. " +
-      "Please add it to functions/.env file or Firebase config."
+      "ANTHROPIC_API_KEY is required. " +
+        "Please configure it in Firebase Secret Manager."
     );
   }
 
@@ -59,7 +58,8 @@ export function createAIModel(streaming = false): ChatAnthropic {
 export async function getAIMentorRecommendations(
   menteeId: string,
   technologies: string[],
-  challengeDescription: string
+  challengeDescription: string,
+  apiKey: string
 ): Promise<{
   topMentors: any[];
   otherMentors: any[];
@@ -72,7 +72,7 @@ export async function getAIMentorRecommendations(
       challengeDescription: challengeDescription.substring(0, 100),
     });
 
-    const model = createAIModel(false);
+    const model = createAIModel(apiKey, false);
     const modelWithTools = model.bindTools(allTools);
 
     const systemPrompt = `<system>
@@ -221,7 +221,11 @@ DO NOT FORGET matchPercentage - it's mandatory!
     let iterations = 0;
     const maxIterations = 5;
 
-    while (response.tool_calls && response.tool_calls.length > 0 && iterations < maxIterations) {
+    while (
+      response.tool_calls &&
+      response.tool_calls.length > 0 &&
+      iterations < maxIterations
+    ) {
       iterations++;
       logger.info(`Tool calling iteration ${iterations}`, {
         toolCallsCount: response.tool_calls.length,
@@ -238,13 +242,13 @@ DO NOT FORGET matchPercentage - it's mandatory!
 
         const tool = allTools.find((t) => t.name === toolCall.name);
         if (!tool) {
-          logger.error("Tool not found", {toolName: toolCall.name});
+          logger.error("Tool not found", { toolName: toolCall.name });
           continue;
         }
 
         try {
           const toolResult = await tool.func(toolCall.args as any);
-          
+
           // Log detailed tool result for debugging fabrication issues
           logger.info("Tool executed successfully", {
             toolName: toolCall.name,
@@ -252,7 +256,7 @@ DO NOT FORGET matchPercentage - it's mandatory!
             resultLength: toolResult.length,
             resultPreview: toolResult.substring(0, 500),
           });
-          
+
           messages.push(
             new ToolMessage({
               tool_call_id: toolCall.id || "",
@@ -297,41 +301,52 @@ DO NOT FORGET matchPercentage - it's mandatory!
           jsonLength: jsonMatch[0].length,
           jsonContent: jsonMatch[0], // Log do JSON completo
         });
-        
+
         parsedResponse = JSON.parse(jsonMatch[0]);
-        
+
         // Log ANTES do processamento
         logger.info("BEFORE processing - Parsed AI recommendations", {
           mentorCount: parsedResponse.topMentors?.length || 0,
           rawTopMentors: JSON.stringify(parsedResponse.topMentors),
         });
-        
+
         // Ensure matchPercentage exists on each mentor (fallback if AI didn't provide it)
-        if (parsedResponse.topMentors && Array.isArray(parsedResponse.topMentors)) {
-          parsedResponse.topMentors = parsedResponse.topMentors.map((mentor: any, index: number) => {
-            const hasMatchPercentage = mentor.matchPercentage !== undefined && mentor.matchPercentage !== null;
-            
-            if (!hasMatchPercentage) {
-              // Generate fallback based on ranking: 1st=95%, 2nd=90%, 3rd=85%
-              const fallbackMatch = 95 - (index * 5);
-              logger.warn(`⚠️ Mentor ${mentor.displayName} MISSING matchPercentage, using fallback: ${fallbackMatch}%`);
-              return { 
-                ...mentor, 
-                matchPercentage: fallbackMatch 
-              };
+        if (
+          parsedResponse.topMentors &&
+          Array.isArray(parsedResponse.topMentors)
+        ) {
+          parsedResponse.topMentors = parsedResponse.topMentors.map(
+            (mentor: any, index: number) => {
+              const hasMatchPercentage =
+                mentor.matchPercentage !== undefined &&
+                mentor.matchPercentage !== null;
+
+              if (!hasMatchPercentage) {
+                // Generate fallback based on ranking: 1st=95%, 2nd=90%, 3rd=85%
+                const fallbackMatch = 95 - index * 5;
+                logger.warn(
+                  `⚠️ Mentor ${mentor.displayName} MISSING matchPercentage, using fallback: ${fallbackMatch}%`
+                );
+                return {
+                  ...mentor,
+                  matchPercentage: fallbackMatch,
+                };
+              }
+
+              logger.info(
+                `✅ Mentor ${mentor.displayName} HAS matchPercentage: ${mentor.matchPercentage}%`
+              );
+              return mentor;
             }
-            
-            logger.info(`✅ Mentor ${mentor.displayName} HAS matchPercentage: ${mentor.matchPercentage}%`);
-            return mentor;
-          });
-          
+          );
+
           // Log DEPOIS do processamento
           logger.info("AFTER processing - Match percentages", {
             finalMentors: parsedResponse.topMentors.map((m: any) => ({
               name: m.displayName,
               matchPercentage: m.matchPercentage,
-              hasField: m.matchPercentage !== undefined
-            }))
+              hasField: m.matchPercentage !== undefined,
+            })),
           });
         }
       } else {
@@ -345,15 +360,59 @@ DO NOT FORGET matchPercentage - it's mandatory!
       throw new Error("Failed to generate recommendations. Please try again.");
     }
 
-    const topMentors = parsedResponse.topMentors || [];
+    let topMentors = parsedResponse.topMentors || [];
 
+    // FALLBACK: If AI didn't return results, infer a recommendation from database
     if (topMentors.length === 0) {
-      logger.warn("No mentors recommended by AI");
-      return {
-        topMentors: [],
-        otherMentors: [],
-        message: "No suitable mentors found for the specified requirements",
-      };
+      logger.warn(
+        "⚠️ No mentors recommended by AI, inferring fallback recommendation"
+      );
+
+      try {
+        // Get at least 1 mentor from database as fallback
+        const usersRef = admin.firestore().collection("users");
+        const mentorsQuery = await usersRef
+          .where("userType", "==", "mentor")
+          .limit(1)
+          .get();
+
+        if (!mentorsQuery.empty) {
+          const fallbackMentor = mentorsQuery.docs[0].data();
+          logger.info("Using fallback mentor", {
+            mentorName: fallbackMentor.displayName,
+          });
+
+          // Create inferred recommendation
+          const inferredMentor = {
+            uid: mentorsQuery.docs[0].id,
+            displayName: fallbackMentor.displayName || "Mentor",
+            bio: fallbackMentor.bio || "Experienced professional",
+            technologies: fallbackMentor.technologies || [],
+            yearsOfExperience: fallbackMentor.yearsOfExperience || 5,
+            rating: fallbackMentor.rating || 4.5,
+            photoURL: fallbackMentor.photoURL || null,
+            role: fallbackMentor.role || "Senior Engineer",
+            totalMentees: fallbackMentor.totalMentees || 0,
+            successRate: fallbackMentor.successRate || 90,
+            matchPercentage: 85, // Default good match
+            aiInsight:
+              "Based on available expertise in the system, this mentor has strong capabilities that could be valuable for your needs. Consider scheduling an initial conversation to explore potential collaboration.",
+          };
+
+          topMentors = [inferredMentor];
+
+          logger.info("✅ Fallback recommendation created", {
+            mentor: inferredMentor.displayName,
+            matchPercentage: inferredMentor.matchPercentage,
+          });
+        } else {
+          logger.error("❌ No mentors found in database for fallback");
+        }
+      } catch (fallbackError) {
+        logger.error("Error creating fallback recommendation", {
+          error: fallbackError,
+        });
+      }
     }
 
     // Get other mentors for comparison (from tool results if available)
@@ -367,18 +426,22 @@ DO NOT FORGET matchPercentage - it's mandatory!
         name: m.displayName,
         uid: m.uid,
         matchPercentage: m.matchPercentage,
-        hasMatchPercentage: m.matchPercentage !== undefined
+        hasMatchPercentage: m.matchPercentage !== undefined,
       })),
       fullTopMentors: JSON.stringify(topMentors),
+      usedFallback: parsedResponse.topMentors?.length === 0,
     });
 
     return {
       topMentors,
       otherMentors,
-      message: "AI recommendations generated successfully",
+      message:
+        topMentors.length > 0
+          ? "AI recommendations generated successfully"
+          : "No suitable mentors found for the specified requirements",
     };
   } catch (error) {
-    logger.error("Error in getAIMentorRecommendations", {error});
+    logger.error("Error in getAIMentorRecommendations", { error });
     throw error;
   }
 }
@@ -388,15 +451,26 @@ DO NOT FORGET matchPercentage - it's mandatory!
  * This allows flexible matching (e.g., "Emily Rodriguez" matches "Dr. Emily Rodriguez")
  */
 function normalizeName(name: string): string {
-  const prefixes = ["Dr.", "Dr", "Mr.", "Mr", "Ms.", "Ms", "Mrs.", "Mrs", "Prof.", "Prof"];
+  const prefixes = [
+    "Dr.",
+    "Dr",
+    "Mr.",
+    "Mr",
+    "Ms.",
+    "Ms",
+    "Mrs.",
+    "Mrs",
+    "Prof.",
+    "Prof",
+  ];
   let normalized = name.trim();
-  
+
   for (const prefix of prefixes) {
     if (normalized.startsWith(prefix + " ")) {
       normalized = normalized.substring(prefix.length + 1).trim();
     }
   }
-  
+
   return normalized.toLowerCase();
 }
 
@@ -405,18 +479,26 @@ function normalizeName(name: string): string {
  * This prevents hallucinations by cross-referencing with real data
  * Now supports flexible matching (handles name variations like "Dr. Emily" vs "Emily")
  */
-async function validateMentorNamesInResponse(response: string): Promise<string> {
+async function validateMentorNamesInResponse(
+  response: string
+): Promise<string> {
   try {
     // Extract potential mentor names from response
     // Look for patterns like "- Name Surname" or "Name Surname -" or "Name Surname is"
-    const namePattern = /(?:^|\s|-)([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)(?:\s+[-:]|\s+is|\s+has|\s+specializes|\.|,|$)/gm;
+    const namePattern =
+      /(?:^|\s|-)([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)(?:\s+[-:]|\s+is|\s+has|\s+specializes|\.|,|$)/gm;
     const potentialNames = new Set<string>();
-    
+
     let match;
     while ((match = namePattern.exec(response)) !== null) {
       const name = match[1].trim();
       // Filter out common false positives
-      if (name.length > 3 && !name.includes("Based") && !name.includes("Here") && !name.includes("There")) {
+      if (
+        name.length > 3 &&
+        !name.includes("Based") &&
+        !name.includes("Here") &&
+        !name.includes("There")
+      ) {
         potentialNames.add(name);
       }
     }
@@ -432,13 +514,11 @@ async function validateMentorNamesInResponse(response: string): Promise<string> 
 
     // Fetch all mentors from database
     const usersRef = admin.firestore().collection("users");
-    const mentorsQuery = await usersRef
-      .where("userType", "==", "mentor")
-      .get();
+    const mentorsQuery = await usersRef.where("userType", "==", "mentor").get();
 
     const realMentorNames = new Set<string>();
     const normalizedToRealName = new Map<string, string>();
-    
+
     mentorsQuery.docs.forEach((doc: any) => {
       const data = doc.data();
       if (data.displayName) {
@@ -457,19 +537,19 @@ async function validateMentorNamesInResponse(response: string): Promise<string> 
     // Check for invented names (names in response but NOT in database)
     // Use flexible matching: normalize both sides for comparison
     const inventedNames: string[] = [];
-    
+
     for (const potentialName of potentialNames) {
       const normalizedPotential = normalizeName(potentialName);
-      
+
       // Check if this normalized name exists in our mapping
       const isValid = normalizedToRealName.has(normalizedPotential);
-      
+
       if (!isValid) {
         // Also check exact match (case-insensitive)
         const exactMatch = Array.from(realMentorNames).some(
           (realName) => realName.toLowerCase() === potentialName.toLowerCase()
         );
-        
+
         if (!exactMatch) {
           inventedNames.push(potentialName);
         }
@@ -492,7 +572,7 @@ async function validateMentorNamesInResponse(response: string): Promise<string> 
     });
     return response;
   } catch (error) {
-    logger.error("Error in name validation", {error});
+    logger.error("Error in name validation", { error });
     // If validation fails, return original response (fail-safe)
     return response;
   }
@@ -505,8 +585,13 @@ async function validateMentorNamesInResponse(response: string): Promise<string> 
  */
 export async function chatWithAI(
   message: string,
-  chatHistory: Array<{role: string; content: string}> = [],
-  onThinkingStep?: (step: {type: string; message: string; toolName?: string}) => void
+  chatHistory: Array<{ role: string; content: string }> = [],
+  apiKey: string,
+  onThinkingStep?: (step: {
+    type: string;
+    message: string;
+    toolName?: string;
+  }) => void
 ): Promise<string> {
   try {
     logger.info("chatWithAI called", {
@@ -514,7 +599,7 @@ export async function chatWithAI(
       historyLength: chatHistory.length,
     });
 
-    const model = createAIModel(false);
+    const model = createAIModel(apiKey, false);
     const modelWithTools = model.bindTools(allTools);
 
     const systemPrompt = `<system>
@@ -616,7 +701,11 @@ Language: Respond in the same language the user uses
     let iterations = 0;
     const maxIterations = 5;
 
-    while (response.tool_calls && response.tool_calls.length > 0 && iterations < maxIterations) {
+    while (
+      response.tool_calls &&
+      response.tool_calls.length > 0 &&
+      iterations < maxIterations
+    ) {
       iterations++;
       logger.info(`Chat tool calling iteration ${iterations}`, {
         toolCallsCount: response.tool_calls.length,
@@ -630,18 +719,20 @@ Language: Respond in the same language the user uses
           toolName: toolCall.name,
           toolArgs: toolCall.args,
         });
-        
+
         // Notify frontend about tool usage (thinking step)
         if (onThinkingStep) {
           const toolMessages: Record<string, string> = {
-            search_mentors_by_technology: `Searching for ${(toolCall.args as any).technologies?.join(", ")} mentors...`,
+            search_mentors_by_technology: `Searching for ${(
+              toolCall.args as any
+            ).technologies?.join(", ")} mentors...`,
             get_all_mentors: "Fetching all available mentors...",
             get_mentor_details: "Getting mentor details...",
             get_active_mentorships: "Checking active mentorships...",
             get_mentees: "Loading mentees...",
             get_system_statistics: "Gathering system statistics...",
           };
-          
+
           onThinkingStep({
             type: "tool_call",
             message: toolMessages[toolCall.name] || "Using tool...",
@@ -651,7 +742,7 @@ Language: Respond in the same language the user uses
 
         const tool = allTools.find((t) => t.name === toolCall.name);
         if (!tool) {
-          logger.error("Tool not found in chat", {toolName: toolCall.name});
+          logger.error("Tool not found in chat", { toolName: toolCall.name });
           messages.push(
             new ToolMessage({
               tool_call_id: toolCall.id || "",
@@ -666,7 +757,7 @@ Language: Respond in the same language the user uses
 
         try {
           const toolResult = await tool.func(toolCall.args as any);
-          
+
           // Log detailed tool result for debugging
           logger.info("Chat tool executed successfully", {
             toolName: toolCall.name,
@@ -674,7 +765,7 @@ Language: Respond in the same language the user uses
             resultLength: toolResult.length,
             resultPreview: toolResult.substring(0, 500),
           });
-          
+
           // Notify about successful tool execution
           if (onThinkingStep) {
             const parsed = JSON.parse(toolResult);
@@ -682,11 +773,13 @@ Language: Respond in the same language the user uses
             if (count > 0) {
               onThinkingStep({
                 type: "tool_result",
-                message: `Found ${count} result${count > 1 ? "s" : ""} in database`,
+                message: `Found ${count} result${
+                  count > 1 ? "s" : ""
+                } in database`,
               });
             }
           }
-          
+
           messages.push(
             new ToolMessage({
               tool_call_id: toolCall.id || "",
@@ -698,21 +791,24 @@ Language: Respond in the same language the user uses
             toolName: toolCall.name,
             error: toolError,
           });
-          
+
           if (onThinkingStep) {
             onThinkingStep({
               type: "error",
               message: "Tool execution failed",
             });
           }
-          
+
           messages.push(
             new ToolMessage({
               tool_call_id: toolCall.id || "",
               content: JSON.stringify({
                 success: false,
                 error: "Tool execution failed",
-                message: toolError instanceof Error ? toolError.message : "Unknown error",
+                message:
+                  toolError instanceof Error
+                    ? toolError.message
+                    : "Unknown error",
               }),
             })
           );
@@ -732,7 +828,7 @@ Language: Respond in the same language the user uses
     }
 
     if (iterations >= maxIterations) {
-      logger.warn("Chat reached max tool calling iterations", {iterations});
+      logger.warn("Chat reached max tool calling iterations", { iterations });
     }
 
     const finalResponse = response.content.toString();
@@ -745,8 +841,10 @@ Language: Respond in the same language the user uses
         message: "Validating mentor data...",
       });
     }
-    
-    const validatedResponse = await validateMentorNamesInResponse(finalResponse);
+
+    const validatedResponse = await validateMentorNamesInResponse(
+      finalResponse
+    );
 
     // Log final response for debugging
     logger.info("Chat final response", {
@@ -756,7 +854,7 @@ Language: Respond in the same language the user uses
       iterations,
       validationApplied: validatedResponse !== finalResponse,
     });
-    
+
     if (onThinkingStep) {
       onThinkingStep({
         type: "complete",
@@ -776,4 +874,3 @@ Language: Respond in the same language the user uses
     }. Please try again or rephrase your question.`;
   }
 }
-

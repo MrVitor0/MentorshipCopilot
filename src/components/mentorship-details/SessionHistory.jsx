@@ -62,7 +62,7 @@ export default function SessionHistory({ sessions = [], title = "Session History
                 <div className="flex gap-6">
                   {/* Date Circle */}
                   <div className="flex-shrink-0">
-                    <div className="w-12 h-12 bg-gradient-to-br from-baires-orange to-orange-600 rounded-full flex items-center justify-center shadow-lg">
+                    <div className="w-12 h-12 bg-gradient-to-br from-baires-blue to-blue-600 rounded-full flex items-center justify-center shadow-lg">
                       <span className="text-white font-bold text-sm">{sessions.length - index}</span>
                     </div>
                   </div>
@@ -113,15 +113,15 @@ export default function SessionHistory({ sessions = [], title = "Session History
                   {/* Summary */}
                   <div className="mb-4">
                     <h4 className="text-sm font-bold text-neutral-black mb-2 flex items-center gap-2">
-                      <MessageSquare className="w-4 h-4 text-baires-orange" />
+                      <MessageSquare className="w-4 h-4 text-baires-blue" />
                       {showEdit ? 'Your Summary' : "Mentor's Summary"}
                     </h4>
                     <p className="text-neutral-gray-dark leading-relaxed">{session.summary}</p>
                   </div>
 
                   {/* Next Steps */}
-                  <div className="p-4 bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-[12px] border border-orange-200/50">
-                    <h4 className="text-sm font-bold text-baires-orange mb-2">Next Steps</h4>
+                  <div className="p-4 bg-gradient-to-br from-orange-50 to-blue-100/50 rounded-[12px] border border-orange-200/50">
+                    <h4 className="text-sm font-bold text-baires-blue mb-2">Next Steps</h4>
                     <p className="text-neutral-black text-sm">{session.nextSteps}</p>
                   </div>
 

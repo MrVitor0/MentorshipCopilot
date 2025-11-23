@@ -36,8 +36,8 @@ const menuItems = [
 ]
 
 const managementItems = [
-  { name: 'Teams', path: '/teams', color: 'bg-blue-500', IconComponent: Users, permission: 'canManageTeams' },
-  { name: 'Projects', path: '/projects', color: 'bg-purple-500', IconComponent: FolderOpen, permission: 'canManageProjects' },
+  { name: 'Teams', path: '/teams', color: 'bg-blue-500', IconComponent: Users, permission: 'canViewTeams' },
+  { name: 'Projects', path: '/projects', color: 'bg-blue-500', IconComponent: FolderOpen, permission: 'canViewProjects' },
 ]
 
 export default function Sidebar() {
@@ -62,7 +62,7 @@ export default function Sidebar() {
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <img src="/logo.svg" alt="Mentorship CoPilot Logo" className="w-10 h-10 rounded-[14px] shadow-lg" />
-            <span className="font-bold text-xl bg-gradient-to-r from-neutral-black to-baires-orange bg-clip-text text-transparent">CoPilot</span>
+            <span className="font-bold text-xl bg-gradient-to-r from-neutral-black to-baires-blue bg-clip-text text-transparent">CoPilot</span>
           </div>
           <NotificationBell />
         </div>
@@ -97,7 +97,7 @@ export default function Sidebar() {
 
         <div className="pt-6 pb-2">
           <h3 className="px-4 text-xs font-bold text-neutral-gray-dark uppercase tracking-wider">
-            Management
+            {permissions.isMentor ? 'Assigned to you' : 'Management'}
           </h3>
         </div>
 
@@ -114,7 +114,7 @@ export default function Sidebar() {
               to={item.path}
               className={`group flex items-center gap-3 px-4 py-3 rounded-[16px] transition-all duration-300 ${
                 isActive
-                  ? 'bg-gradient-to-r from-baires-orange to-orange-600 text-white shadow-[0_8px_20px_rgb(246,97,53,0.3)]'
+                  ? 'bg-gradient-to-r from-baires-blue to-blue-600 text-white shadow-[0_8px_20px_rgb(246,97,53,0.3)]'
                   : 'text-neutral-gray-dark hover:bg-gradient-to-r hover:from-orange-50 hover:to-yellow-50 hover:text-neutral-black hover:shadow-md'
               }`}
             >

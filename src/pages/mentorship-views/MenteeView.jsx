@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Calendar, Clock, TrendingUp, Target, Users, BarChart3, Sparkles, MessageSquare, FileText, CheckCircle, Bot, Lightbulb, BookOpen, Download, Video, Star, Award } from 'lucide-react'
+import { useConfirm } from '../../hooks/useConfirm'
 import Card from '../../components/Card'
 import Badge from '../../components/Badge'
 import Avatar from '../../components/Avatar'
@@ -25,6 +26,7 @@ export default function MenteeView({
   sessions,
   navigate
 }) {
+  const confirm = useConfirm()
   const [isMessageModalOpen, setIsMessageModalOpen] = useState(false)
   
   const displayGoals = customGoals || DEFAULT_GOALS.map(goal => {
@@ -197,7 +199,7 @@ export default function MenteeView({
 
               <button className="w-full text-left p-3 bg-white rounded-[12px] border-2 border-neutral-200 hover:border-orange-400 hover:bg-orange-50/50 transition-all group">
                 <div className="flex items-center gap-3">
-                  <Video className="w-4 h-4 text-baires-orange" />
+                  <Video className="w-4 h-4 text-baires-blue" />
                   <span className="text-sm font-bold text-neutral-black">Video Tutorials</span>
                 </div>
               </button>
@@ -216,7 +218,10 @@ export default function MenteeView({
                 <span>Message Mentor</span>
               </button>
               <button 
-                onClick={() => alert('Session request feature coming soon!\n\nYou will be able to:\n- Request sessions with your mentor\n- Propose meeting times\n- Add session topics\n- Get confirmations')}
+                onClick={() => confirm.info(
+                  'Session request feature coming soon!\n\nYou will be able to:\n- Request sessions with your mentor\n- Propose meeting times\n- Add session topics\n- Get confirmations',
+                  'Coming Soon'
+                )}
                 className="w-full flex items-center gap-3 p-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-[14px] font-semibold hover:shadow-lg transition-all"
               >
                 <Calendar className="w-5 h-5" />

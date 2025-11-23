@@ -157,7 +157,7 @@ export default function FindMentors({
           description="AI-powered mentor recommendations. Browse top-matched mentors based on skills, experience, and compatibility. Find the perfect match for your team."
         />
       )}
-      <div className={wizardMode ? "bg-gradient-to-br from-neutral-50 via-white to-orange-50/15" : "flex h-screen bg-gradient-to-br from-neutral-50 via-white to-orange-50/15"}>
+      <div className={wizardMode ? "bg-gradient-to-br from-neutral-50 via-white to-blue-50/15" : "flex h-screen bg-gradient-to-br from-neutral-50 via-white to-blue-50/15"}>
       {!wizardMode && <Sidebar user={{ name: 'Alex Smith', email: 'alexsmith@example.io' }} />}
       
       {!wizardMode && <AIChatModal isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />}
@@ -180,22 +180,22 @@ export default function FindMentors({
             <Card padding="lg" className="bg-gradient-to-br from-orange-50 via-white to-blue-50 border-2 border-orange-200/50">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <div className="inline-flex items-center gap-2 bg-gradient-to-r from-baires-orange to-orange-600 text-white px-4 py-2 rounded-full mb-4">
+                  <div className="inline-flex items-center gap-2 bg-gradient-to-r from-baires-blue to-blue-600 text-white px-4 py-2 rounded-full mb-4">
                     <Sparkles className="w-4 h-4 animate-pulse" />
                     <span className="font-semibold text-sm">AI-Powered Matching Complete</span>
                   </div>
                   
-                  <h1 className="text-4xl font-bold bg-gradient-to-r from-neutral-black to-baires-orange bg-clip-text text-transparent mb-3">
+                  <h1 className="text-4xl font-bold bg-gradient-to-r from-neutral-black to-baires-blue bg-clip-text text-transparent mb-3">
                     {wizardMode ? 'Invite Mentors to Your Mentorship' : 'Perfect Mentors Found!'}
                   </h1>
                   <p className="text-neutral-gray-dark mb-6 leading-relaxed">
                     {wizardMode ? (
                       <>
-                        Select <span className="font-bold text-baires-orange">one or more mentors</span> to invite. Our AI analyzed <span className="font-bold text-neutral-black">250+ mentors</span> and found the <span className="font-bold text-baires-orange">best matches</span> for <span className="font-bold text-neutral-black">{mentee?.displayName || mentee?.name || 'your team member'}</span>
+                        Select <span className="font-bold text-baires-blue">one or more mentors</span> to invite. Our AI analyzed <span className="font-bold text-neutral-black">250+ mentors</span> and found the <span className="font-bold text-baires-blue">best matches</span> for <span className="font-bold text-neutral-black">{mentee?.displayName || mentee?.name || 'your team member'}</span>
                       </>
                     ) : (
                       <>
-                        Our AI analyzed <span className="font-bold text-neutral-black">250+ mentors</span> and found the <span className="font-bold text-baires-orange">top 3 matches</span> for <span className="font-bold text-neutral-black">{mentee?.displayName || mentee?.name || 'your team member'}</span>
+                        Our AI analyzed <span className="font-bold text-neutral-black">250+ mentors</span> and found the <span className="font-bold text-baires-blue">top 3 matches</span> for <span className="font-bold text-neutral-black">{mentee?.displayName || mentee?.name || 'your team member'}</span>
                       </>
                     )}
                   </p>
@@ -241,7 +241,7 @@ export default function FindMentors({
           {/* AI Top 3 Recommendations */}
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 bg-gradient-to-br from-baires-orange to-orange-600 rounded-[14px] flex items-center justify-center shadow-lg">
+              <div className="w-10 h-10 bg-gradient-to-br from-baires-blue to-blue-600 rounded-[14px] flex items-center justify-center shadow-lg">
                 <Sparkles className="w-5 h-5 text-white animate-pulse" />
               </div>
               <div>
@@ -250,7 +250,7 @@ export default function FindMentors({
                   <Badge variant="orange">Magic Match</Badge>
                 </h2>
                 <p className="text-sm text-neutral-gray-dark flex items-center gap-1">
-                  <Bot className="w-3 h-3 text-baires-orange" />
+                  <Bot className="w-3 h-3 text-baires-blue" />
                   Ranked by compatibility score
                 </p>
               </div>
@@ -259,8 +259,8 @@ export default function FindMentors({
             {topThree.length === 0 ? (
               <Card padding="lg" className="text-center">
                 <div className="py-12">
-                  <div className="w-20 h-20 bg-gradient-to-br from-orange-100 to-orange-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Users className="w-10 h-10 text-baires-orange" />
+                  <div className="w-20 h-20 bg-gradient-to-br from-orange-100 to-blue-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Users className="w-10 h-10 text-baires-blue" />
                   </div>
                   <h3 className="text-xl font-bold text-neutral-black mb-2">No Mentors Available Yet</h3>
                   <p className="text-neutral-gray-dark mb-4">
@@ -278,7 +278,7 @@ export default function FindMentors({
                   {/* AI Score Badge */}
                   <div className="absolute top-4 right-4 z-10">
                     <div className="flex flex-col items-end gap-1">
-                      <div className="bg-gradient-to-r from-baires-orange to-orange-600 text-white px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1">
+                      <div className="bg-gradient-to-r from-baires-blue to-blue-600 text-white px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1">
                         <Sparkles className="w-3 h-3" />
                         <span className="font-bold text-sm">{mentor.aiScore}% Match</span>
                       </div>
@@ -345,7 +345,7 @@ export default function FindMentors({
                     {mentor.aiReasons && mentor.aiReasons.length > 0 && (
                       <div className="mb-6">
                         <div className="flex items-center gap-2 mb-3">
-                          <Bot className="w-4 h-4 text-baires-orange" />
+                          <Bot className="w-4 h-4 text-baires-blue" />
                           <h4 className="text-sm font-bold text-neutral-black">Why AI recommends:</h4>
                         </div>
                         <div className="space-y-2">
@@ -372,8 +372,8 @@ export default function FindMentors({
                           <div className="text-lg font-bold text-neutral-black">{mentor.successRate || 0}%</div>
                           <div className="text-xs text-neutral-gray-dark">Success</div>
                         </div>
-                        <div className="text-center p-3 bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-[12px]">
-                          <Award className="w-4 h-4 text-baires-orange mx-auto mb-1" />
+                        <div className="text-center p-3 bg-gradient-to-br from-orange-50 to-blue-100/50 rounded-[12px]">
+                          <Award className="w-4 h-4 text-baires-blue mx-auto mb-1" />
                           <div className="text-lg font-bold text-neutral-black">{mentor.yearsExperience || 0}y</div>
                           <div className="text-xs text-neutral-gray-dark">Exp.</div>
                         </div>
@@ -394,7 +394,7 @@ export default function FindMentors({
                         className={`flex-1 px-4 py-3 rounded-[14px] font-bold hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2 ${
                           wizardMode && isMentorSelected(mentor.uid)
                             ? 'bg-gradient-to-r from-green-500 to-green-600 text-white'
-                            : 'bg-gradient-to-r from-baires-orange to-orange-600 text-white'
+                            : 'bg-gradient-to-r from-baires-blue to-blue-600 text-white'
                         }`}
                       >
                         {wizardMode && isMentorSelected(mentor.uid) ? (
@@ -436,7 +436,7 @@ export default function FindMentors({
                     onClick={() => setFilterAvailability('all')}
                     className={`px-4 py-2 rounded-[12px] font-semibold text-sm transition-all ${
                       filterAvailability === 'all'
-                        ? 'bg-gradient-to-r from-baires-orange to-orange-600 text-white'
+                        ? 'bg-gradient-to-r from-baires-blue to-blue-600 text-white'
                         : 'bg-neutral-100 text-neutral-gray-dark hover:bg-neutral-200'
                     }`}
                   >
@@ -446,7 +446,7 @@ export default function FindMentors({
                     onClick={() => setFilterAvailability('available')}
                     className={`px-4 py-2 rounded-[12px] font-semibold text-sm transition-all ${
                       filterAvailability === 'available'
-                        ? 'bg-gradient-to-r from-baires-orange to-orange-600 text-white'
+                        ? 'bg-gradient-to-r from-baires-blue to-blue-600 text-white'
                         : 'bg-neutral-100 text-neutral-gray-dark hover:bg-neutral-200'
                     }`}
                   >
@@ -471,7 +471,7 @@ export default function FindMentors({
                         {(mentor.expertise || mentor.technologies) && (
                           <div className="flex flex-wrap gap-2 mb-3">
                             {(mentor.expertise || mentor.technologies || []).slice(0, 3).map((skill, idx) => (
-                              <span key={idx} className="text-xs bg-orange-100 text-baires-orange px-2 py-1 rounded-full font-semibold">
+                              <span key={idx} className="text-xs bg-orange-100 text-baires-blue px-2 py-1 rounded-full font-semibold">
                                 {typeof skill === 'string' ? skill : skill?.name || skill}
                               </span>
                             ))}
@@ -542,15 +542,15 @@ export default function FindMentors({
                 Send Mentorship Request
               </h2>
               <p className="text-neutral-gray-dark">
-                to <span className="font-bold text-baires-orange">{selectedMentor.name || selectedMentor.displayName}</span>
+                to <span className="font-bold text-baires-blue">{selectedMentor.name || selectedMentor.displayName}</span>
               </p>
             </div>
 
             <div className="space-y-4 mb-6">
               {selectedMentor.aiScore && selectedMentor.aiReasons && (
-                <div className="p-4 bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-[16px] border border-orange-200">
+                <div className="p-4 bg-gradient-to-br from-orange-50 to-blue-100/50 rounded-[16px] border border-orange-200">
                   <div className="flex items-start gap-3">
-                    <Sparkles className="w-5 h-5 text-baires-orange flex-shrink-0 mt-0.5" />
+                    <Sparkles className="w-5 h-5 text-baires-blue flex-shrink-0 mt-0.5" />
                     <div>
                       <div className="font-bold text-neutral-black mb-2">AI Match Score: {selectedMentor.aiScore}%</div>
                       <div className="space-y-1">
@@ -569,7 +569,7 @@ export default function FindMentors({
               <textarea
                 placeholder="Add a personal message (optional)..."
                 rows="4"
-                className="w-full px-4 py-3 rounded-[12px] border-2 border-neutral-200 focus:border-baires-orange focus:outline-none resize-none"
+                className="w-full px-4 py-3 rounded-[12px] border-2 border-neutral-200 focus:border-baires-blue focus:outline-none resize-none"
               ></textarea>
             </div>
 
@@ -585,7 +585,7 @@ export default function FindMentors({
                   setSelectedMentor(null)
                   navigate('/mentorship')
                 }}
-                className="flex-1 bg-gradient-to-r from-baires-orange to-orange-600 text-white px-6 py-3 rounded-[14px] font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                className="flex-1 bg-gradient-to-r from-baires-blue to-blue-600 text-white px-6 py-3 rounded-[14px] font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2"
               >
                 <Send className="w-4 h-4" />
                 Send Request

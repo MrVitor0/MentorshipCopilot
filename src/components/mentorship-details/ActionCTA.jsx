@@ -10,8 +10,8 @@ export default function ActionCTA({
   icon: Icon,
   badge,
   features = [],
-  bgGradient = 'from-baires-orange via-orange-600 to-orange-700',
-  buttonTextColor = 'text-baires-orange'
+  bgGradient = 'from-baires-blue via-blue-600 to-blue-700',
+  buttonTextColor = 'text-baires-blue'
 }) {
   return (
     <Card padding="none" className="overflow-hidden group cursor-pointer hover:shadow-2xl transition-all duration-300" onClick={onClick}>

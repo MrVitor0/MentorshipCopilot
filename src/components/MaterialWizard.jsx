@@ -14,6 +14,7 @@ import {
   Lightbulb,
   Download
 } from 'lucide-react'
+import { useConfirm } from '../hooks/useConfirm'
 import Card from './Card'
 import Button from './Button'
 
@@ -75,6 +76,7 @@ const MATERIAL_TYPES = [
 ]
 
 export default function MaterialWizard({ isOpen, onClose, onSubmit }) {
+  const confirm = useConfirm()
   const [currentStep, setCurrentStep] = useState(STEPS.TYPE)
   const [formData, setFormData] = useState({
     type: null,
@@ -107,7 +109,10 @@ export default function MaterialWizard({ isOpen, onClose, onSubmit }) {
       handleClose()
     } catch (error) {
       console.error('Error submitting material:', error)
-      alert('Error adding material. Please try again.')
+      await confirm.error(
+        'Error adding material. Please try again.',
+        'Error'
+      )
     } finally {
       setIsSubmitting(false)
     }

@@ -13,8 +13,8 @@ const colorVariants = {
   },
   orange: {
     gradient: 'from-orange-300/20 via-orange-200/15 to-transparent',
-    text: 'text-baires-orange',
-    iconBg: 'bg-gradient-to-br from-baires-orange-light to-baires-orange',
+    text: 'text-baires-blue',
+    iconBg: 'bg-gradient-to-br from-baires-blue-light to-baires-blue',
     border: 'border-orange-200/50',
   },
   yellow: {

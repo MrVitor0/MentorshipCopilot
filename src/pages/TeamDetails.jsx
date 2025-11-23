@@ -125,7 +125,7 @@ export default function TeamDetails() {
         title={team ? `${team.name} - Team Details` : 'Team Details'}
         description="Manage team members, view projects, and track team performance."
       />
-      <div className="flex h-screen bg-gradient-to-br from-neutral-50 via-white to-orange-50/15">
+      <div className="flex h-screen bg-gradient-to-br from-neutral-50 via-white to-blue-50/15">
         <Sidebar />
         
         <main className="flex-1 overflow-y-auto">
@@ -143,7 +143,7 @@ export default function TeamDetails() {
             {loading ? (
               <div className="flex justify-center items-center py-20">
                 <div className="text-center">
-                  <Loader2 className="w-12 h-12 text-baires-orange mx-auto mb-4 animate-spin" />
+                  <Loader2 className="w-12 h-12 text-baires-blue mx-auto mb-4 animate-spin" />
                   <p className="text-neutral-gray-dark">Loading team...</p>
                 </div>
               </div>
@@ -186,7 +186,7 @@ export default function TeamDetails() {
                           type="text"
                           value={editData.name}
                           onChange={(e) => setEditData({ ...editData, name: e.target.value })}
-                          className="w-full px-4 py-3 rounded-[14px] border-2 border-neutral-200 focus:border-baires-orange focus:outline-none text-neutral-black placeholder-neutral-gray-dark transition-colors"
+                          className="w-full px-4 py-3 rounded-[14px] border-2 border-neutral-200 focus:border-baires-blue focus:outline-none text-neutral-black placeholder-neutral-gray-dark transition-colors"
                           required
                         />
                       </div>
@@ -197,7 +197,7 @@ export default function TeamDetails() {
                         <textarea
                           value={editData.description}
                           onChange={(e) => setEditData({ ...editData, description: e.target.value })}
-                          className="w-full px-4 py-3 rounded-[14px] border-2 border-neutral-200 focus:border-baires-orange focus:outline-none text-neutral-black placeholder-neutral-gray-dark transition-colors resize-none"
+                          className="w-full px-4 py-3 rounded-[14px] border-2 border-neutral-200 focus:border-baires-blue focus:outline-none text-neutral-black placeholder-neutral-gray-dark transition-colors resize-none"
                           rows={3}
                         />
                       </div>
@@ -254,9 +254,9 @@ export default function TeamDetails() {
                             {projects.reduce((sum, p) => sum + (p.mentees?.length || 0), 0)}
                           </p>
                         </div>
-                        <div className="p-4 bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-[16px] border-2 border-orange-200">
+                        <div className="p-4 bg-gradient-to-br from-orange-50 to-blue-100/50 rounded-[16px] border-2 border-orange-200">
                           <div className="flex items-center gap-2 mb-2">
-                            <Calendar className="w-4 h-4 text-baires-orange" />
+                            <Calendar className="w-4 h-4 text-baires-blue" />
                             <span className="text-xs text-neutral-gray-dark font-semibold">Created</span>
                           </div>
                           <p className="text-sm font-bold text-neutral-black">
@@ -331,7 +331,7 @@ export default function TeamDetails() {
                               </div>
                               <div className="flex items-center gap-2">
                                 {member.uid === team.createdBy ? (
-                                  <span className="text-xs font-bold text-baires-orange bg-orange-100 px-3 py-1.5 rounded-full border border-orange-200">
+                                  <span className="text-xs font-bold text-baires-blue bg-orange-100 px-3 py-1.5 rounded-full border border-orange-200">
                                     Creator
                                   </span>
                                 ) : (
@@ -402,13 +402,13 @@ export default function TeamDetails() {
                                     <FolderOpen className="w-5 h-5 text-white" />
                                   </div>
                                   <div>
-                                    <p className="font-bold text-neutral-black group-hover:text-baires-orange transition-colors">{project.name}</p>
+                                    <p className="font-bold text-neutral-black group-hover:text-baires-blue transition-colors">{project.name}</p>
                                     <p className="text-xs text-neutral-gray-dark">
                                       {project.mentees?.length || 0} mentees
                                     </p>
                                   </div>
                                 </div>
-                                <ChevronRight className="w-5 h-5 text-neutral-gray-dark group-hover:text-baires-orange group-hover:translate-x-1 transition-all" />
+                                <ChevronRight className="w-5 h-5 text-neutral-gray-dark group-hover:text-baires-blue group-hover:translate-x-1 transition-all" />
                               </div>
                             </Card>
                           </Link>
@@ -450,7 +450,7 @@ export default function TeamDetails() {
                 <select
                   value={selectedPM}
                   onChange={(e) => setSelectedPM(e.target.value)}
-                  className="w-full px-4 py-3 rounded-[14px] border-2 border-neutral-200 focus:border-baires-orange focus:outline-none text-neutral-black transition-colors"
+                  className="w-full px-4 py-3 rounded-[14px] border-2 border-neutral-200 focus:border-baires-blue focus:outline-none text-neutral-black transition-colors"
                 >
                   <option value="">Choose a PM...</option>
                   {availablePMs.map((pm) => (

@@ -178,11 +178,11 @@ export default function ProjectDetails() {
 
   if (loading) {
     return (
-      <div className="flex h-screen bg-gradient-to-br from-neutral-50 via-white to-orange-50/15">
+      <div className="flex h-screen bg-gradient-to-br from-neutral-50 via-white to-blue-50/15">
         <Sidebar />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center space-y-4">
-            <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-baires-orange border-r-transparent"></div>
+            <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-baires-blue border-r-transparent"></div>
             <p className="text-lg text-neutral-gray-dark font-medium">Loading project...</p>
           </div>
         </div>
@@ -192,7 +192,7 @@ export default function ProjectDetails() {
 
   if (!project) {
     return (
-      <div className="flex h-screen bg-gradient-to-br from-neutral-50 via-white to-orange-50/15">
+      <div className="flex h-screen bg-gradient-to-br from-neutral-50 via-white to-blue-50/15">
         <Sidebar />
         <div className="flex-1 flex items-center justify-center p-8">
           <Card className="max-w-md w-full text-center" padding="xl">
@@ -214,7 +214,7 @@ export default function ProjectDetails() {
         description={`Manage ${project.name} project details, mentees, and mentors`}
       />
       
-      <div className="flex h-screen bg-gradient-to-br from-neutral-50 via-white to-orange-50/15 overflow-hidden">
+      <div className="flex h-screen bg-gradient-to-br from-neutral-50 via-white to-blue-50/15 overflow-hidden">
         <Sidebar />
         
         <main className="flex-1 overflow-y-auto">
@@ -253,7 +253,7 @@ export default function ProjectDetails() {
                           type="text"
                           value={editData.name}
                           onChange={(e) => setEditData({ ...editData, name: e.target.value })}
-                          className="w-full px-5 py-3.5 bg-white border-2 border-neutral-200 rounded-[16px] text-neutral-black placeholder-neutral-gray-light focus:outline-none focus:border-baires-orange focus:ring-4 focus:ring-orange-100 transition-all"
+                          className="w-full px-5 py-3.5 bg-white border-2 border-neutral-200 rounded-[16px] text-neutral-black placeholder-neutral-gray-light focus:outline-none focus:border-baires-blue focus:ring-4 focus:ring-orange-100 transition-all"
                           placeholder="Enter project name"
                           required
                         />
@@ -265,7 +265,7 @@ export default function ProjectDetails() {
                         <textarea
                           value={editData.description}
                           onChange={(e) => setEditData({ ...editData, description: e.target.value })}
-                          className="w-full px-5 py-3.5 bg-white border-2 border-neutral-200 rounded-[16px] text-neutral-black placeholder-neutral-gray-light focus:outline-none focus:border-baires-orange focus:ring-4 focus:ring-orange-100 transition-all resize-none"
+                          className="w-full px-5 py-3.5 bg-white border-2 border-neutral-200 rounded-[16px] text-neutral-black placeholder-neutral-gray-light focus:outline-none focus:border-baires-blue focus:ring-4 focus:ring-orange-100 transition-all resize-none"
                           placeholder="Project description (optional)"
                           rows={4}
                         />
@@ -303,7 +303,7 @@ export default function ProjectDetails() {
                         {team && (
                           <Link
                             to={`/teams/${team.id}`}
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-orange-50 hover:bg-orange-100 rounded-[14px] text-baires-orange font-semibold transition-all hover:scale-105 hover:shadow-md"
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-orange-50 hover:bg-orange-100 rounded-[14px] text-baires-blue font-semibold transition-all hover:scale-105 hover:shadow-md"
                           >
                             <FolderOpen className="w-4 h-4" />
                             Team: {team.name}
@@ -334,7 +334,7 @@ export default function ProjectDetails() {
 
                       <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-[20px] p-5 border-2 border-purple-200/50">
                         <div className="flex items-center gap-3 mb-2">
-                          <div className="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center">
+                          <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center">
                             <Award className="w-5 h-5 text-purple-600" />
                           </div>
                           <span className="text-sm font-bold text-purple-900/60">Mentors</span>
@@ -352,7 +352,7 @@ export default function ProjectDetails() {
                         <p className="text-3xl font-black text-green-900">{mentorships.length}</p>
                       </div>
 
-                      <div className="bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-[20px] p-5 border-2 border-orange-200/50">
+                      <div className="bg-gradient-to-br from-orange-50 to-blue-100/50 rounded-[20px] p-5 border-2 border-orange-200/50">
                         <div className="flex items-center gap-3 mb-2">
                           <div className="w-10 h-10 rounded-full bg-orange-500/10 flex items-center justify-center">
                             <CalendarDays className="w-5 h-5 text-orange-600" />
@@ -389,11 +389,11 @@ export default function ProjectDetails() {
                       <Link
                         key={mentorship.id}
                         to={`/mentorship/${mentorship.id}`}
-                        className="block p-5 bg-gradient-to-br from-white to-neutral-50 rounded-[20px] border-2 border-neutral-100 hover:border-baires-orange hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group"
+                        className="block p-5 bg-gradient-to-br from-white to-neutral-50 rounded-[20px] border-2 border-neutral-100 hover:border-baires-blue hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group"
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
-                            <p className="text-lg font-bold text-neutral-black mb-1 group-hover:text-baires-orange transition-colors">
+                            <p className="text-lg font-bold text-neutral-black mb-1 group-hover:text-baires-blue transition-colors">
                               {mentorship.topic || 'Mentorship'}
                             </p>
                             <div className="flex items-center gap-2">
@@ -415,8 +415,8 @@ export default function ProjectDetails() {
                               </span>
                             </div>
                           </div>
-                          <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center group-hover:bg-baires-orange group-hover:scale-110 transition-all">
-                            <FolderOpen className="w-5 h-5 text-baires-orange group-hover:text-white transition-colors" />
+                          <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center group-hover:bg-baires-blue group-hover:scale-110 transition-all">
+                            <FolderOpen className="w-5 h-5 text-baires-blue group-hover:text-white transition-colors" />
                           </div>
                         </div>
                       </Link>
@@ -543,7 +543,7 @@ export default function ProjectDetails() {
                                   {mentor.technologies.slice(0, 3).map((tech, idx) => (
                                     <span
                                       key={idx}
-                                      className="text-xs font-semibold text-baires-orange bg-orange-50 px-2 py-0.5 rounded-full"
+                                      className="text-xs font-semibold text-baires-blue bg-orange-50 px-2 py-0.5 rounded-full"
                                     >
                                       {tech.name || tech}
                                     </span>
@@ -599,7 +599,7 @@ export default function ProjectDetails() {
                 <select
                   value={selectedMentee}
                   onChange={(e) => setSelectedMentee(e.target.value)}
-                  className="w-full px-5 py-3.5 bg-white border-2 border-neutral-200 rounded-[16px] text-neutral-black focus:outline-none focus:border-baires-orange focus:ring-4 focus:ring-orange-100 transition-all"
+                  className="w-full px-5 py-3.5 bg-white border-2 border-neutral-200 rounded-[16px] text-neutral-black focus:outline-none focus:border-baires-blue focus:ring-4 focus:ring-orange-100 transition-all"
                 >
                   <option value="">Choose a mentee...</option>
                   {availableMentees.map((mentee) => (
@@ -762,7 +762,7 @@ export default function ProjectDetails() {
                 <select
                   value={selectedMentor}
                   onChange={(e) => setSelectedMentor(e.target.value)}
-                  className="w-full px-5 py-3.5 bg-white border-2 border-neutral-200 rounded-[16px] text-neutral-black focus:outline-none focus:border-baires-orange focus:ring-4 focus:ring-orange-100 transition-all"
+                  className="w-full px-5 py-3.5 bg-white border-2 border-neutral-200 rounded-[16px] text-neutral-black focus:outline-none focus:border-baires-blue focus:ring-4 focus:ring-orange-100 transition-all"
                 >
                   <option value="">Choose a mentor...</option>
                   {availableMentors.map((mentor) => (

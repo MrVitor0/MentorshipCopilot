@@ -67,14 +67,14 @@ export default function Settings() {
         title="Settings"
         description="Manage your profile settings"
       />
-      <div className="flex h-screen bg-gradient-to-br from-neutral-50 via-white to-orange-50/15">
+      <div className="flex h-screen bg-gradient-to-br from-neutral-50 via-white to-blue-50/15">
         <Sidebar />
         
         <main className="flex-1 overflow-y-auto">
           <div className="p-6 md:p-8 max-w-4xl mx-auto">
             {/* Header */}
             <div className="mb-8">
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-neutral-black to-baires-orange bg-clip-text text-transparent mb-2">
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-neutral-black to-baires-blue bg-clip-text text-transparent mb-2">
                 Settings
               </h1>
               <p className="text-neutral-gray-dark">
@@ -101,7 +101,7 @@ export default function Settings() {
               {/* Profile Picture */}
               <Card gradient padding="lg">
                 <div className="flex items-center gap-3 mb-6">
-                  <Camera className="w-6 h-6 text-baires-orange" />
+                  <Camera className="w-6 h-6 text-baires-blue" />
                   <h2 className="text-xl font-bold text-neutral-black">Profile Picture</h2>
                 </div>
 
@@ -120,7 +120,7 @@ export default function Settings() {
                       type="url"
                       value={formData.photoURL}
                       onChange={(e) => handleChange('photoURL', e.target.value)}
-                      className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-[14px] focus:outline-none focus:ring-2 focus:ring-baires-orange focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-[14px] focus:outline-none focus:ring-2 focus:ring-baires-blue focus:border-transparent transition-all"
                       placeholder="https://example.com/photo.jpg"
                     />
                     <p className="text-xs text-neutral-gray-dark mt-2">
@@ -146,7 +146,7 @@ export default function Settings() {
                       type="text"
                       value={formData.displayName}
                       onChange={(e) => handleChange('displayName', e.target.value)}
-                      className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-[14px] focus:outline-none focus:ring-2 focus:ring-baires-orange focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-[14px] focus:outline-none focus:ring-2 focus:ring-baires-blue focus:border-transparent transition-all"
                       placeholder="Your full name"
                     />
                   </div>
@@ -199,7 +199,7 @@ export default function Settings() {
                     onChange={(e) => handleChange('bio', e.target.value)}
                     rows={5}
                     maxLength={500}
-                    className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-[14px] focus:outline-none focus:ring-2 focus:ring-baires-orange focus:border-transparent transition-all resize-none"
+                    className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-[14px] focus:outline-none focus:ring-2 focus:ring-baires-blue focus:border-transparent transition-all resize-none"
                     placeholder="Tell us about yourself..."
                   />
                   <p className="text-xs text-neutral-gray-dark mt-2">

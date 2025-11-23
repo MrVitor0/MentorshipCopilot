@@ -148,7 +148,7 @@ export default function Register() {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3 bg-neutral-50 border border-neutral-200 rounded-[14px] focus:outline-none focus:ring-2 focus:ring-baires-indigo focus:border-transparent transition-all"
+                    className="w-full pl-12 pr-4 py-3 bg-neutral-50 border border-neutral-200 rounded-[14px] focus:outline-none focus:ring-2 focus:ring-baires-indigo focus:border-transparent transition-all placeholder:opacity-40"
                     placeholder="••••••••"
                     required
                   />
@@ -166,7 +166,7 @@ export default function Register() {
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3 bg-neutral-50 border border-neutral-200 rounded-[14px] focus:outline-none focus:ring-2 focus:ring-baires-indigo focus:border-transparent transition-all"
+                    className="w-full pl-12 pr-4 py-3 bg-neutral-50 border border-neutral-200 rounded-[14px] focus:outline-none focus:ring-2 focus:ring-baires-indigo focus:border-transparent transition-all placeholder:opacity-40"
                     placeholder="••••••••"
                     required
                   />

@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
+import { ConfirmDialogProvider } from './contexts/ConfirmDialogContext'
 import { ProtectedRoute, PublicRoute } from './components/ProtectedRoute'
 import PermissionRoute from './components/PermissionRoute'
 import FloatingChatButton from './components/FloatingChatButton'
@@ -24,7 +25,8 @@ import Analytics from './pages/Analytics'
 function App() {
   return (
     <AuthProvider>
-      <Router>
+      <ConfirmDialogProvider>
+        <Router>
         <Routes>
           {/* Public Routes - redirect to dashboard if logged in */}
           <Route path="/" element={<Home />} />
@@ -82,12 +84,12 @@ function App() {
           {/* <Route path="/find-mentors" element={<ProtectedRoute><FindMentors /></ProtectedRoute>} /> */}
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
           
-          {/* Teams routes - only for PMs */}
+          {/* Teams routes - for PMs and Mentors */}
           <Route 
             path="/teams" 
             element={
               <ProtectedRoute>
-                <PermissionRoute permission="canManageTeams">
+                <PermissionRoute permission="canViewTeams">
                   <Teams />
                 </PermissionRoute>
               </ProtectedRoute>
@@ -97,19 +99,19 @@ function App() {
             path="/teams/:id" 
             element={
               <ProtectedRoute>
-                <PermissionRoute permission="canManageTeams">
+                <PermissionRoute permission="canViewTeams">
                   <TeamDetails />
                 </PermissionRoute>
               </ProtectedRoute>
             } 
           />
           
-          {/* Projects routes - only for PMs */}
+          {/* Projects routes - for PMs and Mentors */}
           <Route 
             path="/projects" 
             element={
               <ProtectedRoute>
-                <PermissionRoute permission="canManageProjects">
+                <PermissionRoute permission="canViewProjects">
                   <Projects />
                 </PermissionRoute>
               </ProtectedRoute>
@@ -119,7 +121,7 @@ function App() {
             path="/projects/:id" 
             element={
               <ProtectedRoute>
-                <PermissionRoute permission="canManageProjects">
+                <PermissionRoute permission="canViewProjects">
                   <ProjectDetails />
                 </PermissionRoute>
               </ProtectedRoute>
@@ -141,7 +143,8 @@ function App() {
         
         {/* Global Floating Chat Button - Available for all authenticated users */}
         <FloatingChatButton />
-      </Router>
+        </Router>
+      </ConfirmDialogProvider>
     </AuthProvider>
   )
 }

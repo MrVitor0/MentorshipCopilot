@@ -56,7 +56,7 @@ export default function MentorshipResume({ mentorships = [], title = "Active Men
     <Card gradient hover padding="lg">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-baires-orange to-orange-600 rounded-[14px] flex items-center justify-center shadow-lg">
+          <div className="w-10 h-10 bg-gradient-to-br from-baires-blue to-blue-600 rounded-[14px] flex items-center justify-center shadow-lg">
             <Sparkles className="w-5 h-5 text-white animate-pulse" />
           </div>
           <div>
@@ -67,7 +67,7 @@ export default function MentorshipResume({ mentorships = [], title = "Active Men
         {mentorships.length > 3 && (
           <button 
             onClick={() => navigate('/mentorship')}
-            className="text-sm font-semibold text-baires-orange hover:text-orange-700 flex items-center gap-1"
+            className="text-sm font-semibold text-baires-blue hover:text-orange-700 flex items-center gap-1"
           >
             View All
             <ArrowRight className="w-4 h-4" />
@@ -85,7 +85,7 @@ export default function MentorshipResume({ mentorships = [], title = "Active Men
           return (
             <div
               key={mentorship.id}
-              className="p-4 bg-gradient-to-br from-white to-orange-50/50 rounded-[20px] border border-orange-100/50 hover:shadow-md transition-all duration-300 cursor-pointer"
+              className="p-4 bg-gradient-to-br from-white to-blue-50/50 rounded-[20px] border border-orange-100/50 hover:shadow-md transition-all duration-300 cursor-pointer"
               onClick={() => navigate(`/mentorship/${mentorship.id}`)}
             >
               <div className="flex items-start justify-between mb-3">
@@ -137,7 +137,7 @@ export default function MentorshipResume({ mentorships = [], title = "Active Men
                 </div>
                 <div className="w-full bg-neutral-200 rounded-full h-2">
                   <div 
-                    className="bg-gradient-to-r from-baires-orange to-orange-600 h-2 rounded-full transition-all duration-300" 
+                    className="bg-gradient-to-r from-baires-blue to-blue-600 h-2 rounded-full transition-all duration-300" 
                     style={{ width: `${mentorship.progress || 0}%` }}
                   ></div>
                 </div>
@@ -149,7 +149,7 @@ export default function MentorshipResume({ mentorships = [], title = "Active Men
                   <Calendar className="w-3 h-3" />
                   <span>{mentorship.sessionsCompleted || 0} sessions</span>
                 </div>
-                <div className="flex items-center gap-1 text-baires-orange">
+                <div className="flex items-center gap-1 text-baires-blue">
                   <Target className="w-3 h-3" />
                   <span className="font-semibold">View Details</span>
                 </div>

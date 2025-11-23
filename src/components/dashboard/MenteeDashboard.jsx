@@ -1,10 +1,14 @@
-import { BookOpen, FileText, Calendar, Video, Download, ExternalLink, Star, TrendingUp, Target, Sparkles, GraduationCap, FileCheck, Users } from 'lucide-react'
+import { BookOpen, FileText, Calendar, Target, Sparkles, GraduationCap, FileCheck, Code, Database, Zap, ArrowRight, Brain, BarChart3, Star } from 'lucide-react'
 import Card from '../Card'
-import Button from '../Button'
-import Avatar from '../Avatar'
-import Badge from '../Badge'
 import StatCard from '../StatCard'
-import EmptyState from '../EmptyState'
+import WelcomeHeroSection from './WelcomeHeroSection'
+import QuickActionsSection from './QuickActionsSection'
+import RecommendedCoursesCard from './RecommendedCoursesCard'
+import SupportMaterialsCard from './SupportMaterialsCard'
+import NextSessionHighlight from './NextSessionHighlight'
+import LearningStatsCard from './LearningStatsCard'
+import UpcomingSessionsCard from './UpcomingSessionsCard'
+import LoadingDashboard from './LoadingDashboard'
 
 // Recommended courses from Udemy
 const recommendedCourses = [
@@ -13,7 +17,7 @@ const recommendedCourses = [
     platform: 'Udemy',
     rating: 4.8,
     students: '125K',
-    image: '🎓',
+    icon: Code,
     url: 'https://www.udemy.com/topic/react/',
     tag: 'Popular'
   },
@@ -22,7 +26,7 @@ const recommendedCourses = [
     platform: 'Udemy',
     rating: 4.7,
     students: '98K',
-    image: '💻',
+    icon: Database,
     url: 'https://www.udemy.com/topic/nodejs/',
     tag: 'Trending'
   },
@@ -31,7 +35,7 @@ const recommendedCourses = [
     platform: 'Udemy',
     rating: 4.9,
     students: '87K',
-    image: '📘',
+    icon: FileText,
     url: 'https://www.udemy.com/topic/typescript/',
     tag: 'New'
   }
@@ -50,7 +54,7 @@ const supportMaterials = [
     title: 'Node.js Architecture Patterns',
     type: 'PDF',
     size: '1.8 MB',
-    icon: FileText,
+    icon: Database,
     color: 'green'
   },
   {
@@ -64,54 +68,74 @@ const supportMaterials = [
     title: 'Git Commands Reference',
     type: 'PDF',
     size: '1.2 MB',
-    icon: FileText,
-    color: 'orange'
+    icon: Code,
+    color: 'blue'
   }
 ]
 
 export default function MenteeDashboard({ user, upcomingSessions, mentorships, loading }) {
   const currentMentorship = mentorships[0] // Mentees typically have one active mentorship
   const progress = currentMentorship?.progress || 0
-  const completedSessions = currentMentorship?.sessionsCompleted || 0
-  const hoursSpent = completedSessions * 1.5 // Assuming 1.5 hours per session
+
+  // Loading State
+  if (loading) {
+    return <LoadingDashboard />
+  }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-      <div className="lg:col-span-2 space-y-6 md:space-y-8">
-        {/* Mentee Insights Card */}
-        <Card gradient padding="xl">
-          <div className="flex items-center gap-4 mb-8">
-            <div className="relative">
-              <Avatar 
-                src={user?.photoURL}
-                initials={user?.displayName?.substring(0, 2)?.toUpperCase() || 'U'}
-                size="2xl" 
-                ring 
-              />
-              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full border-4 border-white shadow-lg flex items-center justify-center">
-                <GraduationCap className="w-3 h-3 text-white" />
-              </div>
-            </div>
-            <div>
-              <h2 className="text-3xl font-bold bg-gradient-to-r from-neutral-black to-purple-600 bg-clip-text text-transparent mb-1">
-                Your Learning Journey
-              </h2>
-              <p className="text-neutral-gray-dark flex items-center gap-1">
-                <Sparkles className="w-3 h-3 text-purple-600" />
-                Track your progress and growth
-              </p>
-            </div>
-          </div>
+    <div className="space-y-6 md:space-y-8">
+      {/* Hero + Quick Actions */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+        <WelcomeHeroSection 
+          title={`Welcome ${user?.displayName || ''}!`}
+          subtitle="Your personal learning journey powered by AI matching. Track your progress, engage with mentors, and achieve your professional goals."
+          primaryAction={{
+            icon: BookOpen,
+            label: currentMentorship ? "Continue Learning" : "Start Learning Journey",
+            path: currentMentorship ? `/mentorship/${currentMentorship.id}` : "/mentorship",
+            endIcon: ArrowRight
+          }}
+          secondaryAction={{
+            icon: Calendar,
+            label: "View Sessions",
+            path: "/mentorship"
+          }}
+          features={[
+            { icon: Brain, title: "AI-Matched Mentors", description: "Expert guidance" },
+            { icon: BarChart3, title: "Track Progress", description: "Monitor growth" },
+            { icon: Zap, title: "Quick Resources", description: "Learn faster" }
+          ]}
+        />
+        
+        <QuickActionsSection 
+          title="Quick Actions"
+          description="Everything you need to manage your learning journey"
+          actions={[
+            {
+              icon: BookOpen,
+              title: "My Mentorship",
+              description: currentMentorship ? `${progress}% complete` : "Not started yet",
+              path: currentMentorship ? `/mentorship/${currentMentorship.id}` : "/mentorship"
+            },
+            {
+              icon: Calendar,
+              title: "Upcoming Sessions",
+              description: `${upcomingSessions.length} sessions scheduled`,
+              path: "/mentorship"
+            },
+            {
+              icon: GraduationCap,
+              title: "Learning Resources",
+              description: "Access courses & materials",
+              path: "#resources"
+            }
+          ]}
+        />
+      </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
-            <StatCard value={progress.toString() + '%'} label="Overall Progress" IconComponent={Target} color="purple" />
-            <StatCard value={completedSessions.toString()} label="Sessions Done" IconComponent={Calendar} color="blue" />
-            <StatCard value={hoursSpent.toString()} label="Hours Learning" IconComponent={BookOpen} color="orange" />
-            <StatCard value="4.8" label="Performance" trend="↑ 12%" IconComponent={Star} color="yellow" />
-          </div>
-        </Card>
+      {/* Current Mentorship Overview */}
+      <div className="space-y-6 md:space-y-8">
 
-        {/* Current Mentorship Overview */}
         <Card padding="none" className="overflow-hidden bg-gradient-to-br from-purple-50 via-white to-blue-50 border-2 border-purple-200/50">
           <div className="relative">
             <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-purple-400/10 to-blue-400/10 rounded-full blur-3xl"></div>
@@ -208,195 +232,31 @@ export default function MenteeDashboard({ user, upcomingSessions, mentorships, l
           </div>
         </Card>
 
-        {/* Recommended Courses */}
-        <Card gradient hover padding="lg">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-[16px] flex items-center justify-center shadow-lg">
-              <GraduationCap className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h3 className="text-xl font-bold text-neutral-black">Recommended Courses</h3>
-              <p className="text-xs text-neutral-gray-dark flex items-center gap-1">
-                <Sparkles className="w-3 h-3 text-orange-500" />
-                Personalized for your learning path
-              </p>
-            </div>
-          </div>
-
-          <div className="grid gap-4">
-            {recommendedCourses.map((course, index) => (
-              <a
-                key={index}
-                href={course.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group p-5 bg-gradient-to-br from-white to-indigo-50/50 rounded-[20px] border border-indigo-100/50 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 cursor-pointer"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="w-16 h-16 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-[14px] flex items-center justify-center text-3xl shadow-md group-hover:scale-110 transition-transform duration-300">
-                    {course.image}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex-1">
-                        <h4 className="font-bold text-neutral-black group-hover:text-orange-600 transition-colors">{course.title}</h4>
-                        <p className="text-xs text-neutral-gray-dark mt-1">{course.platform}</p>
-                      </div>
-                      <Badge variant="warning" className="text-xs ml-2">{course.tag}</Badge>
-                    </div>
-                    <div className="flex items-center gap-4 text-sm text-neutral-gray-dark">
-                      <div className="flex items-center gap-1">
-                        <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                        <span className="font-semibold">{course.rating}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Users className="w-3 h-3" />
-                        <span>{course.students} students</span>
-                      </div>
-                      <ExternalLink className="w-3 h-3 ml-auto group-hover:text-orange-600 transition-colors" />
-                    </div>
-                  </div>
-                </div>
-              </a>
-            ))}
-          </div>
-
-          <div className="mt-4 pt-4 border-t border-neutral-200/50">
-            <a 
-              href="https://www.udemy.com/" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-sm text-baires-indigo hover:text-orange-600 font-semibold flex items-center gap-2 transition-colors"
-            >
-              Explore more courses on Udemy
-              <ExternalLink className="w-4 h-4" />
-            </a>
-          </div>
-        </Card>
-
-        {/* Support Materials */}
-        <Card gradient hover padding="lg">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-[16px] flex items-center justify-center shadow-lg">
-              <FileText className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h3 className="text-xl font-bold text-neutral-black">Support Materials</h3>
-              <p className="text-xs text-neutral-gray-dark">Curated resources for your learning</p>
-            </div>
-          </div>
-
-          <div className="grid gap-3">
-            {supportMaterials.map((material, index) => {
-              const IconComponent = material.icon
-              const colorClasses = {
-                red: 'from-red-500 to-red-600',
-                green: 'from-green-500 to-green-600',
-                yellow: 'from-yellow-500 to-indigo-500',
-                orange: 'from-indigo-500 to-indigo-600'
-              }
-              return (
-                <button
-                  key={index}
-                  className="group flex items-center gap-4 p-4 bg-gradient-to-br from-white to-green-50/50 rounded-[16px] border border-green-100/50 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 text-left"
-                >
-                  <div className={`w-12 h-12 bg-gradient-to-br ${colorClasses[material.color]} rounded-[12px] flex items-center justify-center shadow-md group-hover:scale-110 transition-transform duration-300`}>
-                    <IconComponent className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-bold text-neutral-black text-sm">{material.title}</h4>
-                    <p className="text-xs text-neutral-gray-dark mt-0.5">{material.type} • {material.size}</p>
-                  </div>
-                  <Download className="w-5 h-5 text-neutral-gray group-hover:text-green-600 transition-colors" />
-                </button>
-              )
-            })}
-          </div>
-        </Card>
-      </div>
-
-      <div className="space-y-6 md:space-y-8">
-        {/* Next Session */}
+        {/* Next Session Highlight */}
         {upcomingSessions.length > 0 && (
-          <Card hover padding="lg" className="bg-gradient-to-br from-baires-indigo via-indigo-600 to-indigo-700 text-white border-none shadow-[0_20px_50px_rgb(79,70,229,0.3)]">
-            <div className="relative">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
-              <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
-              
-              <div className="relative">
-                <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-[18px] flex items-center justify-center mb-4 shadow-lg">
-                  <Calendar className="w-7 h-7 text-white" />
-                </div>
-                <h3 className="text-xl font-bold mb-2">Next Session</h3>
-                <p className="text-sm mb-4 opacity-90">Your upcoming mentorship session</p>
-                
-                <div className="bg-white/20 backdrop-blur-sm rounded-[16px] p-4 mb-4">
-                  <p className="font-bold text-lg mb-1">{upcomingSessions[0].participantName || 'Mentor'}</p>
-                  <p className="text-sm opacity-90">{upcomingSessions[0].scheduledDate?.toDate?.().toLocaleDateString() || 'Soon'}</p>
-                </div>
-                
-                <button className="w-full bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white font-semibold py-3 px-6 rounded-[16px] transition-all duration-300 border border-white/30 hover:scale-105 shadow-lg flex items-center justify-center gap-2">
-                  <Video className="w-4 h-4" />
-                  Join Session
-                </button>
-              </div>
-            </div>
-          </Card>
+          <NextSessionHighlight 
+            session={upcomingSessions[0]}
+            onJoinSession={(session) => {
+              console.log('Join session:', session)
+              // Add join logic here
+            }}
+          />
         )}
 
-        {/* Upcoming Sessions List */}
-        <Card gradient hover padding="lg">
-          <div className="flex items-center gap-2 mb-6">
-            <Calendar className="w-5 h-5 text-baires-blue" />
-            <h3 className="text-xl font-bold text-neutral-black">All Sessions</h3>
-          </div>
-          {loading ? (
-            <div className="flex justify-center py-8">
-              <div className="w-8 h-8 border-4 border-baires-blue border-t-transparent rounded-full animate-spin"></div>
-            </div>
-          ) : upcomingSessions.length > 0 ? (
-            <div className="space-y-3">
-              {upcomingSessions.map((session) => (
-                <div key={session.id} className="flex items-center gap-3 p-3 bg-gradient-to-br from-white to-blue-50/50 rounded-[16px] border border-blue-100/50 hover:shadow-md transition-all">
-                  <Avatar src={session.participantPhoto} initials={session.participantName?.substring(0, 2)} size="md" />
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-neutral-black text-sm truncate">{session.participantName}</p>
-                    <p className="text-xs text-neutral-gray-dark">{session.scheduledDate?.toDate?.().toLocaleDateString()}</p>
-                  </div>
-                  <Badge variant="blue" className="text-xs">Soon</Badge>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <EmptyState 
-              icon={Calendar}
-              title="No sessions yet"
-              description="Sessions will appear here when scheduled"
-            />
-          )}
-        </Card>
+        {/* All Upcoming Sessions */}
+        <UpcomingSessionsCard 
+          upcomingSessions={upcomingSessions}
+          loading={false}
+          onCancelSession={(sessionId) => {
+            console.log('Cancel session:', sessionId)
+          }}
+        />
 
-        {/* Learning Stats */}
-        <Card gradient padding="lg">
-          <div className="flex items-center gap-2 mb-6">
-            <TrendingUp className="w-5 h-5 text-green-500" />
-            <h3 className="text-xl font-bold text-neutral-black">Your Progress</h3>
-          </div>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-3 bg-gradient-to-br from-green-50 to-emerald-50 rounded-[14px]">
-              <span className="text-sm font-semibold text-neutral-black">Sessions Completed</span>
-              <span className="text-lg font-bold text-green-600">{completedSessions}</span>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-[14px]">
-              <span className="text-sm font-semibold text-neutral-black">Hours of Learning</span>
-              <span className="text-lg font-bold text-blue-600">{hoursSpent}h</span>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-gradient-to-br from-purple-50 to-pink-50 rounded-[14px]">
-              <span className="text-sm font-semibold text-neutral-black">Current Streak</span>
-              <span className="text-lg font-bold text-purple-600">🔥 7 days</span>
-            </div>
-          </div>
-        </Card>
+        {/* Recommended Courses */}
+        <RecommendedCoursesCard courses={recommendedCourses} />
+
+        {/* Support Materials */}
+        <SupportMaterialsCard materials={supportMaterials} />
       </div>
     </div>
   )

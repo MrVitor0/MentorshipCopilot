@@ -11,9 +11,9 @@ export default function ProgressBar({
   
   const colors = {
     blue: 'bg-gradient-to-r from-baires-blue to-blue-600',
-    orange: 'bg-gradient-to-r from-baires-orange to-orange-600',
+    orange: 'bg-gradient-to-r from-baires-blue to-blue-600',
     cyan: 'bg-gradient-to-r from-baires-blue to-blue-500',
-    purple: 'bg-gradient-to-r from-baires-orange-light to-baires-orange',
+    purple: 'bg-gradient-to-r from-baires-blue-light to-baires-blue',
     green: 'bg-gradient-to-r from-green-400 to-green-600',
   }
 

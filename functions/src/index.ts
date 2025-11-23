@@ -3,17 +3,13 @@
  * Backend endpoints for AI-powered recommendations and complex operations
  */
 
-// Load environment variables from .env file (for local development only)
-import dotenv from "dotenv";
-dotenv.config();
-
-import {onCall, HttpsError} from "firebase-functions/v2/https";
-import {defineSecret} from "firebase-functions/params";
+import { onCall, HttpsError } from "firebase-functions/v2/https";
+import { defineSecret } from "firebase-functions/params";
 import * as admin from "firebase-admin";
 import * as logger from "firebase-functions/logger";
 
 // Define secret for Anthropic API Key (used in production)
-// In development, falls back to .env file via dotenv
+// For local development, use: firebase emulators:start with .env file
 const anthropicApiKey = defineSecret("ANTHROPIC_API_KEY");
 
 // Initialize Firebase Admin
@@ -35,7 +31,7 @@ interface MentorData {
   email: string;
   photoURL?: string;
   userType: string;
-  technologies?: Array<{name: string; level?: string}>;
+  technologies?: Array<{ name: string; level?: string }>;
   bio?: string;
   yearsOfExperience?: number;
   rating?: number;
@@ -44,11 +40,11 @@ interface MentorData {
 
 /**
  * Get Mentor Recommendations
- * 
+ *
  * This function analyzes the mentee's needs and returns ranked mentor recommendations.
  * Currently returns all mentors formatted for the frontend.
  * TODO: Implement AI-based ranking algorithm in future iterations.
- * 
+ *
  * @param {MentorRecommendationRequest} data - Request data with mentee info
  * @returns {Object} - Formatted mentor recommendations (topMentors and otherMentors)
  */
@@ -59,7 +55,7 @@ export const getMentorRecommendations = onCall<MentorRecommendationRequest>(
   },
   async (request) => {
     try {
-      const {menteeId, technologies, challengeDescription} = request.data;
+      const { menteeId, technologies, challengeDescription } = request.data;
 
       logger.info("Getting mentor recommendations", {
         menteeId,
@@ -91,10 +87,13 @@ export const getMentorRecommendations = onCall<MentorRecommendationRequest>(
       }
 
       // Transform mentor data to match frontend expectations
-      const allMentors: MentorData[] = mentorsQuery.docs.map((doc) => ({
-        uid: doc.id,
-        ...doc.data(),
-      } as MentorData));
+      const allMentors: MentorData[] = mentorsQuery.docs.map(
+        (doc) =>
+          ({
+            uid: doc.id,
+            ...doc.data(),
+          } as MentorData)
+      );
 
       // TODO: Implement AI-based scoring and ranking
       // For now, simple random shuffle and split
@@ -103,7 +102,7 @@ export const getMentorRecommendations = onCall<MentorRecommendationRequest>(
       // Calculate mock AI scores (to be replaced with real AI logic)
       const mentorsWithScores = shuffled.map((mentor, index) => ({
         ...mentor,
-        aiScore: 98 - (index * 3), // Mock decreasing scores
+        aiScore: 98 - index * 3, // Mock decreasing scores
         matchReasons: [
           "Strong expertise match",
           "Proven track record",
@@ -141,9 +140,9 @@ export const getMentorRecommendations = onCall<MentorRecommendationRequest>(
 
 /**
  * Create Mentorship Invitation
- * 
+ *
  * Creates a mentorship invitation that the mentor can accept or decline.
- * 
+ *
  * @param data - Mentorship details and invitation data
  * @returns The created invitation document
  */
@@ -154,7 +153,7 @@ export const createMentorshipInvitation = onCall(
   },
   async (request) => {
     try {
-      const {mentorshipId, mentorId, message} = request.data;
+      const { mentorshipId, mentorId, message } = request.data;
 
       if (!mentorshipId || !mentorId) {
         throw new HttpsError(
@@ -200,10 +199,10 @@ export const createMentorshipInvitation = onCall(
 
 /**
  * Get AI-Powered Mentor Recommendations
- * 
+ *
  * This function uses Claude AI with LangChain to analyze the mentee's needs
  * and return the top 3 most compatible mentors with AI-generated insights.
- * 
+ *
  * @param data - Request data with mentee info, technologies, and challenge description
  * @returns {Object} - AI-generated mentor recommendations with insights
  */
@@ -217,7 +216,7 @@ export const getAIMentorRecommendations = onCall(
   },
   async (request) => {
     try {
-      const {menteeId, technologies, challengeDescription} = request.data;
+      const { menteeId, technologies, challengeDescription } = request.data;
 
       logger.info("Getting AI mentor recommendations", {
         menteeId,
@@ -233,21 +232,33 @@ export const getAIMentorRecommendations = onCall(
         );
       }
 
-      if (!challengeDescription || challengeDescription.length < 20) {
-        throw new HttpsError(
-          "invalid-argument",
-          "challengeDescription must be at least 20 characters"
-        );
-      }
+      // challengeDescription is now optional - AI will work with just technologies if not provided
 
       // Import AI service dynamically to avoid cold start issues
       const aiService = await import("./ai/service.js");
+
+      // Get API key and validate
+      let apiKey: string;
+      try {
+        apiKey = anthropicApiKey.value();
+        if (!apiKey) {
+          throw new Error("API key is empty");
+        }
+        logger.info("API key retrieved successfully");
+      } catch (error) {
+        logger.error("Failed to get ANTHROPIC_API_KEY", { error });
+        throw new HttpsError(
+          "failed-precondition",
+          "ANTHROPIC_API_KEY is not configured. Please set it up in Firebase Secret Manager."
+        );
+      }
 
       // Get AI recommendations
       const recommendations = await aiService.getAIMentorRecommendations(
         menteeId,
         technologies,
-        challengeDescription
+        challengeDescription,
+        apiKey
       );
 
       logger.info("AI recommendations generated successfully", {
@@ -264,7 +275,7 @@ export const getAIMentorRecommendations = onCall(
       throw new HttpsError(
         "internal",
         "Failed to get AI mentor recommendations. " +
-        "Please ensure ANTHROPIC_API_KEY is set in environment.",
+          "Please ensure ANTHROPIC_API_KEY is set in environment.",
         error
       );
     }
@@ -273,10 +284,10 @@ export const getAIMentorRecommendations = onCall(
 
 /**
  * Mentorship CoPilot Chat (Streaming)
- * 
+ *
  * AI-powered chat assistant that can answer questions and use tools
  * to fetch information from the system.
- * 
+ *
  * @param data - Message and chat history
  * @returns Stream of AI responses
  */
@@ -290,7 +301,7 @@ export const mentorshipCopilotChat = onCall(
   },
   async (request) => {
     try {
-      const {message, chatHistory = []} = request.data;
+      const { message, chatHistory = [] } = request.data;
 
       logger.info("Mentorship CoPilot chat request", {
         messageLength: message?.length,
@@ -309,9 +320,18 @@ export const mentorshipCopilotChat = onCall(
       const aiService = await import("./ai/service.js");
 
       // Collect thinking steps for UI display
-      const thinkingSteps: Array<{type: string; message: string; toolName?: string; timestamp: string}> = [];
-      
-      const onThinkingStep = (step: {type: string; message: string; toolName?: string}) => {
+      const thinkingSteps: Array<{
+        type: string;
+        message: string;
+        toolName?: string;
+        timestamp: string;
+      }> = [];
+
+      const onThinkingStep = (step: {
+        type: string;
+        message: string;
+        toolName?: string;
+      }) => {
         thinkingSteps.push({
           ...step,
           timestamp: new Date().toISOString(),
@@ -319,8 +339,29 @@ export const mentorshipCopilotChat = onCall(
         logger.info("Thinking step", step);
       };
 
+      // Get API key and validate
+      let apiKey: string;
+      try {
+        apiKey = anthropicApiKey.value();
+        if (!apiKey) {
+          throw new Error("API key is empty");
+        }
+        logger.info("API key retrieved successfully for chat");
+      } catch (error) {
+        logger.error("Failed to get ANTHROPIC_API_KEY for chat", { error });
+        throw new HttpsError(
+          "failed-precondition",
+          "ANTHROPIC_API_KEY is not configured. Please set it up in Firebase Secret Manager."
+        );
+      }
+
       // Get AI response with thinking breakdown
-      const response = await aiService.chatWithAI(message, chatHistory, onThinkingStep);
+      const response = await aiService.chatWithAI(
+        message,
+        chatHistory,
+        apiKey,
+        onThinkingStep
+      );
 
       logger.info("Chat response generated", {
         responseLength: response.length,
@@ -341,7 +382,7 @@ export const mentorshipCopilotChat = onCall(
       throw new HttpsError(
         "internal",
         "Failed to process chat message. " +
-        "Please ensure ANTHROPIC_API_KEY is set in environment.",
+          "Please ensure ANTHROPIC_API_KEY is set in environment.",
         error
       );
     }
@@ -357,9 +398,10 @@ export const healthCheck = onCall(
     region: "us-central1",
   },
   async () => {
-  return {
-    status: "healthy",
-    timestamp: new Date().toISOString(),
-    version: "1.0.0",
-  };
-});
+    return {
+      status: "healthy",
+      timestamp: new Date().toISOString(),
+      version: "1.0.0",
+    };
+  }
+);

@@ -87,7 +87,7 @@ export default function NotificationBell() {
   const getNotificationIcon = (type) => {
     switch (type) {
       case 'mentor_assigned':
-        return <Award className="w-5 h-5 text-baires-orange" />
+        return <Award className="w-5 h-5 text-baires-blue" />
       case 'mentor_removed':
         return <Award className="w-5 h-5 text-neutral-400" />
       case 'project_created':
@@ -120,12 +120,11 @@ export default function NotificationBell() {
   return (
     <div className="relative">
       <button
-        onClick={() => setShowPanel(!showPanel)}
         className="relative p-2 hover:bg-neutral-100 rounded-xl transition-colors"
       >
         <Bell className="w-5 h-5 text-neutral-gray-dark" />
         {unreadCount > 0 && (
-          <span className="absolute top-1 right-1 w-2 h-2 bg-baires-orange rounded-full animate-pulse" />
+          <span className="absolute top-1 right-1 w-2 h-2 bg-baires-blue rounded-full animate-pulse" />
         )}
       </button>
 
@@ -142,7 +141,7 @@ export default function NotificationBell() {
                 <div className="flex items-center gap-2">
                   <h3 className="text-lg font-semibold text-white">Notifications</h3>
                   {unreadCount > 0 && (
-                    <span className="px-2 py-0.5 text-xs font-bold bg-baires-orange text-white rounded-full">
+                    <span className="px-2 py-0.5 text-xs font-bold bg-baires-blue text-white rounded-full">
                       {unreadCount}
                     </span>
                   )}
@@ -169,7 +168,7 @@ export default function NotificationBell() {
               <div className="overflow-y-auto max-h-[400px] -mx-6 px-6">
                 {loading ? (
                   <div className="text-center py-8">
-                    <div className="inline-block h-6 w-6 animate-spin rounded-full border-4 border-solid border-baires-orange border-r-transparent"></div>
+                    <div className="inline-block h-6 w-6 animate-spin rounded-full border-4 border-solid border-baires-blue border-r-transparent"></div>
                   </div>
                 ) : notifications.length === 0 ? (
                   <div className="text-center py-8">
@@ -185,7 +184,7 @@ export default function NotificationBell() {
                         className={`w-full text-left p-3 rounded-lg transition-all ${
                           notification.read
                             ? 'bg-neutral-800/30 hover:bg-neutral-800/50'
-                            : 'bg-baires-orange/10 hover:bg-baires-orange/20 border border-baires-orange/20'
+                            : 'bg-baires-blue/10 hover:bg-baires-blue/20 border border-baires-blue/20'
                         }`}
                       >
                         <div className="flex gap-3">
@@ -200,7 +199,7 @@ export default function NotificationBell() {
                                 {notification.title}
                               </p>
                               {!notification.read && (
-                                <span className="w-2 h-2 bg-baires-orange rounded-full flex-shrink-0 mt-1.5" />
+                                <span className="w-2 h-2 bg-baires-blue rounded-full flex-shrink-0 mt-1.5" />
                               )}
                             </div>
                             <p className={`text-sm ${
@@ -226,7 +225,7 @@ export default function NotificationBell() {
                       navigate('/notifications')
                       setShowPanel(false)
                     }}
-                    className="text-sm text-baires-orange hover:text-baires-orange/80 font-semibold transition-colors"
+                    className="text-sm text-baires-blue hover:text-baires-blue/80 font-semibold transition-colors"
                   >
                     View all notifications
                   </button>

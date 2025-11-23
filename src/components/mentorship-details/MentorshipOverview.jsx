@@ -90,13 +90,13 @@ export default function MentorshipOverview({
 
       {/* Challenge Description or Original Goal */}
       {(data.challengeDescription || data.originalGoal) && (
-        <div className="p-5 bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-[16px] border border-orange-200/50 mb-6">
+        <div className="p-5 bg-gradient-to-br from-orange-50 to-blue-100/50 rounded-[16px] border border-orange-200/50 mb-6">
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-baires-orange to-orange-600 rounded-[12px] flex items-center justify-center shadow-md flex-shrink-0">
+            <div className="w-10 h-10 bg-gradient-to-br from-baires-blue to-blue-600 rounded-[12px] flex items-center justify-center shadow-md flex-shrink-0">
               <Target className="w-5 h-5 text-white" />
             </div>
             <div>
-              <div className="text-xs text-baires-orange font-bold mb-2 uppercase tracking-wide">
+              <div className="text-xs text-baires-blue font-bold mb-2 uppercase tracking-wide">
                 {data.challengeDescription ? 'Challenge & Goals' : 'Original Goal'}
               </div>
               <p className="text-neutral-black leading-relaxed">{data.challengeDescription || data.originalGoal}</p>

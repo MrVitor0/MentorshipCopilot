@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { X, Send, MessageSquare, Loader2 } from 'lucide-react'
+import { useConfirm } from '../hooks/useConfirm'
 import Card from './Card'
 import Avatar from './Avatar'
 import Button from './Button'
 
 export default function MessageModal({ isOpen, onClose, recipient }) {
+  const confirm = useConfirm()
   const [message, setMessage] = useState('')
   const [sending, setSending] = useState(false)
 
@@ -16,8 +18,11 @@ export default function MessageModal({ isOpen, onClose, recipient }) {
     setSending(true)
     
     // Simulate sending - replace with real implementation
-    setTimeout(() => {
-      alert(`Message sending feature coming soon!\n\nYour message to ${recipient?.name || 'the recipient'} will be:\n"${message}"\n\nThis feature will be implemented with real-time messaging.`)
+    setTimeout(async () => {
+      await confirm.info(
+        `Message sending feature coming soon!\n\nYour message to ${recipient?.name || 'the recipient'} will be:\n"${message}"\n\nThis feature will be implemented with real-time messaging.`,
+        'Coming Soon'
+      )
       setSending(false)
       setMessage('')
       onClose()

@@ -26,7 +26,7 @@ export default function Avatar({
             ${sizes[size]} 
             rounded-full 
             object-cover
-            ${ring ? 'ring-4 ring-baires-orange ring-offset-4' : ''}
+            ${ring ? 'ring-4 ring-baires-blue ring-offset-4' : ''}
           `}
         />
       ) : (
@@ -34,10 +34,10 @@ export default function Avatar({
           className={`
             ${sizes[size]} 
             rounded-full 
-            bg-gradient-to-br from-baires-orange to-baires-blue
+            bg-gradient-to-br from-baires-blue to-baires-blue
             flex items-center justify-center
             font-bold text-neutral-white
-            ${ring ? 'ring-4 ring-baires-orange ring-offset-4' : ''}
+            ${ring ? 'ring-4 ring-baires-blue ring-offset-4' : ''}
           `}
         >
           {initials || 'ME'}

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { useConfirm } from '../hooks/useConfirm'
 import usePermissions from '../hooks/usePermissions'
 import useMentorshipData from '../hooks/useMentorshipData'
 import useMentorshipHelpers from '../hooks/useMentorshipHelpers'
@@ -43,6 +44,7 @@ export default function MentorshipDetails() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { user: _user } = useAuth()
+  const confirm = useConfirm()
   const permissions = usePermissions()
   
   // State
@@ -118,13 +120,19 @@ export default function MentorshipDetails() {
       console.log(`✅ Join request ${action === 'accept' ? 'accepted' : 'declined'} successfully`)
       
       if (action === 'accept') {
-        alert('✅ Mentor assigned successfully! The mentorship is now active.')
+        await confirm.success(
+          'The mentorship is now active.',
+          'Mentor Assigned Successfully'
+        )
       }
       
       window.location.reload()
     } catch (error) {
       console.error('❌ Error handling join request:', error)
-      alert(`Error processing request: ${error.message}\n\nPlease try again.`)
+      await confirm.error(
+        `${error.message}\n\nPlease try again.`,
+        'Error Processing Request'
+      )
     } finally {
       setProcessingRequest(null)
     }
@@ -168,7 +176,10 @@ export default function MentorshipDetails() {
 
   const handleMaterialSubmit = async (materialData) => {
     console.log('Material submitted:', materialData)
-    alert('Material added successfully! (Note: Backend integration pending)')
+    await confirm.success(
+      'Note: Backend integration pending',
+      'Material Added Successfully'
+    )
   }
 
   const handleGoalSubmit = async (goalsData) => {
@@ -243,7 +254,7 @@ export default function MentorshipDetails() {
         title={`Mentorship: ${data?.menteeName || data?.mentee?.name || 'Details'}`}
         description={`View detailed progress and analytics for this mentorship. Track sessions, ratings, and AI-powered insights.`}
       />
-      <div className="flex h-screen bg-gradient-to-br from-neutral-50 via-white to-orange-50/15">
+      <div className="flex h-screen bg-gradient-to-br from-neutral-50 via-white to-blue-50/15">
         <Sidebar user={{ name: 'Alex Smith', email: 'alexsmith@example.io' }} />
         
         <main className="flex-1 overflow-y-auto">
@@ -259,7 +270,7 @@ export default function MentorshipDetails() {
             {loading ? (
               <div className="flex justify-center items-center py-20">
                 <div className="text-center">
-                  <Loader2 className="w-12 h-12 text-baires-orange mx-auto mb-4 animate-spin" />
+                  <Loader2 className="w-12 h-12 text-baires-blue mx-auto mb-4 animate-spin" />
                   <p className="text-neutral-gray-dark">Loading mentorship details...</p>
                 </div>
               </div>

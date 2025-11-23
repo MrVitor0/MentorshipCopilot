@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Calendar, Clock, TrendingUp, Target, Users, BarChart3, Sparkles, MessageSquare, FileText, CheckCircle, Bot, Lightbulb, Plus, FolderOpen, Download } from 'lucide-react'
+import { useConfirm } from '../../hooks/useConfirm'
 import Card from '../../components/Card'
 import Badge from '../../components/Badge'
 import Avatar from '../../components/Avatar'
@@ -25,6 +26,7 @@ export default function MentorView({
   customGoals,
   sessions
 }) {
+  const confirm = useConfirm()
   const [isMessageModalOpen, setIsMessageModalOpen] = useState(false)
   
   const displayGoals = customGoals || DEFAULT_GOALS.map(goal => {
@@ -39,10 +41,10 @@ export default function MentorView({
   return (
     <>
       {/* Mentorship Overview */}
-      <Card padding="lg" className="mb-8 bg-gradient-to-br from-white via-blue-50/30 to-orange-50/30 border-2 border-blue-200/50">
+      <Card padding="lg" className="mb-8 bg-gradient-to-br from-white via-blue-50/30 to-blue-50/30 border-2 border-blue-200/50">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-baires-orange to-orange-600 rounded-[14px] flex items-center justify-center shadow-lg">
+            <div className="w-10 h-10 bg-gradient-to-br from-baires-blue to-blue-600 rounded-[14px] flex items-center justify-center shadow-lg">
               <Users className="w-5 h-5 text-white" />
             </div>
             <h2 className="text-2xl font-bold text-neutral-black">Your Mentorship</h2>
@@ -75,13 +77,13 @@ export default function MentorView({
         </div>
 
         {data?.challengeDescription && (
-          <div className="p-5 bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-[16px] border border-orange-200/50">
+          <div className="p-5 bg-gradient-to-br from-orange-50 to-blue-100/50 rounded-[16px] border border-orange-200/50">
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-baires-orange to-orange-600 rounded-[12px] flex items-center justify-center shadow-md flex-shrink-0">
+              <div className="w-10 h-10 bg-gradient-to-br from-baires-blue to-blue-600 rounded-[12px] flex items-center justify-center shadow-md flex-shrink-0">
                 <Target className="w-5 h-5 text-white" />
               </div>
               <div>
-                <div className="text-xs text-baires-orange font-bold mb-2 uppercase tracking-wide">Challenge & Goals</div>
+                <div className="text-xs text-baires-blue font-bold mb-2 uppercase tracking-wide">Challenge & Goals</div>
                 <p className="text-neutral-black leading-relaxed">{data.challengeDescription}</p>
               </div>
             </div>
@@ -137,8 +139,8 @@ export default function MentorView({
             buttonIcon={Plus}
             icon={Plus}
             badge="AI-Powered Session Logging"
-            bgGradient="from-baires-orange via-orange-600 to-orange-700"
-            buttonTextColor="text-baires-orange"
+            bgGradient="from-baires-blue via-blue-600 to-blue-700"
+            buttonTextColor="text-baires-blue"
             features={[
               { icon: Calendar, label: 'Quick & Easy' },
               { icon: Sparkles, label: 'AI Assistance' },
@@ -175,7 +177,7 @@ export default function MentorView({
 
           <Card padding="lg" className="bg-gradient-to-br from-orange-50 via-white to-blue-50 border-2 border-orange-200/50">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-baires-orange to-orange-600 rounded-[14px] flex items-center justify-center shadow-lg">
+              <div className="w-10 h-10 bg-gradient-to-br from-baires-blue to-blue-600 rounded-[14px] flex items-center justify-center shadow-lg">
                 <Sparkles className="w-5 h-5 text-white animate-pulse" />
               </div>
               <div>
@@ -190,7 +192,7 @@ export default function MentorView({
             <div className="space-y-2">
               <button className="w-full text-left p-3 bg-white rounded-[12px] border-2 border-neutral-200 hover:border-orange-400 hover:bg-orange-50/50 transition-all group">
                 <div className="flex items-center gap-3">
-                  <Sparkles className="w-4 h-4 text-baires-orange group-hover:rotate-12 transition-transform" />
+                  <Sparkles className="w-4 h-4 text-baires-blue group-hover:rotate-12 transition-transform" />
                   <span className="text-sm font-bold text-neutral-black">Generate Summary</span>
                 </div>
               </button>
@@ -204,7 +206,7 @@ export default function MentorView({
 
               <button className="w-full text-left p-3 bg-white rounded-[12px] border-2 border-neutral-200 hover:border-orange-400 hover:bg-orange-50/50 transition-all group">
                 <div className="flex items-center gap-3">
-                  <TrendingUp className="w-4 h-4 text-baires-orange" />
+                  <TrendingUp className="w-4 h-4 text-baires-blue" />
                   <span className="text-sm font-bold text-neutral-black">Analyze Progress</span>
                 </div>
               </button>
@@ -222,7 +224,10 @@ export default function MentorView({
                 <span>Message Mentee</span>
               </button>
               <button 
-                onClick={() => alert('Session scheduling feature coming soon!\n\nYou will be able to:\n- Schedule sessions with your mentee\n- Set recurring meetings\n- Send calendar invites\n- Get reminders')}
+                onClick={() => confirm.info(
+                  'Session scheduling feature coming soon!\n\nYou will be able to:\n- Schedule sessions with your mentee\n- Set recurring meetings\n- Send calendar invites\n- Get reminders',
+                  'Coming Soon'
+                )}
                 className="w-full flex items-center gap-3 p-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-[14px] font-semibold hover:shadow-lg transition-all"
               >
                 <Calendar className="w-5 h-5" />
@@ -245,7 +250,7 @@ export default function MentorView({
             }}
           />
 
-          <Card padding="lg" className="bg-gradient-to-br from-baires-orange via-orange-600 to-orange-700 text-white border-none shadow-[0_20px_50px_rgb(246,97,53,0.3)]">
+          <Card padding="lg" className="bg-gradient-to-br from-baires-blue via-blue-600 to-blue-700 text-white border-none shadow-[0_20px_50px_rgb(246,97,53,0.3)]">
             <div className="relative">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
               <div className="relative">

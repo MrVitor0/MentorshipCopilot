@@ -18,7 +18,7 @@ export default function ProgressChart({ sessions = [] }) {
   return (
     <div className="p-6 bg-gradient-to-br from-neutral-50 to-white rounded-[20px] border border-neutral-200">
       <h3 className="text-lg font-bold text-neutral-black mb-6 flex items-center gap-2">
-        <TrendingUp className="w-5 h-5 text-baires-orange" />
+        <TrendingUp className="w-5 h-5 text-baires-blue" />
         Progress Trend Over Time
       </h3>
       

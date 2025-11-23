@@ -27,19 +27,19 @@ export default function PageHeader({
 
       {/* Header Section */}
       <div className="mb-8">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-neutral-black to-baires-indigo bg-clip-text text-transparent mb-2">
+        <div className="flex items-start justify-between gap-6 mb-6">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-neutral-black to-baires-indigo bg-clip-text text-transparent mb-2 leading-tight pb-1">
               {title}
             </h1>
             <p className="text-neutral-gray-dark flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-baires-indigo" />
-              {description}
+              <Sparkles className="w-4 h-4 text-baires-indigo flex-shrink-0" />
+              <span>{description}</span>
             </p>
           </div>
           
           {showActions && (
-            <div className="flex items-center gap-4 cursor-pointer">
+            <div className="flex items-center gap-4 cursor-pointer flex-shrink-0">
               <button
                 onClick={() => setIsChatOpen(true)}
                 className="group  cursor-pointer inline-flex items-center gap-2 bg-gradient-to-r from-baires-indigo to-indigo-600 text-white px-6 py-3 rounded-[14px] font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"

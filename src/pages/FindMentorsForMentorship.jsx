@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { useConfirm } from '../hooks/useConfirm'
 import usePermissions from '../hooks/usePermissions'
 import { 
   getMentorshipById, 
@@ -40,7 +41,8 @@ import {
 export default function FindMentorsForMentorship() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { user: _user } = useAuth()
+  const { user } = useAuth()
+  const confirm = useConfirm()
   const permissions = usePermissions()
   
   const [mentorship, setMentorship] = useState(null)
@@ -74,21 +76,21 @@ export default function FindMentorsForMentorship() {
         const mentorshipData = await getMentorshipById(id)
         
         if (!mentorshipData) {
-          alert('Mentorship not found')
+          await confirm.error('Mentorship not found', 'Error')
           navigate('/mentorship')
           return
         }
 
         // Check if status is pending
         if (mentorshipData.status !== 'pending' && mentorshipData.status !== 'pending_mentor') {
-          alert('This mentorship already has a mentor assigned')
+          await confirm.info('This mentorship already has a mentor assigned', 'Information')
           navigate(`/mentorship/${id}`)
           return
         }
 
         // Check if already has a mentor
         if (mentorshipData.mentorId) {
-          alert('This mentorship already has a mentor assigned')
+          await confirm.info('This mentorship already has a mentor assigned', 'Information')
           navigate(`/mentorship/${id}`)
           return
         }
@@ -102,7 +104,7 @@ export default function FindMentorsForMentorship() {
         setFilteredMentors(mentorsData)
       } catch (error) {
         console.error('Error loading data:', error)
-        alert('Error loading mentors. Please try again.')
+        await confirm.error('Error loading mentors. Please try again.', 'Error')
         navigate('/mentorship')
       } finally {
         setLoading(false)
@@ -230,11 +232,17 @@ export default function FindMentorsForMentorship() {
     setInviting(true)
     try {
       await inviteMentorToMentorship(mentorship.id, selectedMentor.uid, message)
-      alert(`Invitation sent to ${selectedMentor.displayName}!`)
+      await confirm.success(
+        `Invitation sent to ${selectedMentor.displayName}!`,
+        'Invitation Sent'
+      )
       navigate(`/mentorship/${id}`)
     } catch (error) {
       console.error('Error inviting mentor:', error)
-      alert(error.message || 'Error sending invitation. Please try again.')
+      await confirm.error(
+        error.message || 'Error sending invitation. Please try again.',
+        'Error'
+      )
     } finally {
       setInviting(false)
       setSelectedMentor(null)
@@ -252,11 +260,11 @@ export default function FindMentorsForMentorship() {
 
   if (loading) {
     return (
-      <div className="flex h-screen bg-gradient-to-br from-neutral-50 via-white to-orange-50/15">
+      <div className="flex h-screen bg-gradient-to-br from-neutral-50 via-white to-blue-50/15">
         <Sidebar />
         <main className="flex-1 overflow-y-auto flex items-center justify-center">
           <div className="text-center">
-            <Loader2 className="w-12 h-12 text-baires-orange mx-auto mb-4 animate-spin" />
+            <Loader2 className="w-12 h-12 text-baires-blue mx-auto mb-4 animate-spin" />
             <p className="text-neutral-gray-dark">Loading mentors...</p>
           </div>
         </main>
@@ -270,7 +278,7 @@ export default function FindMentorsForMentorship() {
         title={`Find Mentors - ${mentorship?.menteeName || 'Mentorship'}`}
         description="Browse and invite mentors for your mentorship. AI-powered recommendations based on skills and experience."
       />
-      <div className="flex h-screen bg-gradient-to-br from-neutral-50 via-white to-orange-50/15">
+      <div className="flex h-screen bg-gradient-to-br from-neutral-50 via-white to-blue-50/15">
         <Sidebar />
         
  
@@ -290,12 +298,12 @@ export default function FindMentorsForMentorship() {
               <Card padding="lg" className="bg-gradient-to-br from-orange-50 via-white to-blue-50 border-2 border-orange-200/50">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex-1">
-                    <div className="inline-flex items-center gap-2 bg-gradient-to-r from-baires-orange to-orange-600 text-white px-4 py-2 rounded-full mb-4">
+                    <div className="inline-flex items-center gap-2 bg-gradient-to-r from-baires-blue to-blue-600 text-white px-4 py-2 rounded-full mb-4">
                       <Sparkles className="w-4 h-4 animate-pulse" />
                       <span className="font-semibold text-sm">AI-Powered Matching</span>
                     </div>
                     
-                    <h1 className="text-4xl font-bold bg-gradient-to-r from-neutral-black to-baires-orange bg-clip-text text-transparent mb-3">
+                    <h1 className="text-4xl font-bold bg-gradient-to-r from-neutral-black to-baires-blue bg-clip-text text-transparent mb-3">
                       Browse Available Mentors
                     </h1>
                     <p className="text-neutral-gray-dark leading-relaxed">
@@ -341,7 +349,7 @@ export default function FindMentorsForMentorship() {
                     placeholder="Search by name, skills, bio..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-11 pr-4 py-3 rounded-[12px] border-2 border-neutral-200 focus:border-baires-orange focus:outline-none font-medium"
+                    className="w-full pl-11 pr-4 py-3 rounded-[12px] border-2 border-neutral-200 focus:border-baires-blue focus:outline-none font-medium"
                   />
                 </div>
 
@@ -350,7 +358,7 @@ export default function FindMentorsForMentorship() {
                   <select
                     value={filterAvailability}
                     onChange={(e) => setFilterAvailability(e.target.value)}
-                    className="px-4 py-3 rounded-[12px] border-2 border-neutral-200 focus:border-baires-orange focus:outline-none font-semibold text-sm bg-white cursor-pointer"
+                    className="px-4 py-3 rounded-[12px] border-2 border-neutral-200 focus:border-baires-blue focus:outline-none font-semibold text-sm bg-white cursor-pointer"
                   >
                     <option value="all">All Availability</option>
                     <option value="available">Available Now</option>
@@ -359,7 +367,7 @@ export default function FindMentorsForMentorship() {
                   <select
                     value={filterExperience}
                     onChange={(e) => setFilterExperience(e.target.value)}
-                    className="px-4 py-3 rounded-[12px] border-2 border-neutral-200 focus:border-baires-orange focus:outline-none font-semibold text-sm bg-white cursor-pointer"
+                    className="px-4 py-3 rounded-[12px] border-2 border-neutral-200 focus:border-baires-blue focus:outline-none font-semibold text-sm bg-white cursor-pointer"
                   >
                     <option value="all">All Experience</option>
                     <option value="junior">Junior (&lt;3y)</option>
@@ -370,7 +378,7 @@ export default function FindMentorsForMentorship() {
                   <select
                     value={filterTechnology}
                     onChange={(e) => setFilterTechnology(e.target.value)}
-                    className="px-4 py-3 rounded-[12px] border-2 border-neutral-200 focus:border-baires-orange focus:outline-none font-semibold text-sm bg-white cursor-pointer"
+                    className="px-4 py-3 rounded-[12px] border-2 border-neutral-200 focus:border-baires-blue focus:outline-none font-semibold text-sm bg-white cursor-pointer"
                   >
                     <option value="all">All Technologies</option>
                     <option value="matching">Matching Skills Only</option>
@@ -416,7 +424,7 @@ export default function FindMentorsForMentorship() {
                         <th className="px-6 py-4 text-left">
                           <button
                             onClick={() => toggleSort('name')}
-                            className="flex items-center gap-2 font-bold text-neutral-black hover:text-baires-orange transition-colors"
+                            className="flex items-center gap-2 font-bold text-neutral-black hover:text-baires-blue transition-colors"
                           >
                             Mentor
                             {sortBy === 'name' && (
@@ -430,7 +438,7 @@ export default function FindMentorsForMentorship() {
                         <th className="px-6 py-4 text-center">
                           <button
                             onClick={() => toggleSort('experience')}
-                            className="flex items-center gap-2 font-bold text-neutral-black hover:text-baires-orange transition-colors mx-auto"
+                            className="flex items-center gap-2 font-bold text-neutral-black hover:text-baires-blue transition-colors mx-auto"
                           >
                             Experience
                             {sortBy === 'experience' && (
@@ -444,9 +452,9 @@ export default function FindMentorsForMentorship() {
                         <th className="px-6 py-4 text-center">
                           <button
                             onClick={() => toggleSort('matchScore')}
-                            className="flex items-center gap-2 font-bold text-neutral-black hover:text-baires-orange transition-colors mx-auto"
+                            className="flex items-center gap-2 font-bold text-neutral-black hover:text-baires-blue transition-colors mx-auto"
                           >
-                            <Sparkles className="w-4 h-4 text-baires-orange" />
+                            <Sparkles className="w-4 h-4 text-baires-blue" />
                             AI Match
                             {sortBy === 'matchScore' && (
                               sortOrder === 'desc' ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />
@@ -476,8 +484,8 @@ export default function FindMentorsForMentorship() {
             ) : (
               <Card padding="xl" className="text-center">
                 <div className="py-12">
-                  <div className="w-20 h-20 bg-gradient-to-br from-orange-100 to-orange-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <AlertCircle className="w-10 h-10 text-baires-orange" />
+                  <div className="w-20 h-20 bg-gradient-to-br from-orange-100 to-blue-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <AlertCircle className="w-10 h-10 text-baires-blue" />
                   </div>
                   <h3 className="text-xl font-bold text-neutral-black mb-2">No Mentors Found</h3>
                   <p className="text-neutral-gray-dark mb-6">
@@ -523,7 +531,7 @@ export default function FindMentorsForMentorship() {
 // Mentor Row Component
 function MentorRow({ mentor, index, isExpanded, onToggleExpand, onInvite }) {
   const matchColor = mentor.matchScore >= 80 ? 'from-green-500 to-green-600' : 
-                     mentor.matchScore >= 60 ? 'from-orange-500 to-orange-600' : 
+                     mentor.matchScore >= 60 ? 'from-orange-500 to-blue-600' : 
                      'from-neutral-400 to-neutral-500'
 
   return (
@@ -545,7 +553,7 @@ function MentorRow({ mentor, index, isExpanded, onToggleExpand, onInvite }) {
               <div className="text-sm text-neutral-gray-dark line-clamp-1">{mentor.bio?.substring(0, 60) || 'Experienced Mentor'}...</div>
               <button
                 onClick={onToggleExpand}
-                className="text-xs text-baires-orange hover:text-orange-700 font-semibold mt-1 flex items-center gap-1"
+                className="text-xs text-baires-blue hover:text-orange-700 font-semibold mt-1 flex items-center gap-1"
               >
                 {isExpanded ? (
                   <>Hide Details <ChevronUp className="w-3 h-3" /></>
@@ -582,7 +590,7 @@ function MentorRow({ mentor, index, isExpanded, onToggleExpand, onInvite }) {
         {/* Experience */}
         <td className="px-6 py-4 text-center">
           <div className="flex items-center justify-center gap-2">
-            <Award className="w-4 h-4 text-baires-orange" />
+            <Award className="w-4 h-4 text-baires-blue" />
             <span className="font-bold text-neutral-black">{mentor.yearsExperience || 0}</span>
             <span className="text-sm text-neutral-gray-dark">years</span>
           </div>
@@ -617,7 +625,7 @@ function MentorRow({ mentor, index, isExpanded, onToggleExpand, onInvite }) {
           <div className="flex justify-end">
             <button
               onClick={onInvite}
-              className="bg-gradient-to-r from-baires-orange to-orange-600 text-white px-4 py-2 rounded-[12px] font-bold hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2"
+              className="bg-gradient-to-r from-baires-blue to-blue-600 text-white px-4 py-2 rounded-[12px] font-bold hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2"
             >
               <Send className="w-4 h-4" />
               Invite
@@ -634,7 +642,7 @@ function MentorRow({ mentor, index, isExpanded, onToggleExpand, onInvite }) {
               {/* Bio */}
               <div className="md:col-span-2">
                 <h4 className="font-bold text-neutral-black mb-2 flex items-center gap-2">
-                  <Users className="w-4 h-4 text-baires-orange" />
+                  <Users className="w-4 h-4 text-baires-blue" />
                   About
                 </h4>
                 <p className="text-sm text-neutral-gray-dark leading-relaxed">
@@ -645,7 +653,7 @@ function MentorRow({ mentor, index, isExpanded, onToggleExpand, onInvite }) {
               {/* Stats */}
               <div>
                 <h4 className="font-bold text-neutral-black mb-3 flex items-center gap-2">
-                  <Target className="w-4 h-4 text-baires-orange" />
+                  <Target className="w-4 h-4 text-baires-blue" />
                   Statistics
                 </h4>
                 <div className="space-y-2">
@@ -698,14 +706,14 @@ function InvitationModal({ mentor, mentorship, onConfirm, onCancel, isInviting }
             Send Invitation
           </h2>
           <p className="text-neutral-gray-dark">
-            to <span className="font-bold text-baires-orange">{mentor.displayName}</span> for {mentorship.menteeName}
+            to <span className="font-bold text-baires-blue">{mentor.displayName}</span> for {mentorship.menteeName}
           </p>
         </div>
 
         <div className="space-y-4 mb-6">
-          <div className="p-4 bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-[16px] border border-orange-200">
+          <div className="p-4 bg-gradient-to-br from-orange-50 to-blue-100/50 rounded-[16px] border border-orange-200">
             <div className="flex items-start gap-3">
-              <Sparkles className="w-5 h-5 text-baires-orange flex-shrink-0 mt-0.5" />
+              <Sparkles className="w-5 h-5 text-baires-blue flex-shrink-0 mt-0.5" />
               <div>
                 <div className="font-bold text-neutral-black mb-2 flex items-center gap-2">
                   <span>AI Match Score: {mentor.matchScore}%</span>
@@ -722,7 +730,7 @@ function InvitationModal({ mentor, mentorship, onConfirm, onCancel, isInviting }
 
           <div>
             <label className="text-sm font-bold text-neutral-black mb-2 flex items-center gap-2">
-              <Mail className="w-4 h-4 text-baires-orange" />
+              <Mail className="w-4 h-4 text-baires-blue" />
               Personal Message (Optional)
             </label>
             <textarea
@@ -730,7 +738,7 @@ function InvitationModal({ mentor, mentorship, onConfirm, onCancel, isInviting }
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Add a personal message to make your invitation more compelling..."
               rows="4"
-              className="w-full px-4 py-3 rounded-[12px] border-2 border-neutral-200 focus:border-baires-orange focus:outline-none resize-none"
+              className="w-full px-4 py-3 rounded-[12px] border-2 border-neutral-200 focus:border-baires-blue focus:outline-none resize-none"
             ></textarea>
           </div>
         </div>
@@ -746,7 +754,7 @@ function InvitationModal({ mentor, mentorship, onConfirm, onCancel, isInviting }
           <button
             onClick={() => onConfirm(message)}
             disabled={isInviting}
-            className="flex-1 bg-gradient-to-r from-baires-orange to-orange-600 text-white px-6 py-3 rounded-[14px] font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+            className="flex-1 bg-gradient-to-r from-baires-blue to-blue-600 text-white px-6 py-3 rounded-[14px] font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50"
           >
             {isInviting ? (
               <>

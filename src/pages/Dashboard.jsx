@@ -116,7 +116,7 @@ export default function Dashboard() {
         title="Dashboard"
         description="View your mentorship dashboard with AI-powered insights, track active mentorships, and manage your team's development."
       />
-      <div className="flex h-screen bg-gradient-to-br from-neutral-50 via-white to-orange-50/15">
+      <div className="flex h-screen bg-gradient-to-br from-neutral-50 via-white to-blue-50/15">
         <Sidebar />
         
         <main className="flex-1 overflow-y-auto">

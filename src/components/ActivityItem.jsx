@@ -3,7 +3,7 @@ import Badge from './Badge'
 
 export default function ActivityItem({ user, action, subject, badges = [], time, avatar }) {
   return (
-    <div className="group flex gap-4 p-4 rounded-[18px] bg-gradient-to-r from-white to-neutral-50/50 hover:from-orange-50/30 hover:to-orange-100/20 border border-neutral-100 hover:border-orange-200/50 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 cursor-pointer">
+    <div className="group flex gap-4 p-4 rounded-[18px] bg-gradient-to-r from-white to-neutral-50/50 hover:from-orange-50/30 hover:to-blue-100/20 border border-neutral-100 hover:border-orange-200/50 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 cursor-pointer">
       <Avatar src={avatar} size="md" initials={user?.substring(0, 2).toUpperCase()} />
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2 mb-2">

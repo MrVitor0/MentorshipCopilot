@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Clock, Users, UserPlus, CheckCircle, X as XIcon, BarChart3, Calendar, TrendingUp, Target, Sparkles, Bot, FileText, MessageSquare, AlertCircle } from 'lucide-react'
+import { useConfirm } from '../../hooks/useConfirm'
 import Card from '../../components/Card'
 import Badge from '../../components/Badge'
 import Button from '../../components/Button'
@@ -24,6 +25,7 @@ export default function PMView({
   id,
   sessions
 }) {
+  const confirm = useConfirm()
   const [isMessageModalOpen, setIsMessageModalOpen] = useState(false)
   const [messageRecipient, setMessageRecipient] = useState(null)
   const isPending = data?.status === 'pending' || data?.status === 'pending_mentor'
@@ -32,7 +34,7 @@ export default function PMView({
     <>
       {/* Status Banner */}
       {!data?.mentorId && (
-        <Card padding="lg" className="mb-8 bg-gradient-to-r from-amber-50 via-amber-100/50 to-orange-50 border-2 border-amber-300/70 shadow-lg">
+        <Card padding="lg" className="mb-8 bg-gradient-to-r from-amber-50 via-amber-100/50 to-blue-50 border-2 border-amber-300/70 shadow-lg">
           <div className="flex items-center gap-4">
             <div className="relative">
               <div className="w-14 h-14 bg-gradient-to-br from-amber-500 to-amber-600 rounded-[16px] flex items-center justify-center shadow-lg">
@@ -99,7 +101,7 @@ export default function PMView({
           </div>
 
           {/* Mentor */}
-          <div className="flex items-center gap-3 p-3 bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-[12px] border border-orange-200">
+          <div className="flex items-center gap-3 p-3 bg-gradient-to-br from-orange-50 to-blue-100/50 rounded-[12px] border border-orange-200">
             {data.mentorId || data.mentor ? (
               <>
                 <Avatar 
@@ -224,9 +226,9 @@ export default function PMView({
 
       {/* Join Requests */}
       {!data?.mentorId && joinRequestsWithProfiles.length > 0 && (
-        <Card padding="lg" className="mb-8 bg-gradient-to-br from-orange-50 via-white to-orange-100/50 border-2 border-orange-300/70">
+        <Card padding="lg" className="mb-8 bg-gradient-to-br from-orange-50 via-white to-blue-100/50 border-2 border-orange-300/70">
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-12 h-12 bg-gradient-to-br from-baires-orange to-orange-600 rounded-[16px] flex items-center justify-center shadow-lg">
+            <div className="w-12 h-12 bg-gradient-to-br from-baires-blue to-blue-600 rounded-[16px] flex items-center justify-center shadow-lg">
               <UserPlus className="w-6 h-6 text-white" />
             </div>
             <div>
@@ -310,7 +312,7 @@ export default function PMView({
             {data?.sessions && data.sessions.length > 0 && (
               <Card padding="lg" className="bg-gradient-to-br from-orange-50 via-white to-blue-50 border-2 border-orange-200/50">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-br from-baires-orange to-orange-600 rounded-[16px] flex items-center justify-center shadow-lg">
+                  <div className="w-12 h-12 bg-gradient-to-br from-baires-blue to-blue-600 rounded-[16px] flex items-center justify-center shadow-lg">
                     <Sparkles className="w-6 h-6 text-white animate-pulse" />
                   </div>
                   <div>
@@ -319,7 +321,7 @@ export default function PMView({
                       <Badge variant="orange" className="text-xs">AI</Badge>
                     </h2>
                     <p className="text-sm text-neutral-gray-dark flex items-center gap-1">
-                      <Bot className="w-3 h-3 text-baires-orange" />
+                      <Bot className="w-3 h-3 text-baires-blue" />
                       Smart recommendations powered by AI
                     </p>
                   </div>
@@ -364,7 +366,7 @@ export default function PMView({
                 </div>
                 <button
                   onClick={() => setIsGoalWizardOpen(true)}
-                  className="px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-[12px] font-semibold hover:shadow-md transition-all flex items-center gap-2"
+                  className="px-4 py-2 bg-gradient-to-r from-orange-500 to-blue-600 text-white rounded-[12px] font-semibold hover:shadow-md transition-all flex items-center gap-2"
                 >
                   <AlertCircle className="w-4 h-4" />
                   Manage Goals
@@ -428,7 +430,7 @@ export default function PMView({
           <div className="space-y-6 md:space-y-8">
         
 
-            <Card padding="lg" className="bg-gradient-to-br from-baires-orange  to-orange-600 text-white border-none shadow-[0_20px_50px_rgb(246,97,53,0.3)]">
+            <Card padding="lg" className="bg-gradient-to-br from-baires-blue  to-blue-600 text-white border-none shadow-[0_20px_50px_rgb(246,97,53,0.3)]">
               <div className="relative">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
                 <div className="relative">
@@ -468,14 +470,20 @@ export default function PMView({
                   <span>Message Mentor</span>
                 </button>
                 <button 
-                  onClick={() => alert('Session scheduling feature coming soon!\n\nYou will be able to:\n- Schedule review meetings\n- Check progress together\n- Set team objectives\n- Track milestones')}
+                  onClick={() => confirm.info(
+                    'Session scheduling feature coming soon!\n\nYou will be able to:\n- Schedule review meetings\n- Check progress together\n- Set team objectives\n- Track milestones',
+                    'Coming Soon'
+                  )}
                   className="w-full flex items-center gap-3 p-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-[14px] font-semibold hover:shadow-lg transition-all"
                 >
                   <Calendar className="w-5 h-5" />
                   <span>Schedule Review</span>
                 </button>
                 <button 
-                  onClick={() => alert('Report export feature coming soon!\n\nYou will be able to:\n- Export mentorship progress\n- Generate PDF reports\n- Share with stakeholders\n- Track metrics over time')}
+                  onClick={() => confirm.info(
+                    'Report export feature coming soon!\n\nYou will be able to:\n- Export mentorship progress\n- Generate PDF reports\n- Share with stakeholders\n- Track metrics over time',
+                    'Coming Soon'
+                  )}
                   className="w-full flex items-center gap-3 p-3 bg-neutral-100 text-neutral-black rounded-[14px] font-semibold hover:bg-neutral-200 transition-all"
                 >
                   <FileText className="w-5 h-5" />
