@@ -397,7 +397,7 @@ export default function PMView({
                       AI Summary
                     </h3>
                     <p className="text-sm font-bold mb-4 opacity-90 leading-relaxed">
-                      &quot;Sarah has shown exceptional growth, progressing from basic React concepts to building production-ready features. Her proactive learning approach and consistent practice have accelerated her development significantly.&quot;
+                      &quot;This mentee has shown exceptional growth, progressing from basic React concepts to building production-ready features. Her proactive learning approach and consistent practice have accelerated her development significantly.&quot;
                     </p>
                     <div className="flex items-center gap-2 text-xs opacity-90">
                       <Bot className="w-4 h-4" />

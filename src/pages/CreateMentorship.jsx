@@ -235,13 +235,8 @@ export default function CreateMentorship() {
       
       await Promise.all(invitationPromises)
       
-      const mentorCount = selectedMentors.length
-      navigate('/mentorship', { 
-        state: { 
-          message: `Mentorship created successfully! ${mentorCount} ${mentorCount === 1 ? 'mentor has' : 'mentors have'} been invited.`,
-          mentorshipId: createdMentorship.id 
-        }
-      })
+      // Navigate directly to the mentorship details page
+      navigate(`/mentorship/${createdMentorship.id}`)
     } catch (error) {
       console.error('Error creating mentorship with invitations:', error)
       await confirm.error(
@@ -253,8 +248,8 @@ export default function CreateMentorship() {
 
   const canProceed = () => {
     if (currentStep === 1) return true
-    if (currentStep === 2) return selectedTechs.length > 0 || customSkills.length > 0
-    if (currentStep === 3) return selectedMentee !== null
+    if (currentStep === 2) return selectedMentee !== null // Step 2: Select Mentee
+    if (currentStep === 3) return selectedTechs.length > 0 || customSkills.length > 0 // Step 3: Skills
     if (currentStep === 4) return true // Problem description is optional
     if (currentStep === 5) return selectedMentors.length > 0 // Must select at least one mentor
     return false
@@ -379,8 +374,8 @@ export default function CreateMentorship() {
           </div>
           <div className="flex justify-between mt-2 text-xs font-semibold text-neutral-gray-dark">
             <span className={currentStep === 1 ? 'text-baires-indigo' : ''}>Intro</span>
-            <span className={currentStep === 2 ? 'text-baires-indigo' : ''}>Skills</span>
-            <span className={currentStep === 3 ? 'text-baires-indigo' : ''}>Mentee</span>
+            <span className={currentStep === 2 ? 'text-baires-indigo' : ''}>Mentee</span>
+            <span className={currentStep === 3 ? 'text-baires-indigo' : ''}>Skills</span>
             <span className={currentStep === 4 ? 'text-baires-indigo' : ''}>Details</span>
             <span className={currentStep === 5 ? 'text-baires-indigo' : ''}>Invite Mentors</span>
           </div>
@@ -430,122 +425,8 @@ export default function CreateMentorship() {
             </div>
           )}
 
-          {/* Step 2: Select Technologies */}
+          {/* Step 2: Select Mentee */}
           {currentStep === 2 && (
-            <div className="p-8 md:p-12 bg-gradient-to-br from-white to-indigo-50/30">
-              <div className="max-w-3xl mx-auto">
-                <div className="text-center mb-8">
-                  <div className="inline-flex items-center gap-2 bg-gradient-to-r from-baires-indigo to-indigo-600 text-white px-4 py-2 rounded-full mb-4">
-                    <Sparkles className="w-4 h-4" />
-                    <span className="font-semibold text-sm">AI will analyze these skills</span>
-                  </div>
-                  <h2 className="text-3xl font-bold text-neutral-black mb-3">
-                    Which skills need improvement?
-                  </h2>
-                  <p className="text-neutral-gray-dark">
-                    Select all technologies where the team member needs guidance
-                  </p>
-                </div>
-
-                {/* Custom Skill Input - Highlighted */}
-                <div className="mb-6 p-6 bg-gradient-to-br from-indigo-50 via-white to-indigo-100/50 rounded-[24px] border-2 border-indigo-300/70 shadow-[0_10px_40px_rgb(246,97,53,0.15)]">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-gradient-to-br from-baires-indigo to-indigo-600 rounded-[14px] flex items-center justify-center shadow-lg">
-                      <Sparkles className="w-5 h-5 text-white animate-pulse" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-neutral-black">Need something specific?</h3>
-                      <p className="text-xs text-neutral-gray-dark">Type any skill and we'll find the expert</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-2">
-                    <div className="relative flex-1">
-                      <input
-                        type="text"
-                        value={customSkill}
-                        onChange={(e) => setCustomSkill(e.target.value)}
-                        onKeyPress={handleCustomSkillKeyPress}
-                        placeholder="e.g., TeamSpeak, Kafka, GraphQL..."
-                        className="w-full pl-10 pr-4 py-3 rounded-[14px] border-2 border-indigo-200 focus:border-baires-indigo focus:outline-none font-semibold placeholder:font-normal"
-                      />
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-baires-indigo" />
-                    </div>
-                    <button
-                      onClick={addCustomSkill}
-                      disabled={!customSkill.trim()}
-                      className="px-6 py-3 bg-gradient-to-r from-baires-indigo to-indigo-600 text-white rounded-[14px] font-bold hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Add
-                    </button>
-                  </div>
-                  
-                  {/* Custom Skills Display */}
-                  {customSkills.length > 0 && (
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {customSkills.map((skill, idx) => (
-                        <div key={idx} className="flex items-center gap-2 bg-gradient-to-r from-baires-indigo to-indigo-600 text-white px-3 py-2 rounded-full font-semibold text-sm shadow-md group">
-                          <span>{skill}</span>
-                          <button
-                            onClick={() => removeCustomSkill(skill)}
-                            className="w-5 h-5 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Preset Technologies */}
-                <div className="mb-4">
-                  <h3 className="text-sm font-bold text-neutral-gray-dark mb-3 flex items-center gap-2">
-                    <Code className="w-4 h-4" />
-                    Or choose from popular technologies:
-                  </h3>
-                </div>
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {technologies.map((tech) => {
-                    const isSelected = selectedTechs.includes(tech.id)
-                    const TechIcon = tech.icon
-                    
-                    return (
-                      <button
-                        key={tech.id}
-                        onClick={() => toggleTech(tech.id)}
-                        className={`group relative p-6 rounded-[20px] border-2 transition-all duration-300 ${
-                          isSelected
-                            ? 'border-baires-indigo bg-gradient-to-br from-indigo-50 to-indigo-100 shadow-lg scale-105'
-                            : 'border-neutral-200 bg-white hover:border-indigo-300 hover:shadow-md hover:scale-105'
-                        }`}
-                      >
-                        {isSelected && (
-                          <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-br from-baires-indigo to-indigo-600 rounded-full flex items-center justify-center shadow-lg">
-                            <CheckCircle className="w-4 h-4 text-white" />
-                          </div>
-                        )}
-                        
-                        <div className={`w-12 h-12 bg-gradient-to-br ${tech.color} rounded-[14px] flex items-center justify-center mx-auto mb-3 shadow-md group-hover:scale-110 transition-transform`}>
-                          <TechIcon className="w-6 h-6 text-white" />
-                        </div>
-                        <div className={`font-bold text-sm ${isSelected ? 'text-baires-indigo' : 'text-neutral-black'}`}>
-                          {tech.name}
-                        </div>
-                      </button>
-                    )
-                  })}
-                </div>
-
-             
-              </div>
-            </div>
-          )}
-
-          {/* Step 3: Select Mentee */}
-          {currentStep === 3 && (
             <div className="p-8 md:p-12 bg-gradient-to-br from-white to-blue-50/30">
               <div className="max-w-3xl mx-auto">
                 <div className="text-center mb-8">
@@ -684,6 +565,120 @@ export default function CreateMentorship() {
                     )}
                   </div>
                 )}
+
+             
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: Select Technologies */}
+          {currentStep === 3 && (
+            <div className="p-8 md:p-12 bg-gradient-to-br from-white to-indigo-50/30">
+              <div className="max-w-3xl mx-auto">
+                <div className="text-center mb-8">
+                  <div className="inline-flex items-center gap-2 bg-gradient-to-r from-baires-indigo to-indigo-600 text-white px-4 py-2 rounded-full mb-4">
+                    <Sparkles className="w-4 h-4" />
+                    <span className="font-semibold text-sm">AI will analyze these skills</span>
+                  </div>
+                  <h2 className="text-3xl font-bold text-neutral-black mb-3">
+                    Which skills need improvement?
+                  </h2>
+                  <p className="text-neutral-gray-dark">
+                    Select all technologies where the team member needs guidance
+                  </p>
+                </div>
+
+                {/* Custom Skill Input - Highlighted */}
+                <div className="mb-6 p-6 bg-gradient-to-br from-indigo-50 via-white to-indigo-100/50 rounded-[24px] border-2 border-indigo-300/70 shadow-[0_10px_40px_rgb(246,97,53,0.15)]">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-gradient-to-br from-baires-indigo to-indigo-600 rounded-[14px] flex items-center justify-center shadow-lg">
+                      <Sparkles className="w-5 h-5 text-white animate-pulse" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-neutral-black">Need something specific?</h3>
+                      <p className="text-xs text-neutral-gray-dark">Type any skill and we'll find the expert</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <input
+                        type="text"
+                        value={customSkill}
+                        onChange={(e) => setCustomSkill(e.target.value)}
+                        onKeyPress={handleCustomSkillKeyPress}
+                        placeholder="e.g., TeamSpeak, Kafka, GraphQL..."
+                        className="w-full pl-10 pr-4 py-3 rounded-[14px] border-2 border-indigo-200 focus:border-baires-indigo focus:outline-none font-semibold placeholder:font-normal"
+                      />
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-baires-indigo" />
+                    </div>
+                    <button
+                      onClick={addCustomSkill}
+                      disabled={!customSkill.trim()}
+                      className="px-6 py-3 bg-gradient-to-r from-baires-indigo to-indigo-600 text-white rounded-[14px] font-bold hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add
+                    </button>
+                  </div>
+                  
+                  {/* Custom Skills Display */}
+                  {customSkills.length > 0 && (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {customSkills.map((skill, idx) => (
+                        <div key={idx} className="flex items-center gap-2 bg-gradient-to-r from-baires-indigo to-indigo-600 text-white px-3 py-2 rounded-full font-semibold text-sm shadow-md group">
+                          <span>{skill}</span>
+                          <button
+                            onClick={() => removeCustomSkill(skill)}
+                            className="w-5 h-5 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Preset Technologies */}
+                <div className="mb-4">
+                  <h3 className="text-sm font-bold text-neutral-gray-dark mb-3 flex items-center gap-2">
+                    <Code className="w-4 h-4" />
+                    Or choose from popular technologies:
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {technologies.map((tech) => {
+                    const isSelected = selectedTechs.includes(tech.id)
+                    const TechIcon = tech.icon
+                    
+                    return (
+                      <button
+                        key={tech.id}
+                        onClick={() => toggleTech(tech.id)}
+                        className={`group relative p-6 rounded-[20px] border-2 transition-all duration-300 ${
+                          isSelected
+                            ? 'border-baires-indigo bg-gradient-to-br from-indigo-50 to-indigo-100 shadow-lg scale-105'
+                            : 'border-neutral-200 bg-white hover:border-indigo-300 hover:shadow-md hover:scale-105'
+                        }`}
+                      >
+                        {isSelected && (
+                          <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-br from-baires-indigo to-indigo-600 rounded-full flex items-center justify-center shadow-lg">
+                            <CheckCircle className="w-4 h-4 text-white" />
+                          </div>
+                        )}
+                        
+                        <div className={`w-12 h-12 bg-gradient-to-br ${tech.color} rounded-[14px] flex items-center justify-center mx-auto mb-3 shadow-md group-hover:scale-110 transition-transform`}>
+                          <TechIcon className="w-6 h-6 text-white" />
+                        </div>
+                        <div className={`font-bold text-sm ${isSelected ? 'text-baires-indigo' : 'text-neutral-black'}`}>
+                          {tech.name}
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
 
              
               </div>
@@ -930,7 +925,7 @@ export default function CreateMentorship() {
                 <button
                   onClick={handleNext}
                   disabled={!canProceed()}
-                  className={`group inline-flex items-center gap-2 px-6 py-2.5 rounded-[14px] font-bold transition-all duration-300 ${
+                  className={`group cursor-pointer hover:opacity-80 inline-flex items-center gap-2 px-6 py-2.5 rounded-[14px] font-bold transition-all duration-300 ${
                     canProceed()
                       ? 'bg-gradient-to-r from-baires-indigo to-indigo-600 text-white shadow-lg hover:shadow-xl hover:scale-105'
                       : 'bg-neutral-200 text-neutral-gray-dark cursor-not-allowed'
@@ -944,9 +939,9 @@ export default function CreateMentorship() {
                     </>
                   ) : currentStep === 5 ? (
                     <>
-                      <Send className="w-5 h-5" />
+                      <Send className="w-5 h-5 group-hover:scale-110 transition-transform" />
                       <span>Send Invitations</span>
-                      <UserPlus className="w-5 h-5" />
+                      <UserPlus className="w-5 h-5 group-hover:rotate-12 transition-transform" />
                     </>
                   ) : (
                     <>

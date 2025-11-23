@@ -155,14 +155,24 @@ export default function Mentorship() {
       console.log(`✅ Invitation ${action === 'accept' ? 'accepted' : 'declined'} successfully`)
       
       if (action === 'accept') {
+        // Get the mentorship ID from the invitation
+        const mentorshipId = invitations.find(inv => inv.id === invitationId)?.mentorshipId
+        
         await confirm.success(
           'You are now the mentor for this mentorship.',
           'Mentorship Accepted'
         )
+        
+        // Navigate directly to the mentorship details page
+        if (mentorshipId) {
+          navigate(`/mentorship/${mentorshipId}`)
+        } else {
+          window.location.reload()
+        }
+      } else {
+        // Refresh data for declined invitations
+        window.location.reload()
       }
-      
-      // Refresh data
-      window.location.reload()
     } catch (error) {
       console.error('❌ Error handling invitation:', error)
       await confirm.error(

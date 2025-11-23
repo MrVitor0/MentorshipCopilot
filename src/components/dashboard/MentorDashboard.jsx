@@ -1,5 +1,6 @@
 import { Users, MessageSquare, Target, TrendingUp, Calendar, Sparkles, BookOpen, PenSquare, CheckCircle, X, Brain, BarChart3, Zap, ArrowRight, FolderKanban } from 'lucide-react'
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { updateInvitationStatus, updateMeetingStatus } from '../../services/firestoreService'
 import { useConfirm } from '../../hooks/useConfirm'
 import Card from '../Card'
@@ -30,6 +31,7 @@ const iconMap = {
 export default function MentorDashboard({ user, upcomingSessions, mentorships, loading, invitations = [] }) {
   const [processingInvitation, setProcessingInvitation] = useState(null)
   const confirm = useConfirm()
+  const navigate = useNavigate()
 
   // Loading State
   if (loading) {
@@ -40,6 +42,10 @@ export default function MentorDashboard({ user, upcomingSessions, mentorships, l
     setProcessingInvitation(invitationId)
     try {
       console.log(`🔄 Processing invitation ${invitationId}, action: ${action}`)
+      
+      // Get the mentorship ID from the invitation before updating
+      const invitation = invitations.find(inv => inv.id === invitationId)
+      const mentorshipId = invitation?.mentorshipId
       
       await updateInvitationStatus(
         invitationId, 
@@ -54,9 +60,17 @@ export default function MentorDashboard({ user, upcomingSessions, mentorships, l
           'You are now the mentor for this mentorship. Redirecting...',
           'Mentorship Accepted'
         )
+        
+        // Navigate directly to the mentorship details page
+        if (mentorshipId) {
+          navigate(`/mentorship/${mentorshipId}`)
+        } else {
+          window.location.reload()
+        }
+      } else {
+        // Refresh data for declined invitations
+        window.location.reload()
       }
-      
-      window.location.reload()
     } catch (error) {
       console.error('❌ Error handling invitation:', error)
       await confirm.error(
