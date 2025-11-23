@@ -14,7 +14,8 @@ import Card from '../components/Card'
 import Button from '../components/Button'
 import EmptyState from '../components/EmptyState'
 import SEO from '../components/SEO'
-import { FolderOpen, Plus, Trash2, Eye, Users, Calendar, Search, SlidersHorizontal, Loader2, X, Target } from 'lucide-react'
+import LoadingProjects from '../components/LoadingProjects'
+import { FolderOpen, Plus, Trash2, Eye, Users, Calendar, Search, SlidersHorizontal, X, Target } from 'lucide-react'
 
 export default function Projects() {
   const navigate = useNavigate()
@@ -188,12 +189,7 @@ export default function Projects() {
 
             {/* Loading State */}
             {loading ? (
-              <div className="flex justify-center items-center py-20">
-                <div className="text-center">
-                  <Loader2 className="w-12 h-12 text-baires-blue mx-auto mb-4 animate-spin" />
-                  <p className="text-neutral-gray-dark">Loading projects...</p>
-                </div>
-              </div>
+              <LoadingProjects />
             ) : (
               <>
                 {/* Stats Header Card */}

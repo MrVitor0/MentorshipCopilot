@@ -11,6 +11,7 @@ import Avatar from '../components/Avatar'
 import Badge from '../components/Badge'
 import PageHeader from '../components/PageHeader'
 import SEO from '../components/SEO'
+import LoadingMentorship from '../components/LoadingMentorship'
 import { 
   Users, 
   Calendar, 
@@ -28,7 +29,6 @@ import {
   MessageSquare,
   Star,
   Bot,
-  Loader2,
   X
 } from 'lucide-react'
 
@@ -221,12 +221,7 @@ export default function Mentorship() {
 
             {/* Loading State */}
             {loading ? (
-              <div className="flex justify-center items-center py-20">
-                <div className="text-center">
-                  <Loader2 className="w-12 h-12 text-baires-blue mx-auto mb-4 animate-spin" />
-                  <p className="text-neutral-gray-dark">Loading your mentorships...</p>
-                </div>
-              </div>
+              <LoadingMentorship />
             ) : (
               <>
                 {/* Stats Cards */}
@@ -509,7 +504,7 @@ export default function Mentorship() {
                       {/* Actions */}
                       <div className="flex gap-2">
                         <button 
-                          className="flex-1 bg-gradient-to-r from-baires-blue to-blue-600 text-white px-4 py-3 rounded-[14px] font-semibold hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2"
+                          className="flex-1 cursor-pointer bg-gradient-to-r from-baires-blue to-blue-600 text-white px-4 py-3 rounded-[14px] font-semibold hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2"
                         >
                           <span>View Details</span>
                           <ArrowRight className="w-4 h-4" />

@@ -6,10 +6,11 @@ import Card from '../components/Card'
 import Button from '../components/Button'
 import Avatar from '../components/Avatar'
 import SEO from '../components/SEO'
+import LoadingSettings from '../components/LoadingSettings'
 import { User, FileText, Camera, Save, AlertCircle, CheckCircle } from 'lucide-react'
 
 export default function Settings() {
-  const { user, refreshUser } = useAuth()
+  const { user, refreshUser, loading: authLoading } = useAuth()
   
   const [formData, setFormData] = useState({
     displayName: user?.displayName || '',
@@ -72,15 +73,19 @@ export default function Settings() {
         
         <main className="flex-1 overflow-y-auto">
           <div className="p-6 md:p-8 max-w-4xl mx-auto">
-            {/* Header */}
-            <div className="mb-8">
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-neutral-black to-baires-blue bg-clip-text text-transparent mb-2">
-                Settings
-              </h1>
-              <p className="text-neutral-gray-dark">
-                Manage your profile and preferences
-              </p>
-            </div>
+            {authLoading ? (
+              <LoadingSettings />
+            ) : (
+              <>
+                {/* Header */}
+                <div className="mb-8">
+                  <h1 className="text-4xl font-bold bg-gradient-to-r from-neutral-black to-baires-blue bg-clip-text text-transparent mb-2">
+                    Settings
+                  </h1>
+                  <p className="text-neutral-gray-dark">
+                    Manage your profile and preferences
+                  </p>
+                </div>
 
             {/* Success/Error Messages */}
             {success && (
@@ -234,6 +239,8 @@ export default function Settings() {
                 </Button>
               </div>
             </div>
+              </>
+            )}
           </div>
         </main>
       </div>

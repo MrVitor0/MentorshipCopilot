@@ -25,11 +25,12 @@ import SessionLogWizard from '../components/SessionLogWizard'
 import MaterialWizard from '../components/MaterialWizard'
 import GoalWizard from '../components/GoalWizard'
 import Toast from '../components/Toast'
+import LoadingMentorshipDetails from '../components/LoadingMentorshipDetails'
 
 // Icons
 import { 
   ArrowLeft, Calendar, Clock, TrendingUp, Target, AlertCircle,
-  Users, Bot, FileText, Plus, FolderOpen, Loader2, BarChart3,
+  Users, Bot, FileText, Plus, FolderOpen, BarChart3,
   UserPlus, CheckCircle, X as XIcon, Sparkles, MessageSquare,
   Edit, Lightbulb
 } from 'lucide-react'
@@ -366,12 +367,7 @@ export default function MentorshipDetails() {
             </button>
 
             {loading ? (
-              <div className="flex justify-center items-center py-20">
-                <div className="text-center">
-                  <Loader2 className="w-12 h-12 text-baires-blue mx-auto mb-4 animate-spin" />
-                  <p className="text-neutral-gray-dark">Loading mentorship details...</p>
-                </div>
-              </div>
+              <LoadingMentorshipDetails />
             ) : permissions.isPM ? (
               <PMView {...viewProps} />
             ) : permissions.isMentor ? (

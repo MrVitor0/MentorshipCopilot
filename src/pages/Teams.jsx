@@ -9,7 +9,8 @@ import Card from '../components/Card'
 import Button from '../components/Button'
 import EmptyState from '../components/EmptyState'
 import SEO from '../components/SEO'
-import { Users, Plus, Trash2, Eye, Calendar, Search, SlidersHorizontal, Loader2, X } from 'lucide-react'
+import LoadingTeams from '../components/LoadingTeams'
+import { Users, Plus, Trash2, Eye, Calendar, Search, SlidersHorizontal, X } from 'lucide-react'
 
 export default function Teams() {
   const navigate = useNavigate()
@@ -158,12 +159,7 @@ export default function Teams() {
 
             {/* Loading State */}
             {loading ? (
-              <div className="flex justify-center items-center py-20">
-                <div className="text-center">
-                  <Loader2 className="w-12 h-12 text-baires-blue mx-auto mb-4 animate-spin" />
-                  <p className="text-neutral-gray-dark">Loading teams...</p>
-                </div>
-              </div>
+              <LoadingTeams />
             ) : (
               <>
                 {/* Stats Header Card */}

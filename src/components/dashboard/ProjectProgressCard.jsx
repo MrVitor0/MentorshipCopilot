@@ -130,7 +130,7 @@ export default function ProjectProgressCard({ mentorships = [] }) {
               {/* View Details Button */}
               <button
                 onClick={() => navigate(`/mentorship/${mentorship.id}`)}
-                className="w-full bg-gradient-to-r from-baires-indigo to-indigo-600 text-white px-4 py-2.5 rounded-[14px] font-bold hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2 group"
+                className="w-full cursor-pointer bg-gradient-to-r from-baires-indigo to-indigo-600 text-white px-4 py-2.5 rounded-[14px] font-bold hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2 group"
               >
                 <span>View Details</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
