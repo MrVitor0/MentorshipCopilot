@@ -68,61 +68,63 @@ export default function PMView({
         </Card>
       )}
 
-      {/* Mentorship Goals - Always visible for PM */}
-      <Card padding="lg" className="mb-8">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-baires-blue to-blue-600 rounded-[14px] flex items-center justify-center shadow-lg">
-              <Target className="w-5 h-5 text-white" />
+      {/* Mentorship Goals - Full width when pending */}
+      {isPending && (
+        <Card padding="lg" className="mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-baires-blue to-blue-600 rounded-[14px] flex items-center justify-center shadow-lg">
+                <Target className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-neutral-black">Mentorship Goals</h2>
+                <p className="text-sm text-neutral-gray-dark">Define and track custom progress metrics</p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-2xl font-bold text-neutral-black">Mentorship Goals</h2>
-              <p className="text-sm text-neutral-gray-dark">Define and track custom progress metrics</p>
-            </div>
+            <button
+              onClick={() => setIsGoalWizardOpen(true)}
+              className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-[12px] font-semibold hover:shadow-md hover:-translate-y-0.5 transition-all flex items-center gap-2 cursor-pointer"
+            >
+              <AlertCircle className="w-4 h-4" />
+              Manage Goals
+            </button>
           </div>
-          <button
-            onClick={() => setIsGoalWizardOpen(true)}
-            className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-[12px] font-semibold hover:shadow-md hover:-translate-y-0.5 transition-all flex items-center gap-2 cursor-pointer"
-          >
-            <AlertCircle className="w-4 h-4" />
-            Manage Goals
-          </button>
-        </div>
 
-        {customGoals && customGoals.length > 0 ? (
-          <div className={`grid grid-cols-2 ${customGoals.length > 4 ? 'md:grid-cols-4 lg:grid-cols-5' : 'md:grid-cols-4'} gap-4`}>
-            {customGoals.map((goal) => {
-              const variants = {
-                blue: { icon: BarChart3, color: 'blue' },
-                green: { icon: Target, color: 'green' },
-                purple: { icon: Clock, color: 'purple' },
-                orange: { icon: TrendingUp, color: 'orange' },
-                pink: { icon: Sparkles, color: 'pink' },
-                yellow: { icon: Calendar, color: 'yellow' }
-              }
-              const variantConfig = variants[goal.variant] || variants.blue
-              
-              return (
-                <Card key={goal.id} padding="md" className={`bg-gradient-to-br from-${variantConfig.color}-50 to-${variantConfig.color}-100/50 border-2 border-${variantConfig.color}-200`}>
-                  <variantConfig.icon className={`w-8 h-8 text-${variantConfig.color}-600 mb-2`} />
-                  <div className="text-xs font-bold uppercase text-neutral-gray-dark mb-1">{goal.name}</div>
-                  <div className="text-xl font-bold text-neutral-black">
-                    {goal.current}{goal.unit || ''} / {goal.target}{goal.unit || ''}
-                  </div>
-                </Card>
-              )
-            })}
-          </div>
-        ) : (
-          <div className="p-6 bg-blue-50 rounded-[16px] border-2 border-blue-200 text-center">
-            <Target className="w-12 h-12 text-baires-blue mx-auto mb-3" />
-            <h3 className="text-lg font-bold text-blue-900 mb-2">No Goals Defined Yet</h3>
-            <p className="text-sm text-blue-800 mb-4">
-              Click <strong>"Manage Goals"</strong> to define custom progress metrics for this mentorship.
-            </p>
-          </div>
-        )}
-      </Card>
+          {customGoals && customGoals.length > 0 ? (
+            <div className={`grid grid-cols-2 ${customGoals.length > 4 ? 'md:grid-cols-4 lg:grid-cols-5' : 'md:grid-cols-4'} gap-4`}>
+              {customGoals.map((goal) => {
+                const variants = {
+                  blue: { icon: BarChart3, color: 'blue' },
+                  green: { icon: Target, color: 'green' },
+                  purple: { icon: Clock, color: 'purple' },
+                  orange: { icon: TrendingUp, color: 'orange' },
+                  pink: { icon: Sparkles, color: 'pink' },
+                  yellow: { icon: Calendar, color: 'yellow' }
+                }
+                const variantConfig = variants[goal.variant] || variants.blue
+                
+                return (
+                  <Card key={goal.id} padding="md" className={`bg-gradient-to-br from-${variantConfig.color}-50 to-${variantConfig.color}-100/50 border-2 border-${variantConfig.color}-200`}>
+                    <variantConfig.icon className={`w-8 h-8 text-${variantConfig.color}-600 mb-2`} />
+                    <div className="text-xs font-bold uppercase text-neutral-gray-dark mb-1">{goal.name}</div>
+                    <div className="text-xl font-bold text-neutral-black">
+                      {goal.current}{goal.unit || ''} / {goal.target}{goal.unit || ''}
+                    </div>
+                  </Card>
+                )
+              })}
+            </div>
+          ) : (
+            <div className="p-6 bg-blue-50 rounded-[16px] border-2 border-blue-200 text-center">
+              <Target className="w-12 h-12 text-baires-blue mx-auto mb-3" />
+              <h3 className="text-lg font-bold text-blue-900 mb-2">No Goals Defined Yet</h3>
+              <p className="text-sm text-blue-800 mb-4">
+                Click <strong>"Manage Goals"</strong> to define custom progress metrics for this mentorship.
+              </p>
+            </div>
+          )}
+        </Card>
+      )}
 
       {/* Invited Mentors */}
       {!data?.mentorId && invitationsWithProfiles.length > 0 && (
@@ -359,22 +361,83 @@ export default function PMView({
         )}
       </Card>
 
-      {/* Quick Actions - Only show if not pending */}
+      {/* Grid with Progress Goals and Quick Actions - When mentor is assigned */}
       {!isPending && (
         <>
-          <div className="mb-6 md:mb-8">
-            <QuickActions
-              onMessageClick={() => {
-                setMessageRecipient({
-                  name: data?.mentorName || 'Mentor',
-                  avatar: data?.mentorAvatar,
-                  role: 'Mentor'
-                })
-                setIsMessageModalOpen(true)
-              }}
-              onScheduleClick={() => setIsScheduleModalOpen(true)}
-              recipientName={data?.mentorName || 'Mentor'}
-            />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 mb-6 md:mb-8">
+            {/* Progress Goals */}
+            <div className="lg:col-span-2">
+              <Card padding="lg" className="h-full">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-baires-blue to-blue-600 rounded-[14px] flex items-center justify-center shadow-lg">
+                      <BarChart3 className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold text-neutral-black">Progress Goals</h2>
+                      <p className="text-sm text-neutral-gray-dark">Track mentorship growth</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setIsGoalWizardOpen(true)}
+                    className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-[12px] font-semibold hover:shadow-md hover:-translate-y-0.5 transition-all flex items-center gap-2 cursor-pointer"
+                  >
+                    <AlertCircle className="w-4 h-4" />
+                    Manage Goals
+                  </button>
+                </div>
+
+                {customGoals && customGoals.length > 0 ? (
+                  <div className={`grid grid-cols-2 ${customGoals.length > 4 ? 'md:grid-cols-4 lg:grid-cols-5' : 'md:grid-cols-4'} gap-4`}>
+                    {customGoals.map((goal) => {
+                      const variants = {
+                        blue: { icon: BarChart3, color: 'blue' },
+                        green: { icon: Target, color: 'green' },
+                        purple: { icon: Clock, color: 'purple' },
+                        orange: { icon: TrendingUp, color: 'orange' },
+                        pink: { icon: Sparkles, color: 'pink' },
+                        yellow: { icon: Calendar, color: 'yellow' }
+                      }
+                      const variantConfig = variants[goal.variant] || variants.blue
+                      
+                      return (
+                        <Card key={goal.id} padding="md" className={`bg-gradient-to-br from-${variantConfig.color}-50 to-${variantConfig.color}-100/50 border-2 border-${variantConfig.color}-200`}>
+                          <variantConfig.icon className={`w-8 h-8 text-${variantConfig.color}-600 mb-2`} />
+                          <div className="text-xs font-bold uppercase text-neutral-gray-dark mb-1">{goal.name}</div>
+                          <div className="text-xl font-bold text-neutral-black">
+                            {goal.current}{goal.unit || ''} / {goal.target}{goal.unit || ''}
+                          </div>
+                        </Card>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <div className="p-6 bg-blue-50 rounded-[16px] border-2 border-blue-200 text-center">
+                    <Target className="w-12 h-12 text-baires-blue mx-auto mb-3" />
+                    <h3 className="text-lg font-bold text-blue-900 mb-2">No Goals Defined Yet</h3>
+                    <p className="text-sm text-blue-800">
+                      Click <strong>"Manage Goals"</strong> to define custom progress metrics for this mentorship.
+                    </p>
+                  </div>
+                )}
+              </Card>
+            </div>
+
+            {/* Quick Actions */}
+            <div>
+              <QuickActions
+                onMessageClick={() => {
+                  setMessageRecipient({
+                    name: data?.mentorName || 'Mentor',
+                    avatar: data?.mentorAvatar,
+                    role: 'Mentor'
+                  })
+                  setIsMessageModalOpen(true)
+                }}
+                onScheduleClick={() => setIsScheduleModalOpen(true)}
+                recipientName={data?.mentorName || 'Mentor'}
+              />
+            </div>
           </div>
 
           {/* AI Summary + AI Tips */}
