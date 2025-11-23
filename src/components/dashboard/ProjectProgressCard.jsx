@@ -42,10 +42,10 @@ export default function ProjectProgressCard({ mentorships = [] }) {
             <p className="text-xs text-neutral-gray-dark">Your mentorship projects</p>
           </div>
         </div>
-        {mentorships.length > 3 && (
+        {mentorships.length > 0 && (
           <button 
             onClick={() => navigate('/mentorship')}
-            className="text-sm font-semibold text-baires-indigo hover:text-indigo-700 flex items-center gap-1"
+            className="text-sm font-semibold text-baires-indigo hover:text-indigo-700 flex items-center gap-1 transition-colors"
           >
             View All
             <ArrowRight className="w-4 h-4" />
@@ -54,8 +54,30 @@ export default function ProjectProgressCard({ mentorships = [] }) {
       </div>
 
       {mentorships.length > 0 ? (
-        <div className="space-y-4">
-          {mentorships.slice(0, 3).map((mentorship) => (
+        <div 
+          className="space-y-4 max-h-[380px] overflow-y-auto pr-2 custom-scrollbar"
+          style={{
+            scrollbarWidth: 'thin',
+            scrollbarColor: '#d4d4d8 #f4f4f5'
+          }}
+        >
+          <style>{`
+            .custom-scrollbar::-webkit-scrollbar {
+              width: 6px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-track {
+              background: #f4f4f5;
+              border-radius: 10px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-thumb {
+              background: #d4d4d8;
+              border-radius: 10px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+              background: #a1a1aa;
+            }
+          `}</style>
+          {mentorships.map((mentorship) => (
             <div
               key={mentorship.id}
               className="w-full p-5 bg-gradient-to-br from-white to-blue-50/50 rounded-[20px] border border-blue-100/50 hover:shadow-lg transition-all duration-300"
