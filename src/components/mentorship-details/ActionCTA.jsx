@@ -14,7 +14,7 @@ export default function ActionCTA({
   buttonTextColor = 'text-baires-blue'
 }) {
   return (
-    <Card padding="none" className="overflow-hidden group cursor-pointer hover:shadow-2xl transition-all duration-300" onClick={onClick}>
+    <Card padding="none" className="overflow-hidden group  hover:shadow-2xl transition-all duration-300" >
       <div className={`relative bg-gradient-to-br ${bgGradient} p-8`}>
         {/* Animated Background Elements */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-500"></div>
@@ -46,7 +46,7 @@ export default function ActionCTA({
                 </div>
               )}
 
-              <button className={`bg-white ${buttonTextColor} px-8 py-4 rounded-[16px] font-bold text-lg shadow-2xl hover:scale-105 hover:shadow-3xl transition-all duration-300 flex items-center gap-3 group-hover:gap-4`}>
+              <button onClick={onClick} className={`bg-white cursor-pointer ${buttonTextColor} px-8 py-4 rounded-[16px] font-bold text-lg shadow-2xl hover:scale-105 hover:shadow-3xl transition-all duration-300 flex items-center gap-3 group-hover:gap-4`}>
                 <ButtonIcon className="w-6 h-6" />
                 {buttonText}
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
