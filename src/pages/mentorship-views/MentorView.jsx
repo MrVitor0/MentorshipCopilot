@@ -1,18 +1,12 @@
 import { useState } from 'react'
-import { Calendar, Clock, TrendingUp, Target, Users, BarChart3, Sparkles, FileText, CheckCircle, Bot, Lightbulb, Plus, FolderOpen, Download } from 'lucide-react'
+import { Calendar, Clock, TrendingUp, Target, Users, BarChart3, Sparkles, FileText, CheckCircle, Bot, Lightbulb, Plus, FolderOpen, Download, AlertCircle, X, Save } from 'lucide-react'
 import Card from '../../components/Card'
 import Badge from '../../components/Badge'
 import Avatar from '../../components/Avatar'
 import MessageModal from '../../components/MessageModal'
 import ScheduleSessionModal from '../../components/ScheduleSessionModal'
-import { ActionCTA, StatsCard, MaterialsList, SessionHistory, QuickActions } from '../../components/mentorship-details'
-
-const DEFAULT_GOALS = [
-  { id: 'sessions', name: 'Total Sessions', description: 'Number of sessions completed', current: 0, target: 10, variant: 'blue' },
-  { id: 'progress', name: 'Overall Progress', description: 'Overall completion percentage', current: 0, target: 100, variant: 'green', unit: '%' },
-  { id: 'duration', name: 'Duration', description: 'Weeks since mentorship started', current: 0, target: 12, variant: 'purple', unit: 'w' },
-  { id: 'rating', name: 'Avg Rating', description: 'Average session rating', current: 0, target: 5, variant: 'orange', unit: '/5' }
-]
+import { ActionCTA, MaterialsList, SessionHistory, QuickActions } from '../../components/mentorship-details'
+import { updateGoal } from '../../services/firestoreService'
 
 export default function MentorView({
   data,
@@ -24,19 +18,46 @@ export default function MentorView({
   setIsSessionWizardOpen,
   setIsMaterialWizardOpen,
   customGoals,
-  sessions
+  sessions,
+  refreshGoals
 }) {
   const [isMessageModalOpen, setIsMessageModalOpen] = useState(false)
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false)
-  
-  const displayGoals = customGoals || DEFAULT_GOALS.map(goal => {
-    // Update current values based on actual data
-    if (goal.id === 'sessions') return { ...goal, current: data?.sessionsCompleted || 0 }
-    if (goal.id === 'progress') return { ...goal, current: data?.progress || 0 }
-    if (goal.id === 'duration') return { ...goal, current: weeksDuration || 0 }
-    if (goal.id === 'rating') return { ...goal, current: parseFloat(averageProgress) || 0 }
-    return goal
-  })
+  const [editingGoal, setEditingGoal] = useState(null)
+  const [editValue, setEditValue] = useState('')
+  const [isSaving, setIsSaving] = useState(false)
+
+  const handleGoalClick = (goal) => {
+    setEditingGoal(goal)
+    setEditValue(goal.current.toString())
+  }
+
+  const handleSaveGoal = async () => {
+    if (!editingGoal) return
+    
+    setIsSaving(true)
+    try {
+      const newValue = parseFloat(editValue) || 0
+      await updateGoal(editingGoal.id, { current: newValue })
+      
+      // Refresh goals from Firestore
+      if (refreshGoals) {
+        await refreshGoals()
+      }
+      
+      setEditingGoal(null)
+      setEditValue('')
+    } catch (error) {
+      console.error('Error updating goal:', error)
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleCancelEdit = () => {
+    setEditingGoal(null)
+    setEditValue('')
+  }
   
   return (
     <>
@@ -106,29 +127,44 @@ export default function MentorView({
               </div>
             </div>
 
-            <div className={`grid grid-cols-2 ${displayGoals.length > 4 ? 'md:grid-cols-4 lg:grid-cols-5' : 'md:grid-cols-4'} gap-4`}>
-              {displayGoals.map((goal) => {
-                const variants = {
-                  blue: { icon: BarChart3, color: 'blue' },
-                  green: { icon: Target, color: 'green' },
-                  purple: { icon: Clock, color: 'purple' },
-                  orange: { icon: TrendingUp, color: 'orange' },
-                  pink: { icon: Sparkles, color: 'pink' },
-                  yellow: { icon: Calendar, color: 'yellow' }
-                }
-                const variantConfig = variants[goal.variant] || variants.blue
-                
-                return (
-                  <Card key={goal.id} padding="md" className={`bg-gradient-to-br from-${variantConfig.color}-50 to-${variantConfig.color}-100/50 border-2 border-${variantConfig.color}-200`}>
-                    <variantConfig.icon className={`w-8 h-8 text-${variantConfig.color}-600 mb-2`} />
-                    <div className="text-xs font-bold uppercase text-neutral-gray-dark mb-1">{goal.name}</div>
-                    <div className="text-xl font-bold text-neutral-black">
-                      {goal.current}{goal.unit} / {goal.target}{goal.unit}
-                    </div>
-                  </Card>
-                )
-              })}
-            </div>
+            {customGoals && customGoals.length > 0 ? (
+              <div className={`grid grid-cols-2 ${customGoals.length > 4 ? 'md:grid-cols-4 lg:grid-cols-5' : 'md:grid-cols-4'} gap-4`}>
+                {customGoals.map((goal) => {
+                  const variants = {
+                    blue: { icon: BarChart3, color: 'blue' },
+                    green: { icon: Target, color: 'green' },
+                    purple: { icon: Clock, color: 'purple' },
+                    orange: { icon: TrendingUp, color: 'orange' },
+                    pink: { icon: Sparkles, color: 'pink' },
+                    yellow: { icon: Calendar, color: 'yellow' }
+                  }
+                  const variantConfig = variants[goal.variant] || variants.blue
+                  
+                  return (
+                    <Card 
+                      key={goal.id} 
+                      padding="md" 
+                      onClick={() => handleGoalClick(goal)}
+                      className={`bg-gradient-to-br from-${variantConfig.color}-50 to-${variantConfig.color}-100/50 border-2 border-${variantConfig.color}-200 cursor-pointer hover:scale-105 hover:shadow-lg transition-all duration-200`}
+                    >
+                      <variantConfig.icon className={`w-8 h-8 text-${variantConfig.color}-600 mb-2`} />
+                      <div className="text-xs font-bold uppercase text-neutral-gray-dark mb-1">{goal.name}</div>
+                      <div className="text-xl font-bold text-neutral-black">
+                        {goal.current}{goal.unit} / {goal.target}{goal.unit}
+                      </div>
+                    </Card>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="p-6 bg-amber-50 rounded-[16px] border-2 border-amber-200 text-center">
+                <AlertCircle className="w-12 h-12 text-amber-600 mx-auto mb-3" />
+                <h3 className="text-lg font-bold text-amber-900 mb-2">No Goals Defined Yet</h3>
+                <p className="text-sm text-amber-800">
+                  The Project Manager needs to define the mentorship goals. Once set, you'll be able to track progress here.
+                </p>
+              </div>
+            )}
           </Card>
         </div>
 
@@ -238,6 +274,82 @@ export default function MentorView({
           avatar: data?.menteeAvatar
         }}
       />
+
+      {/* Edit Goal Modal */}
+      {editingGoal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-[24px] shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-gradient-to-br from-baires-blue to-blue-600 rounded-[16px] flex items-center justify-center shadow-lg">
+                  <Target className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-neutral-black">Update Goal</h3>
+                  <p className="text-sm text-neutral-gray-dark">{editingGoal.name}</p>
+                </div>
+              </div>
+              <button
+                onClick={handleCancelEdit}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-neutral-100 transition-colors"
+              >
+                <X className="w-5 h-5 text-neutral-gray-dark" />
+              </button>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-sm font-semibold text-neutral-black mb-2">
+                Current Value
+              </label>
+              <div className="relative">
+                <input
+                  type="number"
+                  value={editValue}
+                  onChange={(e) => setEditValue(e.target.value)}
+                  className="w-full px-4 py-3 border-2 border-neutral-200 rounded-[12px] focus:border-baires-blue focus:outline-none transition-colors text-lg font-bold"
+                  placeholder="0"
+                  autoFocus
+                />
+                {editingGoal.unit && (
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-gray-dark font-semibold">
+                    {editingGoal.unit}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-neutral-gray-dark mt-2">
+                Target: {editingGoal.target}{editingGoal.unit}
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={handleCancelEdit}
+                disabled={isSaving}
+                className="flex-1 px-6 py-3 bg-neutral-100 text-neutral-black rounded-[12px] font-semibold hover:bg-neutral-200 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveGoal}
+                disabled={isSaving}
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-baires-blue to-blue-600 text-white rounded-[12px] font-semibold hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isSaving ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-5 h-5" />
+                    Save
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }

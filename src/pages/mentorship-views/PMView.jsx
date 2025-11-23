@@ -12,7 +12,6 @@ export default function PMView({
   data,
   statusInfo,
   formatStatus,
-  averageProgress,
   weeksDuration,
   materials,
   joinRequestsWithProfiles,
@@ -331,48 +330,36 @@ export default function PMView({
                   </button>
                 </div>
 
-                <div className={`grid grid-cols-2 ${(customGoals?.length || 4) > 4 ? 'md:grid-cols-4 lg:grid-cols-5' : 'md:grid-cols-4'} gap-4`}>
-                  {(customGoals || [
-                    { id: 'sessions', name: 'Total Sessions', current: data?.sessionsCompleted || 0, target: 10, variant: 'blue' },
-                    { id: 'progress', name: 'Overall Progress', current: data?.progress || 0, target: 100, variant: 'green', unit: '%' },
-                    { id: 'duration', name: 'Duration', current: weeksDuration || 0, target: 12, variant: 'purple', unit: 'w' },
-                    { id: 'rating', name: 'Avg Rating', current: parseFloat(averageProgress) || 0, target: 5, variant: 'orange', unit: '/5' }
-                  ]).map((goal) => {
-                    // Update current values based on actual mentorship data
-                    let currentValue = goal.current || 0
-                    if (goal.id === 'sessions') currentValue = data?.sessionsCompleted || 0
-                    else if (goal.id === 'progress') currentValue = data?.progress || 0
-                    else if (goal.id === 'duration') currentValue = weeksDuration || 0
-                    else if (goal.id === 'rating') currentValue = parseFloat(averageProgress) || 0
-                    
-                    const displayGoal = { ...goal, current: currentValue }
-                    const variants = {
-                      blue: { icon: BarChart3, color: 'blue' },
-                      green: { icon: Target, color: 'green' },
-                      purple: { icon: Clock, color: 'purple' },
-                      orange: { icon: TrendingUp, color: 'orange' },
-                      pink: { icon: Sparkles, color: 'pink' },
-                      yellow: { icon: Calendar, color: 'yellow' }
-                    }
-                    const variantConfig = variants[displayGoal.variant] || variants.blue
-                    
-                    return (
-                      <Card key={displayGoal.id} padding="md" className={`bg-gradient-to-br from-${variantConfig.color}-50 to-${variantConfig.color}-100/50 border-2 border-${variantConfig.color}-200`}>
-                        <variantConfig.icon className={`w-8 h-8 text-${variantConfig.color}-600 mb-2`} />
-                        <div className="text-xs font-bold uppercase text-neutral-gray-dark mb-1">{displayGoal.name}</div>
-                        <div className="text-xl font-bold text-neutral-black">
-                          {displayGoal.current}{displayGoal.unit || ''} / {displayGoal.target}{displayGoal.unit || ''}
-                        </div>
-                      </Card>
-                    )
-                  })}
-                </div>
-
-                {!customGoals && (
-                  <div className="mt-4 p-3 bg-blue-50 rounded-[12px] border border-blue-200">
-                    <p className="text-xs text-blue-800 flex items-center gap-2">
-                      <AlertCircle className="w-4 h-4" />
-                      <span>Click <strong>"Manage Goals"</strong> to customize these metrics for your mentorship</span>
+                {customGoals && customGoals.length > 0 ? (
+                  <div className={`grid grid-cols-2 ${customGoals.length > 4 ? 'md:grid-cols-4 lg:grid-cols-5' : 'md:grid-cols-4'} gap-4`}>
+                    {customGoals.map((goal) => {
+                      const variants = {
+                        blue: { icon: BarChart3, color: 'blue' },
+                        green: { icon: Target, color: 'green' },
+                        purple: { icon: Clock, color: 'purple' },
+                        orange: { icon: TrendingUp, color: 'orange' },
+                        pink: { icon: Sparkles, color: 'pink' },
+                        yellow: { icon: Calendar, color: 'yellow' }
+                      }
+                      const variantConfig = variants[goal.variant] || variants.blue
+                      
+                      return (
+                        <Card key={goal.id} padding="md" className={`bg-gradient-to-br from-${variantConfig.color}-50 to-${variantConfig.color}-100/50 border-2 border-${variantConfig.color}-200`}>
+                          <variantConfig.icon className={`w-8 h-8 text-${variantConfig.color}-600 mb-2`} />
+                          <div className="text-xs font-bold uppercase text-neutral-gray-dark mb-1">{goal.name}</div>
+                          <div className="text-xl font-bold text-neutral-black">
+                            {goal.current}{goal.unit || ''} / {goal.target}{goal.unit || ''}
+                          </div>
+                        </Card>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <div className="p-6 bg-blue-50 rounded-[16px] border-2 border-blue-200 text-center">
+                    <Target className="w-12 h-12 text-baires-blue mx-auto mb-3" />
+                    <h3 className="text-lg font-bold text-blue-900 mb-2">No Goals Defined Yet</h3>
+                    <p className="text-sm text-blue-800 mb-4">
+                      Click <strong>"Manage Goals"</strong> to define custom progress metrics for this mentorship.
                     </p>
                   </div>
                 )}

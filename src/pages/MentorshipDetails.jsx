@@ -74,25 +74,25 @@ export default function MentorshipDetails() {
   const { formatStatus, statusInfo, averageProgress, weeksDuration } = useMentorshipHelpers(data)
 
   // Fetch goals from Firestore
-  useEffect(() => {
-    const fetchGoals = async () => {
-      if (!id) return
-      
-      setLoadingGoals(true)
-      try {
-        const goals = await getGoalsByMentorship(id)
-        // Filter out deleted goals
-        const activeGoals = goals.filter(g => !g.deleted)
-        setCustomGoals(activeGoals.length > 0 ? activeGoals : null)
-      } catch (error) {
-        console.error('Error fetching goals:', error)
-      } finally {
-        setLoadingGoals(false)
-      }
+  const fetchGoals = async () => {
+    if (!id) return
+    
+    setLoadingGoals(true)
+    try {
+      const goals = await getGoalsByMentorship(id)
+      // Filter out deleted goals
+      const activeGoals = goals.filter(g => !g.deleted)
+      setCustomGoals(activeGoals.length > 0 ? activeGoals : null)
+    } catch (error) {
+      console.error('Error fetching goals:', error)
+    } finally {
+      setLoadingGoals(false)
     }
+  }
 
+  useEffect(() => {
     fetchGoals()
-  }, [id, setLoadingGoals])
+  }, [id])
 
   // Fetch sessions from Firestore
   useEffect(() => {
@@ -342,7 +342,8 @@ export default function MentorshipDetails() {
     customGoals,
     navigate,
     id,
-    sessions
+    sessions,
+    refreshGoals: fetchGoals
   }
 
   return (
