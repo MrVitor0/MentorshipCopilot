@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import { Calendar, Clock, TrendingUp, Target, Users, BarChart3, Sparkles, MessageSquare, FileText, CheckCircle, Bot, Lightbulb, Plus, FolderOpen, Download } from 'lucide-react'
-import { useConfirm } from '../../hooks/useConfirm'
+import { Calendar, Clock, TrendingUp, Target, Users, BarChart3, Sparkles, FileText, CheckCircle, Bot, Lightbulb, Plus, FolderOpen, Download } from 'lucide-react'
 import Card from '../../components/Card'
 import Badge from '../../components/Badge'
 import Avatar from '../../components/Avatar'
 import MessageModal from '../../components/MessageModal'
-import { ActionCTA, StatsCard, MaterialsList, SessionHistory } from '../../components/mentorship-details'
+import ScheduleSessionModal from '../../components/ScheduleSessionModal'
+import { ActionCTA, StatsCard, MaterialsList, SessionHistory, QuickActions } from '../../components/mentorship-details'
 
 const DEFAULT_GOALS = [
   { id: 'sessions', name: 'Total Sessions', description: 'Number of sessions completed', current: 0, target: 10, variant: 'blue' },
@@ -26,8 +26,8 @@ export default function MentorView({
   customGoals,
   sessions
 }) {
-  const confirm = useConfirm()
   const [isMessageModalOpen, setIsMessageModalOpen] = useState(false)
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false)
   
   const displayGoals = customGoals || DEFAULT_GOALS.map(goal => {
     // Update current values based on actual data
@@ -91,10 +91,11 @@ export default function MentorView({
         )}
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-        <div className="lg:col-span-2 space-y-6 md:space-y-8">
-          {/* Progress Overview */}
-          <Card padding="lg">
+      {/* Grid with Progress Goals and Quick Actions */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 mb-6 md:mb-8">
+        {/* Progress Overview */}
+        <div className="lg:col-span-2">
+          <Card padding="lg" className="h-full">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 bg-gradient-to-br from-baires-blue to-blue-600 rounded-[14px] flex items-center justify-center shadow-lg">
                 <BarChart3 className="w-5 h-5 text-white" />
@@ -105,7 +106,7 @@ export default function MentorView({
               </div>
             </div>
 
-            <div className={`grid grid-cols-2 ${displayGoals.length > 4 ? 'md:grid-cols-4 lg:grid-cols-5' : 'md:grid-cols-4'} gap-4 mb-6`}>
+            <div className={`grid grid-cols-2 ${displayGoals.length > 4 ? 'md:grid-cols-4 lg:grid-cols-5' : 'md:grid-cols-4'} gap-4`}>
               {displayGoals.map((goal) => {
                 const variants = {
                   blue: { icon: BarChart3, color: 'blue' },
@@ -129,7 +130,21 @@ export default function MentorView({
               })}
             </div>
           </Card>
+        </div>
 
+        {/* Quick Actions */}
+        <div>
+          <QuickActions
+            onMessageClick={() => setIsMessageModalOpen(true)}
+            onScheduleClick={() => setIsScheduleModalOpen(true)}
+            recipientName={data?.menteeName || 'Mentee'}
+          />
+        </div>
+      </div>
+
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+        <div className="lg:col-span-2 space-y-6 md:space-y-8">
           {/* Session Logging CTA */}
           <ActionCTA
             onClick={() => setIsSessionWizardOpen(true)}
@@ -173,73 +188,6 @@ export default function MentorView({
 
         {/* Sidebar */}
         <div className="space-y-6 md:space-y-8">
-      
-
-          <Card padding="lg" className="bg-gradient-to-br from-orange-50 via-white to-blue-50 border-2 border-orange-200/50">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-baires-blue to-blue-600 rounded-[14px] flex items-center justify-center shadow-lg">
-                <Sparkles className="w-5 h-5 text-white animate-pulse" />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-neutral-black flex items-center gap-2">
-                  AI Tools
-                  <Badge variant="orange" className="text-xs">Magic</Badge>
-                </h3>
-                <p className="text-xs text-neutral-gray-dark">Let AI help you</p>
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <button className="w-full text-left p-3 bg-white rounded-[12px] border-2 border-neutral-200 hover:border-orange-400 hover:bg-orange-50/50 transition-all group">
-                <div className="flex items-center gap-3">
-                  <Sparkles className="w-4 h-4 text-baires-blue group-hover:rotate-12 transition-transform" />
-                  <span className="text-sm font-bold text-neutral-black">Generate Summary</span>
-                </div>
-              </button>
-              
-              <button className="w-full text-left p-3 bg-white rounded-[12px] border-2 border-neutral-200 hover:border-blue-400 hover:bg-blue-50/50 transition-all group">
-                <div className="flex items-center gap-3">
-                  <Target className="w-4 h-4 text-baires-blue" />
-                  <span className="text-sm font-bold text-neutral-black">Suggest Next Steps</span>
-                </div>
-              </button>
-
-              <button className="w-full text-left p-3 bg-white rounded-[12px] border-2 border-neutral-200 hover:border-orange-400 hover:bg-orange-50/50 transition-all group">
-                <div className="flex items-center gap-3">
-                  <TrendingUp className="w-4 h-4 text-baires-blue" />
-                  <span className="text-sm font-bold text-neutral-black">Analyze Progress</span>
-                </div>
-              </button>
-            </div>
-          </Card>
-
-          <Card padding="lg">
-            <h3 className="text-lg font-bold text-neutral-black mb-4">Quick Actions</h3>
-            <div className="space-y-3">
-              <button 
-                onClick={() => setIsMessageModalOpen(true)}
-                className="w-full flex items-center gap-3 p-3 bg-gradient-to-r from-baires-blue to-blue-600 text-white rounded-[14px] font-semibold hover:shadow-lg transition-all"
-              >
-                <MessageSquare className="w-5 h-5" />
-                <span>Message Mentee</span>
-              </button>
-              <button 
-                onClick={() => confirm.info(
-                  'Session scheduling feature coming soon!\n\nYou will be able to:\n- Schedule sessions with your mentee\n- Set recurring meetings\n- Send calendar invites\n- Get reminders',
-                  'Coming Soon'
-                )}
-                className="w-full flex items-center gap-3 p-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-[14px] font-semibold hover:shadow-lg transition-all"
-              >
-                <Calendar className="w-5 h-5" />
-                <span>Schedule Session</span>
-              </button>
-              <button className="w-full flex items-center gap-3 p-3 bg-neutral-100 text-neutral-black rounded-[14px] font-semibold hover:bg-neutral-200 transition-all">
-                <FileText className="w-5 h-5" />
-                <span>View All Logs</span>
-              </button>
-            </div>
-          </Card>
-          
           <MessageModal 
             isOpen={isMessageModalOpen}
             onClose={() => setIsMessageModalOpen(false)}
@@ -247,6 +195,15 @@ export default function MentorView({
               name: data?.menteeName,
               avatar: data?.menteeAvatar,
               role: 'Mentee'
+            }}
+          />
+          
+          <ScheduleSessionModal
+            isOpen={isScheduleModalOpen}
+            onClose={() => setIsScheduleModalOpen(false)}
+            mentee={{
+              name: data?.menteeName,
+              avatar: data?.menteeAvatar
             }}
           />
 

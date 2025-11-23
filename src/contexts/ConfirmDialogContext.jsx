@@ -12,6 +12,8 @@ export function ConfirmDialogProvider({ children }) {
     confirmText: 'OK',
     cancelText: 'Cancel',
     showCancel: false,
+    hideIcon: false,
+    hideTitle: false,
     onConfirm: null,
     onCancel: null
   })
@@ -22,7 +24,9 @@ export function ConfirmDialogProvider({ children }) {
     message,
     confirmText = 'OK',
     cancelText = 'Cancel',
-    showCancel = false
+    showCancel = false,
+    hideIcon = false,
+    hideTitle = false
   }) => {
     return new Promise((resolve) => {
       setDialogState({
@@ -33,6 +37,8 @@ export function ConfirmDialogProvider({ children }) {
         confirmText,
         cancelText,
         showCancel,
+        hideIcon,
+        hideTitle,
         onConfirm: () => {
           resolve(true)
         },
@@ -129,6 +135,8 @@ export function ConfirmDialogProvider({ children }) {
         confirmText={dialogState.confirmText}
         cancelText={dialogState.cancelText}
         showCancel={dialogState.showCancel}
+        hideIcon={dialogState.hideIcon}
+        hideTitle={dialogState.hideTitle}
         onConfirm={dialogState.onConfirm}
         onCancel={dialogState.onCancel}
         onClose={closeDialog}

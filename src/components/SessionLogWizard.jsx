@@ -456,7 +456,7 @@ export default function SessionLogWizard({ isOpen, onClose, onSubmit, mentee }) 
             <button
               onClick={handleSubmit}
               disabled={isSubmitting}
-              className="px-8 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-[14px] font-bold hover:shadow-lg disabled:opacity-50 transition-all flex items-center gap-2"
+              className="px-8 py-3 bg-gradient-to-r cursor-pointer hover:opacity-90 from-blue-500 to-blue-600 text-white rounded-[14px] font-bold hover:shadow-lg disabled:opacity-50 transition-all flex items-center gap-2"
             >
               {isSubmitting ? (
                 <>

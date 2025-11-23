@@ -17,6 +17,7 @@ export { default as MentorSelectionStep } from "./MentorSelectionStep";
 export { default as SessionLogWizard } from "./SessionLogWizard";
 export { default as MaterialWizard } from "./MaterialWizard";
 export { default as GoalWizard } from "./GoalWizard";
+export { default as ScheduleSessionModal } from "./ScheduleSessionModal";
 export { ProtectedRoute, PublicRoute } from "./ProtectedRoute";
 export { ProtectedLink, ProtectedButton, Protected } from "./ProtectedLink";
 export { default as PermissionRoute } from "./PermissionRoute";

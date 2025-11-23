@@ -48,6 +48,8 @@ export default function ConfirmDialog({
   confirmText = 'OK',
   cancelText = 'Cancel',
   showCancel = false,
+  hideIcon = false,
+  hideTitle = false,
   onConfirm,
   onCancel,
   onClose
@@ -95,29 +97,33 @@ export default function ConfirmDialog({
           </button>
 
           {/* Icon Header */}
-          <div className="flex justify-center pt-8 pb-4">
-            <div className={`
-              w-20 h-20 
-              bg-gradient-to-br ${config.iconBg}
-              rounded-[20px] 
-              flex items-center justify-center 
-              shadow-lg
-              animate-float
-            `}>
-              <Icon className={`w-10 h-10 ${config.iconColor}`} />
+          {!hideIcon && (
+            <div className="flex justify-center pt-8 pb-4">
+              <div className={`
+                w-20 h-20 
+                bg-gradient-to-br ${config.iconBg}
+                rounded-[20px] 
+                flex items-center justify-center 
+                shadow-lg
+                animate-float
+              `}>
+                <Icon className={`w-10 h-10 ${config.iconColor}`} />
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Content */}
-          <div className="px-8 pb-8 text-center">
-            <h3 className={`text-2xl font-bold ${config.titleColor} mb-3`}>
-              {title}
-            </h3>
+          <div className={`px-8 pb-8 text-center ${hideIcon ? 'pt-8' : ''}`}>
+            {!hideTitle && title && (
+              <h3 className={`text-2xl font-bold ${config.titleColor} mb-3`}>
+                {title}
+              </h3>
+            )}
             
             {message && (
-              <p className="text-neutral-gray-dark leading-relaxed whitespace-pre-line">
+              <div className="text-neutral-gray-dark leading-relaxed">
                 {message}
-              </p>
+              </div>
             )}
           </div>
 
