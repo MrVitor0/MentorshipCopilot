@@ -196,6 +196,7 @@ export default function CreateMentorship() {
    * Follows Single Responsibility Principle - only creates mentorship and sends invitations
    */
   const createMentorshipWithInvitations = async () => {
+    setIsProcessing(true)
     try {
       // Create mentorship with pending status
       const mentorshipData = {
@@ -239,6 +240,7 @@ export default function CreateMentorship() {
       navigate(`/mentorship/${createdMentorship.id}`)
     } catch (error) {
       console.error('Error creating mentorship with invitations:', error)
+      setIsProcessing(false)
       await confirm.error(
         'Error creating mentorship. Please try again.',
         'Error'
@@ -826,8 +828,17 @@ export default function CreateMentorship() {
           )}
 
           {/* Step 5: Invite Mentors - Full width mentor selection */}
-          {currentStep === 5 && showFindMentors && !isProcessing && (
-            <div className="p-0">
+          {currentStep === 5 && showFindMentors && (
+            <div className={`p-0 relative ${isProcessing ? 'pointer-events-none' : ''}`}>
+              {isProcessing && (
+                <div className="absolute inset-0 bg-white/60 backdrop-blur-sm z-10 flex items-center justify-center rounded-[24px]">
+                  <div className="text-center">
+                    <Loader2 className="w-12 h-12 text-baires-indigo mx-auto mb-4 animate-spin" />
+                    <p className="text-lg font-bold text-neutral-black">Creating Mentorship...</p>
+                    <p className="text-sm text-neutral-gray-dark">Please wait while we set everything up</p>
+                  </div>
+                </div>
+              )}
               <MentorSelectionStep
                 selectedMentee={selectedMentee}
                 technologies={[...selectedTechs, ...customSkills]}
@@ -949,6 +960,16 @@ export default function CreateMentorship() {
                       <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </>
                   )}
+                </button>
+              )}
+
+              {isProcessing && (
+                <button
+                  disabled
+                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-[14px] font-bold bg-gradient-to-r from-baires-indigo to-indigo-600 text-white shadow-lg opacity-90 cursor-not-allowed"
+                >
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span>{currentStep === 5 ? 'Creating Mentorship...' : 'Finding Mentors...'}</span>
                 </button>
               )}
             </div>
