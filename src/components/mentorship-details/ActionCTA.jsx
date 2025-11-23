@@ -6,8 +6,8 @@ export default function ActionCTA({
   title, 
   description, 
   buttonText, 
-  buttonIcon: ButtonIcon,
-  icon: Icon,
+  buttonIcon: ButtonIcon, // eslint-disable-line no-unused-vars
+  icon: Icon, // eslint-disable-line no-unused-vars
   badge,
   features = [],
   bgGradient = 'from-baires-blue via-blue-600 to-blue-700',

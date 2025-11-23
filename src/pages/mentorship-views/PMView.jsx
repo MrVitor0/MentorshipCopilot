@@ -1,12 +1,12 @@
 import { useState } from 'react'
-import { Clock, Users, UserPlus, CheckCircle, X as XIcon, BarChart3, Calendar, TrendingUp, Target, Sparkles, Bot, FileText, MessageSquare, AlertCircle } from 'lucide-react'
-import { useConfirm } from '../../hooks/useConfirm'
+import { Clock, Users, UserPlus, CheckCircle, X as XIcon, BarChart3, Calendar, TrendingUp, Target, Sparkles, Bot, Lightbulb, FileText, MessageSquare, AlertCircle, Plus, FolderOpen, Download } from 'lucide-react'
 import Card from '../../components/Card'
 import Badge from '../../components/Badge'
 import Button from '../../components/Button'
 import Avatar from '../../components/Avatar'
 import MessageModal from '../../components/MessageModal'
-import { StatsCard, SessionHistory, ProgressChart, MaterialsList } from '../../components/mentorship-details'
+import ScheduleSessionModal from '../../components/ScheduleSessionModal'
+import { ActionCTA, SessionHistory, MaterialsList, QuickActions } from '../../components/mentorship-details'
 
 export default function PMView({
   data,
@@ -15,7 +15,6 @@ export default function PMView({
   averageProgress,
   weeksDuration,
   materials,
-  loadingMaterials,
   joinRequestsWithProfiles,
   invitationsWithProfiles,
   processingRequest,
@@ -26,8 +25,8 @@ export default function PMView({
   id,
   sessions
 }) {
-  const confirm = useConfirm()
   const [isMessageModalOpen, setIsMessageModalOpen] = useState(false)
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false)
   const [messageRecipient, setMessageRecipient] = useState(null)
   const isPending = data?.status === 'pending' || data?.status === 'pending_mentor'
 
@@ -307,206 +306,197 @@ export default function PMView({
 
       {/* Grid Layout - Only show if not pending */}
       {!isPending && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-          <div className="lg:col-span-2 space-y-6 md:space-y-8">
-            {/* AI Insights */}
-            {data?.sessions && data.sessions.length > 0 && (
-              <Card padding="lg" className="bg-gradient-to-br from-orange-50 via-white to-blue-50 border-2 border-orange-200/50">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-br from-baires-blue to-blue-600 rounded-[16px] flex items-center justify-center shadow-lg">
-                    <Sparkles className="w-6 h-6 text-white animate-pulse" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-neutral-black flex items-center gap-2">
-                      AI Magic Insights
-                      <Badge variant="orange" className="text-xs">AI</Badge>
-                    </h2>
-                    <p className="text-sm text-neutral-gray-dark flex items-center gap-1">
-                      <Bot className="w-3 h-3 text-baires-blue" />
-                      Smart recommendations powered by AI
-                    </p>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="p-4 bg-gradient-to-br from-green-50 to-green-100/50 rounded-[16px] border border-green-200/50">
-                    <div className="flex items-start gap-3">
-                      <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                      <div>
-                        <div className="font-bold text-green-900 mb-1">Mentorship In Progress</div>
-                        <p className="text-sm text-green-800">This mentorship is actively progressing. Keep up the good work with regular sessions and feedback.</p>
-                      </div>
+        <>
+          {/* Grid with Mentorship Goals and Quick Actions */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 mb-6 md:mb-8">
+            {/* Mentorship Goals - Customizable by PM */}
+            <div className="lg:col-span-2">
+              <Card padding="lg" className="h-full">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-baires-blue to-blue-600 rounded-[14px] flex items-center justify-center shadow-lg">
+                      <Target className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold text-neutral-black">Mentorship Goals</h2>
+                      <p className="text-sm text-neutral-gray-dark">Define and track custom progress metrics</p>
                     </div>
                   </div>
+                  <button
+                    onClick={() => setIsGoalWizardOpen(true)}
+                    className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-[12px] font-semibold hover:shadow-md transition-all flex items-center gap-2"
+                  >
+                    <AlertCircle className="w-4 h-4" />
+                    Manage Goals
+                  </button>
+                </div>
 
-                  <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-[16px] border border-blue-200/50">
-                    <div className="flex items-start gap-3">
-                      <TrendingUp className="w-5 h-5 text-baires-blue flex-shrink-0 mt-0.5" />
-                      <div>
-                        <div className="font-bold text-blue-900 mb-1">Recommended Action</div>
-                        <p className="text-sm text-blue-800">Regular check-ins help maintain momentum. Consider scheduling recurring sessions for consistency.</p>
-                      </div>
+                <div className={`grid grid-cols-2 ${(customGoals?.length || 4) > 4 ? 'md:grid-cols-4 lg:grid-cols-5' : 'md:grid-cols-4'} gap-4`}>
+                  {(customGoals || [
+                    { id: 'sessions', name: 'Total Sessions', current: data?.sessionsCompleted || 0, target: 10, variant: 'blue' },
+                    { id: 'progress', name: 'Overall Progress', current: data?.progress || 0, target: 100, variant: 'green', unit: '%' },
+                    { id: 'duration', name: 'Duration', current: weeksDuration || 0, target: 12, variant: 'purple', unit: 'w' },
+                    { id: 'rating', name: 'Avg Rating', current: parseFloat(averageProgress) || 0, target: 5, variant: 'orange', unit: '/5' }
+                  ]).map((goal) => {
+                    // Update current values based on actual mentorship data
+                    let currentValue = goal.current || 0
+                    if (goal.id === 'sessions') currentValue = data?.sessionsCompleted || 0
+                    else if (goal.id === 'progress') currentValue = data?.progress || 0
+                    else if (goal.id === 'duration') currentValue = weeksDuration || 0
+                    else if (goal.id === 'rating') currentValue = parseFloat(averageProgress) || 0
+                    
+                    const displayGoal = { ...goal, current: currentValue }
+                    const variants = {
+                      blue: { icon: BarChart3, color: 'blue' },
+                      green: { icon: Target, color: 'green' },
+                      purple: { icon: Clock, color: 'purple' },
+                      orange: { icon: TrendingUp, color: 'orange' },
+                      pink: { icon: Sparkles, color: 'pink' },
+                      yellow: { icon: Calendar, color: 'yellow' }
+                    }
+                    const variantConfig = variants[displayGoal.variant] || variants.blue
+                    
+                    return (
+                      <Card key={displayGoal.id} padding="md" className={`bg-gradient-to-br from-${variantConfig.color}-50 to-${variantConfig.color}-100/50 border-2 border-${variantConfig.color}-200`}>
+                        <variantConfig.icon className={`w-8 h-8 text-${variantConfig.color}-600 mb-2`} />
+                        <div className="text-xs font-bold uppercase text-neutral-gray-dark mb-1">{displayGoal.name}</div>
+                        <div className="text-xl font-bold text-neutral-black">
+                          {displayGoal.current}{displayGoal.unit || ''} / {displayGoal.target}{displayGoal.unit || ''}
+                        </div>
+                      </Card>
+                    )
+                  })}
+                </div>
+
+                {!customGoals && (
+                  <div className="mt-4 p-3 bg-blue-50 rounded-[12px] border border-blue-200">
+                    <p className="text-xs text-blue-800 flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4" />
+                      <span>Click <strong>"Manage Goals"</strong> to customize these metrics for your mentorship</span>
+                    </p>
+                  </div>
+                )}
+              </Card>
+            </div>
+
+            {/* Quick Actions */}
+            <div>
+              <QuickActions
+                onMessageClick={() => {
+                  setMessageRecipient({
+                    name: data?.mentorName || 'Mentor',
+                    avatar: data?.mentorAvatar,
+                    role: 'Mentor'
+                  })
+                  setIsMessageModalOpen(true)
+                }}
+                onScheduleClick={() => setIsScheduleModalOpen(true)}
+                recipientName={data?.mentorName || 'Mentor'}
+              />
+            </div>
+          </div>
+
+          {/* AI Summary + AI Tips */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 mb-6 md:mb-8">
+            <div className="lg:col-span-2">
+              <Card padding="lg" className="bg-gradient-to-br from-baires-blue via-blue-600 to-blue-700 text-white border-none shadow-[0_20px_50px_rgb(246,97,53,0.3)] h-full">
+                <div className="relative h-full flex flex-col">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+                  <div className="relative flex-1">
+                    <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-[18px] flex items-center justify-center mb-4 shadow-lg">
+                      <Sparkles className="w-7 h-7 text-white animate-pulse" />
+                    </div>
+                    <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
+                      AI Summary
+                    </h3>
+                    <p className="text-sm font-bold mb-4 opacity-90 leading-relaxed">
+                      &quot;Sarah has shown exceptional growth, progressing from basic React concepts to building production-ready features. Her proactive learning approach and consistent practice have accelerated her development significantly.&quot;
+                    </p>
+                    <div className="flex items-center gap-2 text-xs opacity-90">
+                      <Bot className="w-4 h-4" />
+                      <span>Generated by Mentorship Copilot</span>
                     </div>
                   </div>
                 </div>
               </Card>
-            )}
+            </div>
 
-
-            {/* Progress Goals - Customizable by PM */}
-            <Card padding="lg">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-baires-blue to-blue-600 rounded-[14px] flex items-center justify-center shadow-lg">
-                    <Target className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-neutral-black">Mentorship Goals</h2>
-                    <p className="text-sm text-neutral-gray-dark">Define and track custom progress metrics</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setIsGoalWizardOpen(true)}
-                  className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-[12px] font-semibold hover:shadow-md transition-all flex items-center gap-2"
-                >
-                  <AlertCircle className="w-4 h-4" />
-                  Manage Goals
-                </button>
-              </div>
-
-              <div className={`grid grid-cols-2 ${(customGoals?.length || 4) > 4 ? 'md:grid-cols-4 lg:grid-cols-5' : 'md:grid-cols-4'} gap-4`}>
-                {(customGoals || [
-                  { id: 'sessions', name: 'Total Sessions', current: data?.sessionsCompleted || 0, target: 10, variant: 'blue' },
-                  { id: 'progress', name: 'Overall Progress', current: data?.progress || 0, target: 100, variant: 'green', unit: '%' },
-                  { id: 'duration', name: 'Duration', current: weeksDuration || 0, target: 12, variant: 'purple', unit: 'w' },
-                  { id: 'rating', name: 'Avg Rating', current: parseFloat(averageProgress) || 0, target: 5, variant: 'orange', unit: '/5' }
-                ]).map((goal) => {
-                  // Update current values based on actual mentorship data
-                  let currentValue = goal.current || 0
-                  if (goal.id === 'sessions') currentValue = data?.sessionsCompleted || 0
-                  else if (goal.id === 'progress') currentValue = data?.progress || 0
-                  else if (goal.id === 'duration') currentValue = weeksDuration || 0
-                  else if (goal.id === 'rating') currentValue = parseFloat(averageProgress) || 0
-                  
-                  const displayGoal = { ...goal, current: currentValue }
-                  const variants = {
-                    blue: { icon: BarChart3, color: 'blue' },
-                    green: { icon: Target, color: 'green' },
-                    purple: { icon: Clock, color: 'purple' },
-                    orange: { icon: TrendingUp, color: 'orange' },
-                    pink: { icon: Sparkles, color: 'pink' },
-                    yellow: { icon: Calendar, color: 'yellow' }
-                  }
-                  const variantConfig = variants[displayGoal.variant] || variants.blue
-                  
-                  return (
-                    <Card key={displayGoal.id} padding="md" className={`bg-gradient-to-br from-${variantConfig.color}-50 to-${variantConfig.color}-100/50 border-2 border-${variantConfig.color}-200`}>
-                      <variantConfig.icon className={`w-8 h-8 text-${variantConfig.color}-600 mb-2`} />
-                      <div className="text-xs font-bold uppercase text-neutral-gray-dark mb-1">{displayGoal.name}</div>
-                      <div className="text-xl font-bold text-neutral-black">
-                        {displayGoal.current}{displayGoal.unit || ''} / {displayGoal.target}{displayGoal.unit || ''}
+            <div>
+              <Card padding="lg" className="bg-gradient-to-br from-baires-blue via-blue-600 to-blue-700 text-white border-none shadow-[0_20px_50px_rgb(246,97,53,0.3)] h-full">
+                <div className="relative h-full flex flex-col">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+                  <div className="relative flex-1">
+                    <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-[16px] flex items-center justify-center mb-4 shadow-lg">
+                      <Lightbulb className="w-6 h-6 text-white" />
+                    </div>
+                    <h3 className="text-lg font-bold mb-2">PM Tips</h3>
+                    <div className="space-y-2 text-sm opacity-90">
+                      <div className="flex items-start gap-2">
+                        <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                        <p>Regular check-ins maintain momentum</p>
                       </div>
-                    </Card>
-                  )
-                })}
-              </div>
-
-              {!customGoals && (
-                <div className="mt-4 p-3 bg-blue-50 rounded-[12px] border border-blue-200">
-                  <p className="text-xs text-blue-800 flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4" />
-                    <span>Click <strong>"Manage Goals"</strong> to customize these metrics for your mentorship</span>
-                  </p>
+                      <div className="flex items-start gap-2">
+                        <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                        <p>Set clear goals and track progress</p>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                        <p>Provide timely feedback to mentors</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs opacity-75 mt-4">
+                      <Bot className="w-4 h-4" />
+                      <span>Mentorship Copilot</span>
+                    </div>
+                  </div>
                 </div>
-              )}
-            </Card>
-
-            <SessionHistory sessions={sessions} />
-
-            {/* Learning Materials */}
-            <MaterialsList 
-              materials={materials} 
-              description={loadingMaterials ? 'Loading materials...' : `${materials.length} resource${materials.length !== 1 ? 's' : ''} shared`} 
-            />
+              </Card>
+            </div>
           </div>
 
-          {/* Sidebar */}
+          {/* Full Width Row - Materials CTA, Materials List, and Session History */}
           <div className="space-y-6 md:space-y-8">
-        
-
-            <Card padding="lg" className="bg-gradient-to-br from-baires-blue  to-blue-600 text-white border-none shadow-[0_20px_50px_rgb(246,97,53,0.3)]">
-              <div className="relative">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
-                <div className="relative">
-                  <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-[18px] flex items-center justify-center mb-4 shadow-lg">
-                    <Sparkles className="w-7 h-7 text-white animate-pulse" />
-                  </div>
-                  <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
-                    AI Summary
-                  </h3>
-                  <p className="text-sm  font-bold mb-4 opacity-90 leading-relaxed">
-                    &quot;Sarah has shown exceptional growth, progressing from basic React concepts to building production-ready features. Her proactive learning approach and consistent practice have accelerated her development significantly.&quot;
-                  </p>
-                  <div className="flex items-center gap-2 text-xs opacity-90">
-                    <Bot className="w-4 h-4" />
-                    <span>Generated by Mentorship Copilot</span>
-                  </div>
-                </div>
-              </div>
-            </Card>
-
-            <Card padding="lg">
-              <h3 className="text-lg font-bold text-neutral-black mb-4">Quick Actions</h3>
-              <div className="space-y-3">
-                <button 
-                  onClick={() => {
-                    setMessageRecipient({
-                      name: data?.mentorName || 'Mentor',
-                      avatar: data?.mentorAvatar,
-                      role: 'Mentor'
-                    })
-                    setIsMessageModalOpen(true)
-                  }}
-                  disabled={!data?.mentorId}
-                  className="w-full flex items-center gap-3 p-3 bg-gradient-to-r from-baires-blue to-blue-600 text-white rounded-[14px] font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <MessageSquare className="w-5 h-5" />
-                  <span>Message Mentor</span>
-                </button>
-                <button 
-                  onClick={() => confirm.info(
-                    'Session scheduling feature coming soon!\n\nYou will be able to:\n- Schedule review meetings\n- Check progress together\n- Set team objectives\n- Track milestones',
-                    'Coming Soon'
-                  )}
-                  className="w-full flex items-center gap-3 p-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-[14px] font-semibold hover:shadow-lg transition-all"
-                >
-                  <Calendar className="w-5 h-5" />
-                  <span>Schedule Review</span>
-                </button>
-                <button 
-                  onClick={() => confirm.info(
-                    'Report export feature coming soon!\n\nYou will be able to:\n- Export mentorship progress\n- Generate PDF reports\n- Share with stakeholders\n- Track metrics over time',
-                    'Coming Soon'
-                  )}
-                  className="w-full flex items-center gap-3 p-3 bg-neutral-100 text-neutral-black rounded-[14px] font-semibold hover:bg-neutral-200 transition-all"
-                >
-                  <FileText className="w-5 h-5" />
-                  <span>Export Report</span>
-                </button>
-              </div>
-            </Card>
-            
-            <MessageModal 
-              isOpen={isMessageModalOpen}
-              onClose={() => {
-                setIsMessageModalOpen(false)
-                setMessageRecipient(null)
-              }}
-              recipient={messageRecipient}
+            <ActionCTA
+              onClick={() => navigate(`/mentorship/${id}/find-mentors`)}
+              title="Need More Support?"
+              description="Browse our network of expert mentors and invite additional specialists to support this mentorship. Find the perfect match for any skill gap or specialized need."
+              buttonText="Browse Mentors"
+              buttonIcon={Users}
+              icon={Users}
+              badge="Expand Your Team"
+              bgGradient="from-blue-500 via-blue-600 to-blue-700"
+              buttonTextColor="text-blue-600"
+              features={[
+                { icon: Users, label: 'Expert Network' },
+                { icon: Target, label: 'Skill Match' },
+                { icon: Sparkles, label: 'AI Powered' }
+              ]}
             />
+
+            <MaterialsList materials={materials} />
+            
+            <SessionHistory sessions={sessions} title="Session History" showEdit={false} />
           </div>
-        </div>
+        </>
       )}
+
+      <MessageModal 
+        isOpen={isMessageModalOpen}
+        onClose={() => {
+          setIsMessageModalOpen(false)
+          setMessageRecipient(null)
+        }}
+        recipient={messageRecipient}
+      />
+      
+      <ScheduleSessionModal
+        isOpen={isScheduleModalOpen}
+        onClose={() => setIsScheduleModalOpen(false)}
+        mentee={{
+          name: data?.menteeName,
+          avatar: data?.menteeAvatar
+        }}
+      />
     </>
   )
 }

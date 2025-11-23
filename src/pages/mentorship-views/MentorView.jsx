@@ -142,10 +142,9 @@ export default function MentorView({
         </div>
       </div>
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-        <div className="lg:col-span-2 space-y-6 md:space-y-8">
-          {/* Session Logging CTA */}
+      {/* Session Logging CTA + AI Tips */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 mb-6 md:mb-8">
+        <div className="lg:col-span-2">
           <ActionCTA
             onClick={() => setIsSessionWizardOpen(true)}
             title="Log New Session"
@@ -162,55 +161,13 @@ export default function MentorView({
               { icon: FileText, label: 'Auto-Save' }
             ]}
           />
-
-          {/* Materials CTA */}
-          <ActionCTA
-            onClick={() => setIsMaterialWizardOpen(true)}
-            title="Add New Material"
-            description="Share PDFs, images, links, videos, spreadsheets, and other learning materials with your mentee. Build a comprehensive resource library."
-            buttonText="Add Material Wizard"
-            buttonIcon={FolderOpen}
-            icon={FolderOpen}
-            badge="Resource Library"
-            bgGradient="from-blue-500 via-blue-600 to-blue-700"
-            buttonTextColor="text-blue-600"
-            features={[
-              { icon: FileText, label: 'Multiple Types' },
-              { icon: FolderOpen, label: 'Organized' },
-              { icon: Download, label: 'Easy Access' }
-            ]}
-          />
-
-          <MaterialsList materials={materials} />
-          
-          <SessionHistory sessions={sessions} title="Your Session Logs" showEdit={true} />
         </div>
 
-        {/* Sidebar */}
-        <div className="space-y-6 md:space-y-8">
-          <MessageModal 
-            isOpen={isMessageModalOpen}
-            onClose={() => setIsMessageModalOpen(false)}
-            recipient={{
-              name: data?.menteeName,
-              avatar: data?.menteeAvatar,
-              role: 'Mentee'
-            }}
-          />
-          
-          <ScheduleSessionModal
-            isOpen={isScheduleModalOpen}
-            onClose={() => setIsScheduleModalOpen(false)}
-            mentee={{
-              name: data?.menteeName,
-              avatar: data?.menteeAvatar
-            }}
-          />
-
-          <Card padding="lg" className="bg-gradient-to-br from-baires-blue via-blue-600 to-blue-700 text-white border-none shadow-[0_20px_50px_rgb(246,97,53,0.3)]">
-            <div className="relative">
+        <div>
+          <Card padding="lg" className="bg-gradient-to-br from-baires-blue via-blue-600 to-blue-700 text-white border-none shadow-[0_20px_50px_rgb(246,97,53,0.3)] h-full">
+            <div className="relative h-full flex flex-col">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
-              <div className="relative">
+              <div className="relative flex-1">
                 <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-[16px] flex items-center justify-center mb-4 shadow-lg">
                   <Lightbulb className="w-6 h-6 text-white" />
                 </div>
@@ -238,6 +195,49 @@ export default function MentorView({
           </Card>
         </div>
       </div>
+
+      {/* Full Width Row - Materials CTA, Materials List, and Session History */}
+      <div className="space-y-6 md:space-y-8">
+        <ActionCTA
+          onClick={() => setIsMaterialWizardOpen(true)}
+          title="Add New Material"
+          description="Share PDFs, images, links, videos, spreadsheets, and other learning materials with your mentee. Build a comprehensive resource library."
+          buttonText="Add Material Wizard"
+          buttonIcon={FolderOpen}
+          icon={FolderOpen}
+          badge="Resource Library"
+          bgGradient="from-blue-500 via-blue-600 to-blue-700"
+          buttonTextColor="text-blue-600"
+          features={[
+            { icon: FileText, label: 'Multiple Types' },
+            { icon: FolderOpen, label: 'Organized' },
+            { icon: Download, label: 'Easy Access' }
+          ]}
+        />
+
+        <MaterialsList materials={materials} />
+        
+        <SessionHistory sessions={sessions} title="Your Session Logs" showEdit={true} />
+      </div>
+
+      <MessageModal 
+        isOpen={isMessageModalOpen}
+        onClose={() => setIsMessageModalOpen(false)}
+        recipient={{
+          name: data?.menteeName,
+          avatar: data?.menteeAvatar,
+          role: 'Mentee'
+        }}
+      />
+      
+      <ScheduleSessionModal
+        isOpen={isScheduleModalOpen}
+        onClose={() => setIsScheduleModalOpen(false)}
+        mentee={{
+          name: data?.menteeName,
+          avatar: data?.menteeAvatar
+        }}
+      />
     </>
   )
 }

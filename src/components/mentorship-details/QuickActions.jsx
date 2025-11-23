@@ -7,7 +7,7 @@ export default function QuickActions({
   recipientName = 'Mentee'
 }) {
   return (
-    <Card padding="lg" className="bg-gradient-to-br from-white via-blue-50/40 to-purple-50/40 border-2 border-blue-200/60 shadow-lg hover:shadow-xl transition-all duration-300 h-full">
+    <Card padding="lg" className="relative overflow-hidden bg-gradient-to-br from-white via-blue-50/40 to-purple-50/40 border-2 border-blue-200/60 shadow-lg hover:shadow-xl transition-all duration-300 h-full">
       <div className="flex items-center gap-3 mb-6">
         <div className="w-10 h-10 bg-gradient-to-br from-baires-blue to-blue-600 rounded-[14px] flex items-center justify-center shadow-lg">
           <MessageSquare className="w-5 h-5 text-white" />
@@ -21,7 +21,7 @@ export default function QuickActions({
       <div className="space-y-3">
         <button 
           onClick={onMessageClick}
-          className="w-full group relative overflow-hidden flex items-center gap-3 p-4 bg-gradient-to-r from-baires-blue to-blue-600 text-white rounded-[14px] font-semibold hover:shadow-[0_8px_30px_rgb(59,130,246,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+          className="w-full cursor-pointer group relative overflow-hidden flex items-center gap-3 p-4 bg-gradient-to-r from-baires-blue to-blue-600 text-white rounded-[14px] font-semibold hover:shadow-[0_8px_30px_rgb(59,130,246,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
         >
           <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-700 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
           <div className="relative w-10 h-10 bg-white/20 backdrop-blur-sm rounded-[12px] flex items-center justify-center shadow-md">
@@ -35,7 +35,7 @@ export default function QuickActions({
 
         <button 
           onClick={onScheduleClick}
-          className="w-full group relative overflow-hidden flex items-center gap-3 p-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-[14px] font-semibold hover:shadow-[0_8px_30px_rgb(34,197,94,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+          className="w-full cursor-pointer group relative overflow-hidden flex items-center gap-3 p-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-[14px] font-semibold hover:shadow-[0_8px_30px_rgb(34,197,94,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
         >
           <div className="absolute inset-0 bg-gradient-to-r from-green-600 to-green-700 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
           <div className="relative w-10 h-10 bg-white/20 backdrop-blur-sm rounded-[12px] flex items-center justify-center shadow-md">
